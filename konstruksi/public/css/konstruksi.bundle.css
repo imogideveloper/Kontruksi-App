@@ -6,9 +6,13 @@
 	--konstruksi-label-width: 190px;
 	/* Lebar input tanggal/waktu; cukup untuk tanggal + ikon kalender. */
 	--konstruksi-date-width: 220px;
-	/* Warna blok menu sidebar aktif & header list. */
-	--konstruksi-active-bg: #a9d8db; /* biru telur asin */
-	--konstruksi-active-fg: #1f3a44;
+	/* Warna blok menu sidebar aktif & header list/tabel (biru muda, gaya ERPNext). */
+	--konstruksi-active-bg: #e3efff;
+	/* Teks & ikon menu sidebar aktif, plus garis aksen di kirinya. */
+	--konstruksi-active-fg: #2f5792;
+	--konstruksi-active-accent: #3c7dd1;
+	/* Teks header list & tabel: abu-abu, tidak tebal. */
+	--konstruksi-header-fg: #6b7280;
 	/* Sudut blok warna: lancip. */
 	--konstruksi-block-radius: 0;
 }
@@ -17,7 +21,7 @@
 .body-sidebar .standard-sidebar-item.active-sidebar,
 .body-sidebar .standard-sidebar-item.active-sidebar:hover {
 	background-color: var(--konstruksi-active-bg) !important;
-	box-shadow: none !important;
+	box-shadow: inset 3px 0 0 var(--konstruksi-active-accent) !important;
 	border-radius: var(--konstruksi-block-radius) !important;
 }
 
@@ -99,12 +103,11 @@
 
 .frappe-list .list-row-head,
 .frappe-list .list-row-head *:not(input) {
-	color: var(--konstruksi-active-fg) !important;
-	font-weight: 600;
+	color: var(--konstruksi-header-fg) !important;
 }
 
 .frappe-list .list-row-head .icon {
-	stroke: var(--konstruksi-active-fg) !important;
+	stroke: var(--konstruksi-header-fg) !important;
 }
 
 /* Tabel anak (grid) di form: header diberi blok warna seperti header list, sudut lancip. */
@@ -121,12 +124,11 @@
 
 .form-grid .grid-heading-row .grid-row .col,
 .form-grid .grid-heading-row .grid-row .col *:not(input) {
-	color: var(--konstruksi-active-fg) !important;
-	font-weight: 600;
+	color: var(--konstruksi-header-fg) !important;
 }
 
 .form-grid .grid-heading-row .icon {
-	stroke: var(--konstruksi-active-fg) !important;
+	stroke: var(--konstruksi-header-fg) !important;
 }
 
 /* Tabel Item Pekerjaan RAB Penawaran: lebar kolom pasti, proporsional dari sisa lebar tabel
