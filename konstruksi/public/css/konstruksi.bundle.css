@@ -1,0 +1,77 @@
+/* Lebar penuh di seluruh desk: hapus batas 900px (--page-max-width) di workspace, form, list, tree. */
+:root,
+[data-theme] {
+	--page-max-width: 100%;
+	/* Lebar kolom label form; sama di semua kolom supaya input sejajar. */
+	--konstruksi-label-width: 190px;
+	/* Lebar input tanggal/waktu; cukup untuk tanggal + ikon kalender. */
+	--konstruksi-date-width: 220px;
+	/* Warna blok menu sidebar yang aktif. */
+	--konstruksi-active-bg: #2563eb;
+	--konstruksi-active-fg: #ffffff;
+}
+
+/* Sidebar kiri: menu aktif diberi blok warna solid. */
+.body-sidebar .standard-sidebar-item.active-sidebar,
+.body-sidebar .standard-sidebar-item.active-sidebar:hover {
+	background-color: var(--konstruksi-active-bg) !important;
+	box-shadow: none !important;
+}
+
+.body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-label,
+.body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon,
+.body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon .icon,
+.body-sidebar .standard-sidebar-item.active-sidebar .item-anchor {
+	color: var(--konstruksi-active-fg) !important;
+}
+
+/* Form horizontal: label di kiri (rata kiri, lebar tetap), input di kanan — posisi & lebar input simetris antar kolom — berlaku di form & dialog desk.
+   Field lebar (tabel, editor, HTML, checkbox) tetap vertikal; di layar < 768px kembali vertikal. */
+@media (min-width: 768px) {
+	.form-layout .frappe-control:not([data-fieldtype="Check"]):not([data-fieldtype="Table"]):not([data-fieldtype="HTML"]):not([data-fieldtype="Text Editor"]):not([data-fieldtype="HTML Editor"]):not([data-fieldtype="Markdown Editor"]):not([data-fieldtype="Code"]):not([data-fieldtype="JSON"]):not([data-fieldtype="Signature"]):not([data-fieldtype="Geolocation"]):not([data-fieldtype="Button"]):not([data-fieldtype="Heading"]) > .form-group {
+		display: grid;
+		grid-template-columns: var(--konstruksi-label-width) minmax(0, 1fr);
+		column-gap: 12px;
+		align-items: start;
+	}
+
+	.form-layout .frappe-control:not([data-fieldtype="Check"]):not([data-fieldtype="Table"]):not([data-fieldtype="HTML"]):not([data-fieldtype="Text Editor"]):not([data-fieldtype="HTML Editor"]):not([data-fieldtype="Markdown Editor"]):not([data-fieldtype="Code"]):not([data-fieldtype="JSON"]):not([data-fieldtype="Signature"]):not([data-fieldtype="Geolocation"]):not([data-fieldtype="Button"]):not([data-fieldtype="Heading"]) > .form-group > .clearfix {
+		display: flex;
+		justify-content: flex-start;
+		align-items: center;
+		min-height: var(--input-height, 28px);
+		margin: 0;
+		text-align: left;
+	}
+
+	.form-layout .frappe-control:not([data-fieldtype="Check"]):not([data-fieldtype="Table"]):not([data-fieldtype="HTML"]):not([data-fieldtype="Text Editor"]):not([data-fieldtype="HTML Editor"]):not([data-fieldtype="Markdown Editor"]):not([data-fieldtype="Code"]):not([data-fieldtype="JSON"]):not([data-fieldtype="Signature"]):not([data-fieldtype="Geolocation"]):not([data-fieldtype="Button"]):not([data-fieldtype="Heading"]) > .form-group > .clearfix > .control-label {
+		margin: 0;
+		padding-right: 0 !important;
+		white-space: normal;
+	}
+
+	/* Input selalu di kolom kanan, juga bila labelnya kosong. */
+	.form-layout .frappe-control:not([data-fieldtype="Check"]):not([data-fieldtype="Table"]):not([data-fieldtype="HTML"]):not([data-fieldtype="Text Editor"]):not([data-fieldtype="HTML Editor"]):not([data-fieldtype="Markdown Editor"]):not([data-fieldtype="Code"]):not([data-fieldtype="JSON"]):not([data-fieldtype="Signature"]):not([data-fieldtype="Geolocation"]):not([data-fieldtype="Button"]):not([data-fieldtype="Heading"]) > .form-group > .control-input-wrapper {
+		grid-column: 2;
+		min-width: 0;
+	}
+
+	/* Hapus batas lebar input bawaan agar mengisi kolom kanan. */
+	.form-layout .frappe-control.input-max-width .control-input-wrapper,
+	.form-layout .frappe-control.input-max-width .form-control {
+		max-width: 100%;
+	}
+}
+
+/* Input tanggal/waktu tidak perlu selebar kolom. */
+.form-layout .frappe-control[data-fieldtype="Date"] .control-input,
+.form-layout .frappe-control[data-fieldtype="Date"] .control-value,
+.form-layout .frappe-control[data-fieldtype="Time"] .control-input,
+.form-layout .frappe-control[data-fieldtype="Time"] .control-value {
+	max-width: var(--konstruksi-date-width);
+}
+
+.form-layout .frappe-control[data-fieldtype="Datetime"] .control-input,
+.form-layout .frappe-control[data-fieldtype="Datetime"] .control-value {
+	max-width: calc(var(--konstruksi-date-width) + 60px);
+}

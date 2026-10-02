@@ -1,0 +1,282 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:kode",
+ "creation": "2026-10-02 18:30:00.000000",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "paket_pekerjaan_section",
+  "paket_pekerjaan_column",
+  "kode",
+  "nama_paket",
+  "pemberi_kerja",
+  "lokasi",
+  "jenis_pekerjaan",
+  "metode_pemilihan",
+  "kode_paket",
+  "sumber_dana",
+  "jenis_kontrak",
+  "nilai_waktu_column",
+  "hps",
+  "nilai_penawaran",
+  "persen_hps",
+  "status_ppn",
+  "tarif_ppn",
+  "masa_pelaksanaan",
+  "rapat_penjelasan",
+  "batas_pemasukan",
+  "penanggung_jawab",
+  "catatan",
+  "hasil_section",
+  "status",
+  "column_break_hasil",
+  "pemenang",
+  "nilai_pemenang",
+  "alasan"
+ ],
+ "fields": [
+  {
+   "fieldname": "paket_pekerjaan_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "paket_pekerjaan_column",
+   "fieldtype": "Column Break",
+   "label": "Paket Pekerjaan"
+  },
+  {
+   "fieldname": "kode",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Kode",
+   "unique": 1,
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "nama_paket",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "label": "Nama Paket",
+   "placeholder": "sesuai pengumuman / undangan",
+   "reqd": 1
+  },
+  {
+   "fieldname": "pemberi_kerja",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Pemberi Kerja",
+   "placeholder": "instansi / perusahaan",
+   "reqd": 1
+  },
+  {
+   "fieldname": "lokasi",
+   "fieldtype": "Data",
+   "label": "Lokasi"
+  },
+  {
+   "default": "Gedung",
+   "fieldname": "jenis_pekerjaan",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Jenis Pekerjaan",
+   "options": "Gedung\nJalan & Jembatan\nSumber Daya Air\nMekanikal & Elektrikal\nLainnya"
+  },
+  {
+   "default": "Tender (LPSE)",
+   "fieldname": "metode_pemilihan",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Metode Pemilihan",
+   "options": "Tender (LPSE)\nTender Cepat (LPSE)\nSeleksi (LPSE)\nPenunjukan Langsung\nPengadaan Langsung\nE-Purchasing\nTender Swasta\nUndangan Swasta"
+  },
+  {
+   "description": "Nomor pengenal paket dari pemberi kerja — di LPSE disebut \"Kode Tender\"; untuk swasta pakai nomor surat undangan / RFQ.",
+   "fieldname": "kode_paket",
+   "fieldtype": "Data",
+   "label": "Kode Paket / Sumber",
+   "placeholder": "mis. kode LPSE, nomor undangan"
+  },
+  {
+   "description": "Asal uang pemberi kerja untuk membayar proyek — tercantum di pengumuman / dokumen pemilihan.",
+   "fieldname": "sumber_dana",
+   "fieldtype": "Data",
+   "label": "Sumber Dana"
+  },
+  {
+   "description": "Cara pembayaran: Lumsum = harga total tetap · Harga Satuan = dibayar sesuai volume terpasang. Lihat dokumen pemilihan.",
+   "fieldname": "jenis_kontrak",
+   "fieldtype": "Select",
+   "label": "Jenis Kontrak",
+   "options": "\nLumsum\nHarga Satuan\nGabungan Lumsum dan Harga Satuan\nTerima Jadi (Turnkey)\nKontrak Payung"
+  },
+  {
+   "fieldname": "nilai_waktu_column",
+   "fieldtype": "Column Break",
+   "label": "Nilai & Waktu"
+  },
+  {
+   "fieldname": "hps",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "HPS (Rp)",
+   "options": "IDR"
+  },
+  {
+   "fieldname": "nilai_penawaran",
+   "fieldtype": "Currency",
+   "label": "Nilai Penawaran Kita (Rp)",
+   "mandatory_depends_on": "eval:in_list([\"Penawaran Dikirim\", \"Evaluasi\", \"Menang\", \"Kalah\"], doc.status)",
+   "options": "IDR"
+  },
+  {
+   "fieldname": "persen_hps",
+   "fieldtype": "Percent",
+   "label": "Penawaran / HPS (%)",
+   "read_only": 1,
+   "precision": "2",
+   "depends_on": "eval:doc.hps && doc.nilai_penawaran",
+   "no_copy": 1
+  },
+  {
+   "default": "PPN",
+   "fieldname": "status_ppn",
+   "fieldtype": "Select",
+   "label": "Status PPN",
+   "options": "PPN\nTidak Kena PPN"
+  },
+  {
+   "default": "11",
+   "depends_on": "eval:doc.status_ppn == \"PPN\"",
+   "fieldname": "tarif_ppn",
+   "fieldtype": "Percent",
+   "label": "Tarif PPN (%)",
+   "mandatory_depends_on": "eval:doc.status_ppn == \"PPN\""
+  },
+  {
+   "description": "Hari kalender sesuai dokumen pemilihan — jadi periode proyek bila menang.",
+   "fieldname": "masa_pelaksanaan",
+   "fieldtype": "Int",
+   "label": "Masa Pelaksanaan (hari)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "description": "Aanwijzing: rapat penjelasan pekerjaan & tanya jawab dengan pemberi kerja / panitia.",
+   "fieldname": "rapat_penjelasan",
+   "fieldtype": "Date",
+   "label": "Rapat Penjelasan"
+  },
+  {
+   "fieldname": "batas_pemasukan",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Batas Pemasukan",
+   "reqd": 1
+  },
+  {
+   "fieldname": "penanggung_jawab",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Penanggung Jawab",
+   "options": "User"
+  },
+  {
+   "fieldname": "catatan",
+   "fieldtype": "Small Text",
+   "label": "Catatan",
+   "placeholder": "mis. syarat SBU, personel inti yang diminta"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:!in_list([\"Persiapan\"], doc.status)",
+   "fieldname": "hasil_section",
+   "fieldtype": "Section Break",
+   "label": "Status & Hasil",
+   "hidden": 1
+  },
+  {
+   "default": "Persiapan",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 0,
+   "in_standard_filter": 0,
+   "label": "Status",
+   "options": "Persiapan\nPenawaran Dikirim\nEvaluasi\nMenang\nKalah\nBatal",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_hasil",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.status == \"Kalah\"",
+   "fieldname": "pemenang",
+   "fieldtype": "Data",
+   "label": "Pemenang"
+  },
+  {
+   "depends_on": "eval:doc.status == \"Kalah\"",
+   "fieldname": "nilai_pemenang",
+   "fieldtype": "Currency",
+   "label": "Nilai Pemenang (Rp)",
+   "options": "IDR"
+  },
+  {
+   "depends_on": "eval:in_list([\"Kalah\", \"Batal\"], doc.status)",
+   "fieldname": "alasan",
+   "fieldtype": "Small Text",
+   "label": "Alasan Kalah / Batal"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-02 21:45:00.000000",
+ "modified_by": "Administrator",
+ "module": "Konstruksi",
+ "name": "Tender",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Projects User"
+  }
+ ],
+ "search_fields": "nama_paket,pemberi_kerja,kode_paket",
+ "show_title_field_in_link": 1,
+ "sort_field": "batas_pemasukan",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "nama_paket",
+ "track_changes": 1
+}
