@@ -62,8 +62,7 @@
    "fieldtype": "Date",
    "in_list_view": 1,
    "label": "Tanggal",
-   "reqd": 1,
-   "description": "Tanggal tender didaftarkan."
+   "reqd": 1
   },
   {
    "fieldname": "nama_paket",
@@ -255,7 +254,7 @@
    "link_fieldname": "tender"
   }
  ],
- "modified": "2026-10-03 13:10:00.000000",
+ "modified": "2026-10-03 13:30:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Tender",
