@@ -60,7 +60,7 @@
    "fieldtype": "Data",
    "in_global_search": 1,
    "in_list_view": 1,
-   "label": "Nama Paket",
+   "label": "Nama Project",
    "placeholder": "sesuai pengumuman / undangan",
    "reqd": 1
   },
@@ -78,7 +78,7 @@
   {
    "fieldname": "lokasi",
    "fieldtype": "Data",
-   "label": "Lokasi"
+   "label": "Lokasi Project"
   },
   {
    "default": "Gedung",
@@ -237,7 +237,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-02 22:00:00.000000",
+ "modified": "2026-10-02 22:30:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Tender",
