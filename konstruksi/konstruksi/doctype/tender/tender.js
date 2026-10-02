@@ -15,6 +15,7 @@ frappe.ui.form.on("Tender", {
 
 	refresh(frm) {
 		update_persen_hps_note(frm);
+		["hps", "nilai_penawaran"].forEach((fieldname) => format_ribuan_saat_mengetik(frm, fieldname));
 	},
 
 	hps(frm) {
@@ -29,6 +30,35 @@ frappe.ui.form.on("Tender", {
 		frm.set_value("tarif_ppn", frm.doc.status_ppn === "PPN" ? 11 : 0);
 	},
 });
+
+// Pemisah ribuan langsung muncul saat mengetik (bukan menunggu pindah kursor).
+function format_ribuan_saat_mengetik(frm, fieldname) {
+	const $input = frm.fields_dict[fieldname]?.$input;
+	if (!$input) return;
+
+	$input.off("input.ribuan").on("input.ribuan", function () {
+		const { decimal_str, group_sep } = get_number_format_info(get_number_format());
+		const value = this.value;
+		// Posisi kursor dihitung dari jumlah digit di kirinya, agar tidak loncat setelah diformat.
+		const digit_sebelum_kursor = value.slice(0, this.selectionStart).replace(/[^\d]/g, "").length;
+
+		const pos_desimal = value.indexOf(decimal_str);
+		let bulat = (pos_desimal === -1 ? value : value.slice(0, pos_desimal)).replace(/\D/g, "");
+		bulat = bulat.replace(/^0+(?=\d)/, "");
+		let hasil = bulat.replace(/\B(?=(\d{3})+(?!\d))/g, group_sep);
+		if (pos_desimal !== -1) {
+			hasil += decimal_str + value.slice(pos_desimal + 1).replace(/\D/g, "");
+		}
+		if (hasil === value) return;
+
+		this.value = hasil;
+		let kursor = 0;
+		for (let digit = 0; kursor < hasil.length && digit < digit_sebelum_kursor; kursor++) {
+			if (/\d/.test(hasil[kursor])) digit++;
+		}
+		this.setSelectionRange(kursor, kursor);
+	});
+}
 
 function set_persen_hps(frm) {
 	const hps = flt(frm.doc.hps);
