@@ -329,3 +329,81 @@ body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .
 	color: var(--text-muted);
 	padding: 24px;
 }
+
+/* List view: tombol Group & judul kelompok (list_group_by.bundle.js). */
+.page-form .filter-section {
+	flex-wrap: nowrap;
+	align-items: center;
+}
+
+.konstruksi-group-by {
+	margin-left: var(--margin-sm, 8px);
+	align-self: center;
+	flex-wrap: nowrap;
+}
+
+.konstruksi-group-by > .btn {
+	height: auto;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	white-space: nowrap;
+}
+
+.konstruksi-group-by .button-label {
+	max-width: 170px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.konstruksi-group-by .btn-active {
+	background: var(--konstruksi-active-bg);
+	color: var(--konstruksi-active-fg);
+}
+
+.konstruksi-group-menu {
+	max-height: 320px;
+	overflow-y: auto;
+}
+
+.konstruksi-group-menu .dropdown-item.active {
+	background: var(--konstruksi-active-bg);
+	color: var(--konstruksi-active-fg);
+}
+
+.frappe-list .konstruksi-group-row {
+	cursor: pointer;
+}
+
+.frappe-list .konstruksi-group-head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	background: var(--subtle-fg, #f8f9fb);
+	border-bottom: 1px solid var(--border-color);
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.frappe-list .konstruksi-group-chevron {
+	display: inline-flex;
+	transition: transform 0.15s;
+}
+
+.frappe-list .konstruksi-group-chevron .icon {
+	stroke: var(--konstruksi-active-accent);
+}
+
+.frappe-list .konstruksi-group-row.terbuka .konstruksi-group-chevron {
+	transform: rotate(90deg);
+}
+
+.frappe-list .konstruksi-group-count {
+	padding: 1px 8px;
+	border-radius: 10px;
+	background: var(--gray-100, #f3f3f3);
+	color: var(--text-muted);
+	font-size: var(--text-xs);
+	font-weight: normal;
+}
