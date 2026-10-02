@@ -86,7 +86,7 @@ app_include_css = "konstruksi.bundle.css"
 # ------------
 
 # before_install = "konstruksi.install.before_install"
-# after_install = "konstruksi.install.after_install"
+after_install = "konstruksi.install.after_install"
 
 # Uninstallation
 # ------------

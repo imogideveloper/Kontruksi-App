@@ -13,7 +13,7 @@
   "nama_paket",
   "pemberi_kerja",
   "lokasi",
-  "jenis_pekerjaan",
+  "jenis_project",
   "metode_pemilihan",
   "kode_paket",
   "sumber_dana",
@@ -82,11 +82,11 @@
   },
   {
    "default": "Gedung",
-   "fieldname": "jenis_pekerjaan",
-   "fieldtype": "Select",
+   "fieldname": "jenis_project",
+   "fieldtype": "Link",
    "in_standard_filter": 1,
-   "label": "Jenis Pekerjaan",
-   "options": "Gedung\nJalan & Jembatan\nSumber Daya Air\nMekanikal & Elektrikal\nLainnya"
+   "label": "Jenis Project",
+   "options": "Jenis Project"
   },
   {
    "default": "Tender (LPSE)",
@@ -237,7 +237,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-02 22:30:00.000000",
+ "modified": "2026-10-02 22:45:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Tender",
