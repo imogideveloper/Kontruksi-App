@@ -1,5 +1,6 @@
 // Urutan kolom list Tender: Kode paling kiri, Status paling kanan.
 const KOLOM_TENDER = [
+	"tanggal",
 	"nama_paket",
 	"pemberi_kerja",
 	"hps",

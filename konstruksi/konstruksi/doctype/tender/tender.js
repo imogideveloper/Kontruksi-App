@@ -6,11 +6,12 @@ const BATAS_HARGA_WAJAR = 80;
 
 frappe.ui.form.on("Tender", {
 	onload(frm) {
-		if (frm.is_new()) {
-			frappe
-				.call("konstruksi.konstruksi.doctype.tender.tender.get_next_kode")
-				.then((r) => r.message && frm.set_value("kode", r.message));
-		}
+		set_pratinjau_kode(frm);
+	},
+
+	tanggal(frm) {
+		// Tahun pada kode mengikuti tahun Tanggal.
+		set_pratinjau_kode(frm);
 	},
 
 	refresh(frm) {
@@ -30,6 +31,13 @@ frappe.ui.form.on("Tender", {
 		frm.set_value("tarif_ppn", frm.doc.status_ppn === "PPN" ? 11 : 0);
 	},
 });
+
+function set_pratinjau_kode(frm) {
+	if (!frm.is_new()) return;
+	frappe
+		.call("konstruksi.konstruksi.doctype.tender.tender.get_next_kode", { tanggal: frm.doc.tanggal })
+		.then((r) => r.message && frm.set_value("kode", r.message));
+}
 
 // Pemisah ribuan langsung muncul saat mengetik (bukan menunggu pindah kursor).
 function format_ribuan_saat_mengetik(frm, fieldname) {

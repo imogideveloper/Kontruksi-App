@@ -12,14 +12,14 @@ from frappe.utils import cint, flt, fmt_money, getdate
 BATAS_HARGA_WAJAR = 80
 
 
-def get_kode_prefix():
-	return f"TDR-{getdate().year}-"
+def get_kode_prefix(tanggal=None):
+	return f"TDR-{getdate(tanggal).year}-"
 
 
 class Tender(Document):
 	def autoname(self):
 		# Kode selalu dari sistem; nilai kiriman dari form/API diabaikan.
-		self.kode = make_autoname(get_kode_prefix() + ".###", doc=self)
+		self.kode = make_autoname(get_kode_prefix(self.tanggal) + ".###", doc=self)
 		self.name = self.kode
 
 	def validate(self):
@@ -59,8 +59,8 @@ class Tender(Document):
 
 
 @frappe.whitelist()
-def get_next_kode():
+def get_next_kode(tanggal=None):
 	"""Pratinjau kode berikutnya untuk form baru; nomor final ditetapkan saat simpan."""
-	prefix = get_kode_prefix()
+	prefix = get_kode_prefix(tanggal)
 	current = cint(frappe.db.get_value("Series", prefix, "current", order_by="name"))
 	return f"{prefix}{current + 1:03d}"
