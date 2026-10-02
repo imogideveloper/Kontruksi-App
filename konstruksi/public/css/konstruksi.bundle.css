@@ -192,3 +192,137 @@ body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .
 body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="bobot"] input {
 	text-align: right !important;
 }
+
+/* RAB Penawaran: tampilan item berkelompok per WBS (field rab_tree). */
+.rab-tree .rab-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 12px;
+}
+
+.rab-tree .rab-cari {
+	flex: 0 1 340px;
+}
+
+.rab-tree .rab-filter-harga {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	font-weight: normal;
+	cursor: pointer;
+}
+
+.rab-tree .rab-tambah {
+	margin-left: auto;
+}
+
+.rab-tree .rab-table {
+	width: 100%;
+	border-collapse: collapse;
+	table-layout: fixed;
+}
+
+.rab-tree .rab-table th {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	background: var(--konstruksi-active-bg);
+	color: var(--konstruksi-header-fg);
+	font-size: var(--text-xs);
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	padding: 10px 12px;
+	white-space: nowrap;
+}
+
+.rab-tree .rab-table td {
+	padding: 10px 12px;
+	border-bottom: 1px solid var(--border-color);
+	vertical-align: middle;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.rab-tree .rab-table th:nth-child(1) { width: 5%; }
+.rab-tree .rab-table th:nth-child(2) { width: 30%; }
+.rab-tree .rab-table th:nth-child(3) { width: 15%; }
+.rab-tree .rab-table th:nth-child(4) { width: 7%; }
+.rab-tree .rab-table th:nth-child(5) { width: 7%; }
+.rab-tree .rab-table th:nth-child(6) { width: 12%; }
+.rab-tree .rab-table th:nth-child(7) { width: 16%; }
+.rab-tree .rab-table th:nth-child(8) { width: 8%; }
+
+.rab-tree .rab-angka { text-align: right; }
+.rab-tree .rab-tengah { text-align: center; }
+.rab-tree .rab-tebal { font-weight: 600; }
+
+.rab-tree tr.rab-grup {
+	background: var(--subtle-fg, #f8f9fb);
+	cursor: pointer;
+}
+
+.rab-tree tr.rab-grup td {
+	font-size: var(--text-md);
+	color: var(--text-color);
+}
+
+.rab-tree tr.rab-grup .rab-chevron {
+	display: inline-flex;
+	vertical-align: middle;
+	margin-right: 6px;
+	color: var(--konstruksi-active-accent);
+	transition: transform 0.15s;
+}
+
+.rab-tree tr.rab-grup .rab-chevron .icon {
+	stroke: var(--konstruksi-active-accent);
+}
+
+.rab-tree tr.rab-grup.terbuka .rab-chevron {
+	transform: rotate(90deg);
+}
+
+.rab-tree .rab-judul[data-row]:hover {
+	text-decoration: underline;
+}
+
+.rab-tree .rab-badge {
+	margin-left: 8px;
+	padding: 1px 8px;
+	border-radius: 10px;
+	background: var(--gray-100, #f3f3f3);
+	color: var(--text-muted);
+	font-size: var(--text-xs);
+}
+
+.rab-tree tr.rab-item {
+	cursor: pointer;
+}
+
+.rab-tree tr.rab-item:hover {
+	background: var(--konstruksi-active-bg);
+}
+
+.rab-tree tr.rab-belum-harga td:nth-child(6) {
+	color: var(--red-500, #e03636);
+}
+
+.rab-tree .rab-kosong {
+	text-align: center;
+	color: var(--text-muted);
+	padding: 24px;
+}
+
+/* Nama kelompok panjang boleh turun baris agar badge jumlah item tidak terpotong. */
+.rab-tree tr.rab-grup td.rab-uraian {
+	white-space: normal;
+}
+
+.rab-tree tr.rab-grup .rab-badge {
+	white-space: nowrap;
+}

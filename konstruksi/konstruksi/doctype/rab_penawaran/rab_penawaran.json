@@ -20,6 +20,8 @@
   "total_ppn",
   "total_rab",
   "persen_hps",
+  "rab_tree_section",
+  "rab_tree",
   "items_section",
   "items"
  ],
@@ -127,8 +129,19 @@
    "read_only": 1
   },
   {
-   "fieldname": "items_section",
+   "fieldname": "rab_tree_section",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "rab_tree",
+   "fieldtype": "HTML",
+   "label": "Item Pekerjaan (Berkelompok)"
+  },
+  {
+   "fieldname": "items_section",
+   "fieldtype": "Section Break",
+   "label": "Edit Item (Tabel)",
+   "collapsible": 1
   },
   {
    "fieldname": "items",
@@ -139,7 +152,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-03 11:00:00.000000",
+ "modified": "2026-10-03 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "RAB Penawaran",
