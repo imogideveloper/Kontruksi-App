@@ -407,3 +407,41 @@ body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .
 	font-size: var(--text-xs);
 	font-weight: normal;
 }
+
+/* Grouping bertingkat: level bawah menjorok; nomor level di menu. */
+.frappe-list .konstruksi-group-head {
+	padding-left: calc(12px + var(--konstruksi-level, 0) * 28px);
+}
+
+.frappe-list .konstruksi-group-row[style*="--konstruksi-level: 1"] .konstruksi-group-head,
+.frappe-list .konstruksi-group-row[style*="--konstruksi-level: 2"] .konstruksi-group-head {
+	background: var(--fg-color, #fff);
+	font-weight: 500;
+}
+
+.konstruksi-group-menu .konstruksi-group-hint {
+	padding: 6px 12px 8px;
+	color: var(--text-muted);
+	font-size: var(--text-xs);
+	border-bottom: 1px solid var(--border-color);
+	margin-bottom: 4px;
+	white-space: normal;
+	min-width: 240px;
+}
+
+.konstruksi-group-menu .konstruksi-group-level {
+	display: inline-flex;
+	justify-content: center;
+	align-items: center;
+	width: 18px;
+	height: 18px;
+	margin-right: 8px;
+	border-radius: 50%;
+	font-size: var(--text-xs);
+	font-weight: 600;
+}
+
+.konstruksi-group-menu .dropdown-item.active .konstruksi-group-level {
+	background: var(--konstruksi-active-accent);
+	color: #fff;
+}

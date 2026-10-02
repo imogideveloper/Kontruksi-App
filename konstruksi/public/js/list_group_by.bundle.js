@@ -1,10 +1,13 @@
-// Fitur "Group" di semua List View: tombol di sebelah Filter untuk mengelompokkan baris per nilai field.
-// Baris diurutkan dulu per field group (di server), lalu judul kelompok disisipkan saat render.
-// Jumlah per kelompok diambil dari server (seluruh data sesuai filter), bukan hanya halaman yang dimuat.
+// Fitur "Group" di semua List View: tombol di sebelah Filter untuk mengelompokkan baris, sampai 3 level
+// (mis. Tanggal (Tahun) › Pemberi Kerja). Baris diurutkan per field group di server, lalu judul kelompok
+// disisipkan saat render. Jumlah per kelompok diambil dari server (seluruh data sesuai filter).
 
 const GROUP_FIELDTYPES = ["Select", "Link", "Date", "Datetime", "Check", "Data"];
 const DATE_FIELDTYPES = ["Date", "Datetime"];
 const SETTING_KEY = "konstruksi_group_by";
+const MAX_LEVEL = 3;
+// Pemisah kunci antar level; harus sama dengan PATH_SEP di konstruksi/api.py.
+const PATH_SEP = "\x1f";
 const GRANULARITY = { year: __("Tahun"), month: __("Bulan"), day: __("Hari") };
 const NAMA_BULAN = [
 	"Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -26,7 +29,7 @@ function patch_list_view() {
 	proto.setup_view = function () {
 		setup_view.call(this);
 		if (!is_list_view(this)) return;
-		this.konstruksi_group_by = frappe.get_user_settings(this.doctype)?.[SETTING_KEY] || null;
+		this.konstruksi_group_by = load_setting(this.doctype);
 		this.konstruksi_toggled = new Set();
 		render_group_button(this);
 	};
@@ -34,14 +37,16 @@ function patch_list_view() {
 	const get_args = proto.get_args;
 	proto.get_args = function () {
 		const args = get_args.call(this);
-		const group = is_list_view(this) && get_group(this);
-		if (!group) return args;
+		const groups = is_list_view(this) ? get_groups(this) : [];
+		if (!groups.length) return args;
 
-		const column = `\`tab${this.doctype}\`.\`${group.df.fieldname}\``;
-		if (!args.fields.includes(column)) args.fields.push(column);
-		// Tanggal: terbaru dulu; lainnya A-Z.
-		const order = group.granularity ? "desc" : "asc";
-		args.order_by = `${column} ${order}` + (args.order_by ? `, ${args.order_by}` : "");
+		const orders = groups.map(({ df, granularity }) => {
+			const column = `\`tab${this.doctype}\`.\`${df.fieldname}\``;
+			if (!args.fields.includes(column)) args.fields.push(column);
+			// Tanggal: terbaru dulu; lainnya A-Z.
+			return `${column} ${granularity ? "desc" : "asc"}`;
+		});
+		args.order_by = orders.join(", ") + (args.order_by ? `, ${args.order_by}` : "");
 		return args;
 	};
 
@@ -56,6 +61,13 @@ function is_list_view(listview) {
 	return listview.view_name === "List" && listview.page?.page_form;
 }
 
+// Setting: array berisi "fieldname" atau "fieldname:year|month|day". Setting lama (string) tetap terbaca.
+function load_setting(doctype) {
+	const value = frappe.get_user_settings(doctype)?.[SETTING_KEY];
+	if (!value) return [];
+	return (Array.isArray(value) ? value : [value]).slice(0, MAX_LEVEL);
+}
+
 const STANDARD_DATE_FIELDS = {
 	creation: { fieldname: "creation", fieldtype: "Datetime", label: __("Created On") },
 };
@@ -65,12 +77,14 @@ function get_df(doctype, fieldname) {
 	return STANDARD_DATE_FIELDS[fieldname] || frappe.meta.get_docfield(doctype, fieldname) || null;
 }
 
-// Setting disimpan sebagai "fieldname" atau "fieldname:year|month|day".
-function get_group(listview) {
-	if (!listview.konstruksi_group_by) return null;
-	const [fieldname, granularity] = listview.konstruksi_group_by.split(":");
-	const df = get_df(listview.doctype, fieldname);
-	return df ? { df, granularity: granularity || null } : null;
+function parse_group(doctype, value) {
+	const [fieldname, granularity] = value.split(":");
+	const df = get_df(doctype, fieldname);
+	return df ? { value, df, granularity: granularity || null } : null;
+}
+
+function get_groups(listview) {
+	return (listview.konstruksi_group_by || []).map((v) => parse_group(listview.doctype, v)).filter(Boolean);
 }
 
 function group_label(group) {
@@ -92,21 +106,43 @@ function get_group_options(listview) {
 	fields.forEach((df) => {
 		if (DATE_FIELDTYPES.includes(df.fieldtype)) {
 			Object.keys(GRANULARITY).forEach((granularity) =>
-				options.push({ value: `${df.fieldname}:${granularity}`, label: group_label({ df, granularity }) })
+				options.push({ value: `${df.fieldname}:${granularity}`, df, granularity })
 			);
 		} else {
-			options.push({ value: df.fieldname, label: group_label({ df }) });
+			options.push({ value: df.fieldname, df, granularity: null });
 		}
 	});
 	return options;
 }
 
-function set_group_by(listview, value) {
-	listview.konstruksi_group_by = value;
+function save_groups(listview, values, { buka_menu = false } = {}) {
+	listview.konstruksi_group_by = values;
 	listview.konstruksi_toggled = new Set();
-	frappe.model.user_settings.save(listview.doctype, SETTING_KEY, value);
+	frappe.model.user_settings.save(listview.doctype, SETTING_KEY, values.length ? values : null);
 	render_group_button(listview);
+	// Menu tetap terbuka agar bisa langsung memilih level berikutnya.
+	if (buka_menu) {
+		setTimeout(() => listview.page.page_form.find(".konstruksi-group-by .dropdown-toggle").dropdown("toggle"));
+	}
 	listview.refresh();
+}
+
+// Klik field: tambah sebagai level berikutnya, atau lepas bila sudah dipilih.
+// Field yang sama hanya boleh satu kali (mis. tidak bisa Tanggal (Tahun) dan Tanggal (Bulan) sekaligus).
+function toggle_group(listview, value) {
+	const fieldname = value.split(":")[0];
+	let values = [...listview.konstruksi_group_by];
+	if (values.includes(value)) {
+		values = values.filter((v) => v !== value);
+	} else {
+		values = values.filter((v) => v.split(":")[0] !== fieldname);
+		if (values.length >= MAX_LEVEL) {
+			frappe.show_alert({ message: __("Maksimal {0} level grouping.", [MAX_LEVEL]), indicator: "orange" });
+			return;
+		}
+		values.push(value);
+	}
+	save_groups(listview, values, { buka_menu: true });
 }
 
 function render_group_button(listview) {
@@ -114,30 +150,40 @@ function render_group_button(listview) {
 	if (!$section.length) return;
 	$section.find(".konstruksi-group-by").remove();
 
-	const group = get_group(listview);
+	const groups = get_groups(listview);
 	const esc = frappe.utils.escape_html;
 	const items = get_group_options(listview)
-		.map(
-			(o) =>
-				`<li><a class="dropdown-item ${listview.konstruksi_group_by === o.value ? "active" : ""}"
-					data-value="${o.value}">${esc(o.label)}</a></li>`
-		)
+		.map((o) => {
+			const level = listview.konstruksi_group_by.indexOf(o.value) + 1;
+			return `<li><a class="dropdown-item ${level ? "active" : ""}" data-value="${o.value}">
+				<span class="konstruksi-group-level">${level || ""}</span>${esc(group_label(o))}</a></li>`;
+		})
 		.join("");
+	const title = groups.map(group_label).join(" › ");
 
 	const $group = $(`
 		<div class="konstruksi-group-by btn-group">
-			<button class="btn btn-default btn-sm dropdown-toggle ${group ? "btn-active" : ""}" data-toggle="dropdown">
+			<button class="btn btn-default btn-sm dropdown-toggle ${groups.length ? "btn-active" : ""}"
+				data-toggle="dropdown" title="${esc(title)}">
 				${frappe.utils.icon("list", "sm")}
-				<span class="button-label hidden-xs">${group ? __("Group: {0}", [esc(group_label(group))]) : __("Group")}</span>
+				<span class="button-label hidden-xs">${groups.length ? __("Group: {0}", [esc(title)]) : __("Group")}</span>
 			</button>
-			${group ? `<button class="btn btn-default btn-sm konstruksi-group-clear" title="${__("Hapus grouping")}">
+			${groups.length ? `<button class="btn btn-default btn-sm konstruksi-group-clear" title="${__("Hapus grouping")}">
 				${frappe.utils.icon("close", "sm")}</button>` : ""}
-			<ul class="dropdown-menu dropdown-menu-right konstruksi-group-menu">${items}</ul>
+			<ul class="dropdown-menu dropdown-menu-right konstruksi-group-menu">
+				<li class="konstruksi-group-hint">${__("Klik untuk menambah level (maks. {0}), klik lagi untuk melepas.", [MAX_LEVEL])}</li>
+				${items}
+			</ul>
 		</div>`);
 
 	$section.find(".filter-selector").after($group);
-	$group.find(".dropdown-item").on("click", (e) => set_group_by(listview, $(e.currentTarget).attr("data-value")));
-	$group.find(".konstruksi-group-clear").on("click", () => set_group_by(listview, null));
+	$group.find(".dropdown-item").on("click", (e) => {
+		// Jangan biarkan Bootstrap menutup menu; menu dibuka ulang setelah tombol dirender ulang.
+		e.preventDefault();
+		e.stopPropagation();
+		toggle_group(listview, $(e.currentTarget).attr("data-value"));
+	});
+	$group.find(".konstruksi-group-clear").on("click", () => save_groups(listview, []));
 }
 
 // Harus sama dengan konstruksi.api.group_key.
@@ -158,70 +204,96 @@ function format_group_value(key, group) {
 	return __(key);
 }
 
-// Tahun & bulan dimulai tertutup agar langsung terlihat ringkas; kelompok lain terbuka.
-function is_collapsed(listview, group, key) {
+// Kelompok Tahun & Bulan dimulai tertutup agar langsung terlihat ringkas; lainnya terbuka.
+function is_collapsed(listview, group, path) {
 	const default_collapsed = ["year", "month"].includes(group.granularity);
-	return default_collapsed !== listview.konstruksi_toggled.has(key);
+	return default_collapsed !== listview.konstruksi_toggled.has(path);
+}
+
+// Baris/judul terlihat bila tidak ada kelompok induknya yang tertutup.
+function update_visibility(listview) {
+	const groups = get_groups(listview);
+	const tertutup = new Set();
+	listview.$result.find("[data-konstruksi-path]").each((_, el) => {
+		const $el = $(el);
+		const path = $el.attr("data-konstruksi-path");
+		const parts = path.split(PATH_SEP);
+		const is_head = $el.hasClass("konstruksi-group-row");
+		const induk = is_head ? parts.length - 1 : parts.length;
+
+		let terlihat = true;
+		for (let i = 1; i <= induk; i++) {
+			if (tertutup.has(parts.slice(0, i).join(PATH_SEP))) terlihat = false;
+		}
+		$el.toggle(terlihat);
+
+		if (is_head) {
+			const collapsed = is_collapsed(listview, groups[parts.length - 1], path);
+			$el.toggleClass("terbuka", !collapsed);
+			if (collapsed) tertutup.add(path);
+		}
+	});
 }
 
 function render_groups(listview) {
-	const group = get_group(listview);
-	if (!group || !listview.data.length) return;
-	const { df, granularity } = group;
+	const groups = get_groups(listview);
+	if (!groups.length || !listview.data.length) return;
 
 	const $rows = listview.$result.find(".list-row-container").filter((_, el) => $(el).children(".list-row").length);
 	const counts = {};
-	listview.data.forEach((doc) => {
-		const key = group_key(doc[df.fieldname], granularity);
-		counts[key] = (counts[key] || 0) + 1;
-	});
+	let sebelumnya = [];
 
-	let current = null;
 	$rows.each((i, el) => {
 		const doc = listview.data[i];
 		if (!doc) return;
-		const key = group_key(doc[df.fieldname], granularity);
-		const $row = $(el).attr("data-konstruksi-group", key);
-		const collapsed = is_collapsed(listview, group, key);
-		$row.toggle(!collapsed);
+		const keys = groups.map((g) => group_key(doc[g.df.fieldname], g.granularity));
+		const $row = $(el).attr("data-konstruksi-path", keys.join(PATH_SEP));
 
-		if (key === current) return;
-		current = key;
-		const $head = $(`
-			<div class="list-row-container konstruksi-group-row ${collapsed ? "" : "terbuka"}" data-konstruksi-head="">
-				<div class="konstruksi-group-head">
-					<span class="konstruksi-group-chevron">${frappe.utils.icon("right", "sm")}</span>
-					<span class="konstruksi-group-label"></span>
-					<span class="konstruksi-group-count">${__("{0} baris", [counts[key]])}</span>
-				</div>
-			</div>`);
-		$head.attr("data-konstruksi-head", key);
-		$head.find(".konstruksi-group-label").text(format_group_value(key, group));
-		$head.on("click", () => {
-			listview.konstruksi_toggled.has(key)
-				? listview.konstruksi_toggled.delete(key)
-				: listview.konstruksi_toggled.add(key);
-			const now_collapsed = is_collapsed(listview, group, key);
-			$head.toggleClass("terbuka", !now_collapsed);
-			listview.$result.find(`.list-row-container[data-konstruksi-group="${CSS.escape(key)}"]`).toggle(!now_collapsed);
+		keys.forEach((_, level) => {
+			const path = keys.slice(0, level + 1).join(PATH_SEP);
+			counts[path] = (counts[path] || 0) + 1;
 		});
-		$row.before($head);
+
+		// Judul baru untuk level pertama yang berubah dan semua level di bawahnya.
+		let berubah = keys.findIndex((key, level) => key !== sebelumnya[level]);
+		if (berubah === -1) return;
+		for (let level = berubah; level < groups.length; level++) {
+			const path = keys.slice(0, level + 1).join(PATH_SEP);
+			const $head = $(`
+				<div class="list-row-container konstruksi-group-row" style="--konstruksi-level: ${level}">
+					<div class="konstruksi-group-head">
+						<span class="konstruksi-group-chevron">${frappe.utils.icon("right", "sm")}</span>
+						<span class="konstruksi-group-label"></span>
+						<span class="konstruksi-group-count"></span>
+					</div>
+				</div>`);
+			$head.attr("data-konstruksi-path", path);
+			$head.find(".konstruksi-group-label").text(format_group_value(keys[level], groups[level]));
+			$head.on("click", () => {
+				listview.konstruksi_toggled.has(path)
+					? listview.konstruksi_toggled.delete(path)
+					: listview.konstruksi_toggled.add(path);
+				update_visibility(listview);
+			});
+			$row.before($head);
+		}
+		sebelumnya = keys;
 	});
+
+	const set_counts = (source) =>
+		listview.$result.find(".konstruksi-group-row").each((_, el) => {
+			const n = source[$(el).attr("data-konstruksi-path")];
+			if (n !== undefined) $(el).find(".konstruksi-group-count").text(__("{0} baris", [n]));
+		});
+	set_counts(counts);
+	update_visibility(listview);
 
 	// Jumlah sebenarnya untuk seluruh data (bukan hanya halaman ini).
 	frappe
 		.xcall("konstruksi.api.get_group_counts", {
 			doctype: listview.doctype,
-			fieldname: df.fieldname,
-			granularity,
+			groups: groups.map((g) => [g.df.fieldname, g.granularity]),
 			filters: listview.get_filters_for_args(),
 		})
-		.then((server_counts) => {
-			listview.$result.find(".konstruksi-group-row").each((_, el) => {
-				const key = $(el).attr("data-konstruksi-head");
-				if (server_counts[key] !== undefined) {
-					$(el).find(".konstruksi-group-count").text(__("{0} baris", [server_counts[key]]));
-				}
-			});
-		});
+		.then(set_counts);
 }
