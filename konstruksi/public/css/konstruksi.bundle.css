@@ -107,38 +107,38 @@
 	stroke: var(--konstruksi-active-fg) !important;
 }
 
-/* Tabel Item Pekerjaan RAB Penawaran: lebar kolom proporsional (angka = bobot lebar),
-   kolom pensil/pengaturan di kanan cukup 40px. */
+/* Tabel Item Pekerjaan RAB Penawaran: lebar kolom pasti, proporsional dari sisa lebar tabel
+   (119px = checkbox 31 + No. 48 + pensil 40) agar posisi kolom sama saat baris diedit. */
 body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="kode_wbs"] {
-	flex: 7 1 0%;
+	flex: 0 0 calc((100% - 119px) * 7 / 83);
 	max-width: none;
 }
 body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="uraian_pekerjaan"] {
-	flex: 15 1 0%;
+	flex: 0 0 calc((100% - 119px) * 15 / 83);
 	max-width: none;
 }
 body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="spesifikasi"] {
-	flex: 15 1 0%;
+	flex: 0 0 calc((100% - 119px) * 15 / 83);
 	max-width: none;
 }
 body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="satuan"] {
-	flex: 6 1 0%;
+	flex: 0 0 calc((100% - 119px) * 6 / 83);
 	max-width: none;
 }
 body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="volume"] {
-	flex: 6 1 0%;
+	flex: 0 0 calc((100% - 119px) * 6 / 83);
 	max-width: none;
 }
 body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="harga_satuan"] {
-	flex: 13 1 0%;
+	flex: 0 0 calc((100% - 119px) * 13 / 83);
 	max-width: none;
 }
 body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="jumlah_harga"] {
-	flex: 14 1 0%;
+	flex: 0 0 calc((100% - 119px) * 14 / 83);
 	max-width: none;
 }
 body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="bobot"] {
-	flex: 7 1 0%;
+	flex: 0 0 calc((100% - 119px) * 7 / 83);
 	max-width: none;
 }
 body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col:last-child {
@@ -148,4 +148,23 @@ body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .
 	padding-right: 0;
 	justify-content: center;
 	text-align: center;
+}
+/* Lebar kolom tidak boleh melebar mengikuti teks panjang; posisi kolom lurus di semua baris. */
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname] {
+	min-width: 0;
+	overflow: hidden;
+}
+
+/* Satuan rata tengah; angka rata kanan juga saat baris sedang diedit. */
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="satuan"],
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="satuan"] input {
+	text-align: center !important;
+	justify-content: center;
+}
+
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="volume"] input,
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="harga_satuan"] input,
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="jumlah_harga"] input,
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="bobot"] input {
+	text-align: right !important;
 }
