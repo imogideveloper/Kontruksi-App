@@ -106,3 +106,38 @@
 .frappe-list .list-row-head .icon {
 	stroke: var(--konstruksi-active-fg) !important;
 }
+
+/* Tabel Item Pekerjaan RAB Penawaran: kolom pendek dipersempit agar nilai Rupiah tidak terpotong.
+   Total 83% = lebar 10 slot bawaan grid. */
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="kode_wbs"] {
+	flex: 0 0 7%;
+	max-width: 7%;
+}
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="uraian_pekerjaan"] {
+	flex: 0 0 15%;
+	max-width: 15%;
+}
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="spesifikasi"] {
+	flex: 0 0 15%;
+	max-width: 15%;
+}
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="satuan"] {
+	flex: 0 0 6%;
+	max-width: 6%;
+}
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="volume"] {
+	flex: 0 0 6%;
+	max-width: 6%;
+}
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="harga_satuan"] {
+	flex: 0 0 13%;
+	max-width: 13%;
+}
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="jumlah_harga"] {
+	flex: 0 0 14%;
+	max-width: 14%;
+}
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="bobot"] {
+	flex: 0 0 7%;
+	max-width: 7%;
+}

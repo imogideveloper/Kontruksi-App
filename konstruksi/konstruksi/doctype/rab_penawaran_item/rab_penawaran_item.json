@@ -14,10 +14,10 @@
   "harga_satuan",
   "rincian_harga_section",
   "jumlah_harga",
-  "ppn",
+  "bobot",
   "column_break_rincian",
-  "jumlah_harga_ppn",
-  "bobot"
+  "ppn",
+  "jumlah_harga_ppn"
  ],
  "fields": [
   {
@@ -29,7 +29,7 @@
    "label": "Kode WBS"
   },
   {
-   "columns": 3,
+   "columns": 2,
    "description": "Ketik bebas atau pilih dari saran.",
    "fieldname": "uraian_pekerjaan",
    "fieldtype": "Autocomplete",
@@ -41,7 +41,13 @@
    "fieldname": "spesifikasi",
    "fieldtype": "Small Text",
    "label": "Spesifikasi / Keterangan",
-   "placeholder": "mis. Beton K-250, paving 8 cm, bata ringan 10 cm"
+   "placeholder": "mis. Beton K-250, paving 8 cm, bata ringan 10 cm",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "column_break_harga",
+   "fieldtype": "Column Break"
   },
   {
    "columns": 1,
@@ -61,11 +67,7 @@
    "non_negative": 1
   },
   {
-   "fieldname": "column_break_harga",
-   "fieldtype": "Column Break"
-  },
-  {
-   "columns": 2,
+   "columns": 1,
    "description": "Sebelum PPN. Bobot dihitung otomatis dari RAB.",
    "fieldname": "harga_satuan",
    "fieldtype": "Currency",
@@ -79,13 +81,26 @@
    "label": "Rincian Harga"
   },
   {
-   "columns": 2,
+   "columns": 1,
    "description": "Volume × Harga Satuan",
    "fieldname": "jumlah_harga",
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Jumlah Harga (Rp)",
    "read_only": 1
+  },
+  {
+   "fieldname": "bobot",
+   "fieldtype": "Percent",
+   "label": "Bobot (%)",
+   "precision": "2",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "column_break_rincian",
+   "fieldtype": "Column Break"
   },
   {
    "description": "Tarif PPN dari Tender.",
@@ -95,27 +110,16 @@
    "read_only": 1
   },
   {
-   "fieldname": "column_break_rincian",
-   "fieldtype": "Column Break"
-  },
-  {
    "bold": 1,
    "fieldname": "jumlah_harga_ppn",
    "fieldtype": "Currency",
    "label": "Jumlah Harga + PPN (Rp)",
    "read_only": 1
-  },
-  {
-   "fieldname": "bobot",
-   "fieldtype": "Percent",
-   "label": "Bobot (%)",
-   "precision": "2",
-   "read_only": 1
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2026-10-03 08:30:00.000000",
+ "modified": "2026-10-03 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "RAB Penawaran Item",
