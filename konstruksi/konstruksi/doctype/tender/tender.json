@@ -66,13 +66,14 @@
   },
   {
    "fieldname": "pemberi_kerja",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_global_search": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Pemberi Kerja",
-   "placeholder": "instansi / perusahaan",
-   "reqd": 1
+   "placeholder": "pilih / buat instansi atau perusahaan",
+   "reqd": 1,
+   "options": "Customer"
   },
   {
    "fieldname": "lokasi",
@@ -236,7 +237,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-02 21:45:00.000000",
+ "modified": "2026-10-02 22:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Tender",

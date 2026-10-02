@@ -75,3 +75,8 @@
 .form-layout .frappe-control[data-fieldtype="Datetime"] .control-value {
 	max-width: calc(var(--konstruksi-date-width) + 60px);
 }
+
+/* Dialog dengan 2+ kolom terlalu sempit untuk label di samping: kembali ke label di atas input. */
+.modal .form-layout .form-column:not(:only-child) .frappe-control > .form-group {
+	display: block !important;
+}
