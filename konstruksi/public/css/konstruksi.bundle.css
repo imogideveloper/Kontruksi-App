@@ -80,3 +80,9 @@
 .modal .form-layout .form-column:not(:only-child) .frappe-control > .form-group {
 	display: block !important;
 }
+
+/* List view: lebar minimal kolom bawaan 150px membuat kolom kanan (mis. Status) terpotong
+   bila kolomnya banyak; kolom selain judul cukup 110px. */
+.layout-main-section-wrapper:not(.disable-scrolling) .frappe-list .result-container .result .list-row-container .level-left .list-row-col:not(.list-subject) {
+	min-width: 110px;
+}

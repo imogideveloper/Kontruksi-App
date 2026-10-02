@@ -5,10 +5,11 @@ const KOLOM_TENDER = [
 	"hps",
 	"nilai_penawaran",
 	"batas_pemasukan",
+	"penanggung_jawab",
 ];
 
 frappe.listview_settings["Tender"] = {
-	add_fields: ["status"],
+	add_fields: ["status", "penanggung_jawab"],
 	// Kolom "ID" bawaan tidak perlu: Kode = ID dokumen.
 	hide_name_column: true,
 
