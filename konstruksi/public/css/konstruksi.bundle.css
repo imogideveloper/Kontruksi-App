@@ -292,7 +292,6 @@ body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .
 }
 
 .rab-tree .rab-badge {
-	margin-left: 8px;
 	padding: 1px 8px;
 	border-radius: 10px;
 	background: var(--gray-100, #f3f3f3);
@@ -316,13 +315,4 @@ body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .
 	text-align: center;
 	color: var(--text-muted);
 	padding: 24px;
-}
-
-/* Nama kelompok panjang boleh turun baris agar badge jumlah item tidak terpotong. */
-.rab-tree tr.rab-grup td.rab-uraian {
-	white-space: normal;
-}
-
-.rab-tree tr.rab-grup .rab-badge {
-	white-space: nowrap;
 }

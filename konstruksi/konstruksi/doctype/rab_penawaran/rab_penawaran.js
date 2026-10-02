@@ -189,12 +189,11 @@ function render_rab_tree(frm) {
 
 		rows += `<tr class="rab-grup ${terbuka ? "terbuka" : ""}" data-grup="${esc(grup.key)}">
 			<td class="rab-no">${kode}</td>
-			<td class="rab-uraian">
+			<td class="rab-uraian" title="${judul}">
 				<span class="rab-chevron">${frappe.utils.icon("right", "sm")}</span>
 				<span class="rab-judul" ${induk_attr}>${judul}</span>
-				<span class="rab-badge">${__("{0} item", [grup.anak.length])}</span>
 			</td>
-			<td class="rab-spek text-muted">—</td>
+			<td class="rab-spek"><span class="rab-badge">${__("{0} item", [grup.anak.length])}</span></td>
 			<td></td><td></td><td></td>
 			<td class="rab-angka rab-tebal">${format_rupiah(subtotal)}</td>
 			<td class="rab-angka">${total ? format_number((subtotal / total) * 100, null, 2) : 0}%</td>
