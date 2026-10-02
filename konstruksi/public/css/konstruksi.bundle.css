@@ -86,3 +86,19 @@
 .layout-main-section-wrapper:not(.disable-scrolling) .frappe-list .result-container .result .list-row-container .level-left .list-row-col:not(.list-subject) {
 	min-width: 110px;
 }
+
+/* List view: baris judul kolom diberi blok warna (sama dengan menu sidebar aktif). */
+.frappe-list .list-row-head,
+.frappe-list .list-row-head .level-right {
+	background-color: var(--konstruksi-active-bg) !important;
+}
+
+.frappe-list .list-row-head,
+.frappe-list .list-row-head *:not(input) {
+	color: var(--konstruksi-active-fg) !important;
+	font-weight: 600;
+}
+
+.frappe-list .list-row-head .icon {
+	stroke: var(--konstruksi-active-fg) !important;
+}
