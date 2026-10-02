@@ -6,9 +6,11 @@
 	--konstruksi-label-width: 190px;
 	/* Lebar input tanggal/waktu; cukup untuk tanggal + ikon kalender. */
 	--konstruksi-date-width: 220px;
-	/* Warna blok menu sidebar yang aktif. */
-	--konstruksi-active-bg: #2563eb;
+	/* Warna blok menu sidebar aktif & header list. */
+	--konstruksi-active-bg: #3d5a80;
 	--konstruksi-active-fg: #ffffff;
+	/* Sudut blok warna: lancip. */
+	--konstruksi-block-radius: 0;
 }
 
 /* Sidebar kiri: menu aktif diberi blok warna solid. */
@@ -16,6 +18,7 @@
 .body-sidebar .standard-sidebar-item.active-sidebar:hover {
 	background-color: var(--konstruksi-active-bg) !important;
 	box-shadow: none !important;
+	border-radius: var(--konstruksi-block-radius) !important;
 }
 
 .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-label,
@@ -91,6 +94,7 @@
 .frappe-list .list-row-head,
 .frappe-list .list-row-head .level-right {
 	background-color: var(--konstruksi-active-bg) !important;
+	border-radius: var(--konstruksi-block-radius) !important;
 }
 
 .frappe-list .list-row-head,
