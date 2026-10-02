@@ -44,7 +44,7 @@
   {
    "fieldname": "paket_pekerjaan_column",
    "fieldtype": "Column Break",
-   "label": "Paket Pekerjaan"
+   "label": "Data Project"
   },
   {
    "fieldname": "kode",
@@ -97,7 +97,7 @@
    "options": "Tender (LPSE)\nTender Cepat (LPSE)\nSeleksi (LPSE)\nPenunjukan Langsung\nPengadaan Langsung\nE-Purchasing\nTender Swasta\nUndangan Swasta"
   },
   {
-   "description": "Nomor pengenal paket dari pemberi kerja — di LPSE disebut \"Kode Tender\"; untuk swasta pakai nomor surat undangan / RFQ.",
+   "description": "Nomor pengenal project dari pemberi kerja — di LPSE disebut \"Kode Tender\"; untuk swasta pakai nomor surat undangan / RFQ.",
    "fieldname": "kode_paket",
    "fieldtype": "Data",
    "label": "Kode Project / Sumber",
@@ -238,7 +238,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-02 23:30:00.000000",
+ "modified": "2026-10-02 23:40:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Tender",
