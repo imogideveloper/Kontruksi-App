@@ -7,8 +7,8 @@
 	/* Lebar input tanggal/waktu; cukup untuk tanggal + ikon kalender. */
 	--konstruksi-date-width: 220px;
 	/* Warna blok menu sidebar aktif & header list. */
-	--konstruksi-active-bg: #3d5a80;
-	--konstruksi-active-fg: #ffffff;
+	--konstruksi-active-bg: #a9d8db; /* biru telur asin */
+	--konstruksi-active-fg: #1f3a44;
 	/* Sudut blok warna: lancip. */
 	--konstruksi-block-radius: 0;
 }
