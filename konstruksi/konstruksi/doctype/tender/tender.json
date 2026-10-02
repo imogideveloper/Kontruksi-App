@@ -175,10 +175,11 @@
   },
   {
    "fieldname": "batas_pemasukan",
-   "fieldtype": "Date",
+   "fieldtype": "Datetime",
    "in_list_view": 1,
    "label": "Batas Pemasukan",
-   "reqd": 1
+   "reqd": 1,
+   "description": "Tanggal & jam terakhir upload / penyerahan dokumen penawaran. Pengingat dikirim ke Penanggung Jawab H-3 dan H-1."
   },
   {
    "fieldname": "penanggung_jawab",
@@ -237,7 +238,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-02 22:45:00.000000",
+ "modified": "2026-10-02 23:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Tender",

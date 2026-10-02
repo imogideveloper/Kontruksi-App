@@ -155,6 +155,15 @@ after_install = "konstruksi.install.after_install"
 # Scheduled Tasks
 # ---------------
 
+# Pengingat batas pemasukan tender tiap pagi jam 07:00 (zona waktu sistem).
+scheduler_events = {
+	"cron": {
+		"0 7 * * *": [
+			"konstruksi.tasks.kirim_pengingat_batas_pemasukan",
+		],
+	},
+}
+
 # scheduler_events = {
 # 	"all": [
 # 		"konstruksi.tasks.all"
