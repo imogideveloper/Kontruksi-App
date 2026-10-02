@@ -107,6 +107,28 @@
 	stroke: var(--konstruksi-active-fg) !important;
 }
 
+/* Tabel anak (grid) di form: header diberi blok warna seperti header list, sudut lancip. */
+.form-grid,
+.form-grid .grid-heading-row {
+	border-radius: var(--konstruksi-block-radius) !important;
+}
+
+.form-grid .grid-heading-row,
+.form-grid .grid-heading-row .grid-row,
+.form-grid .grid-heading-row .grid-row .col {
+	background-color: var(--konstruksi-active-bg) !important;
+}
+
+.form-grid .grid-heading-row .grid-row .col,
+.form-grid .grid-heading-row .grid-row .col *:not(input) {
+	color: var(--konstruksi-active-fg) !important;
+	font-weight: 600;
+}
+
+.form-grid .grid-heading-row .icon {
+	stroke: var(--konstruksi-active-fg) !important;
+}
+
 /* Tabel Item Pekerjaan RAB Penawaran: lebar kolom pasti, proporsional dari sisa lebar tabel
    (119px = checkbox 31 + No. 48 + pensil 40) agar posisi kolom sama saat baris diedit. */
 body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="kode_wbs"] {
