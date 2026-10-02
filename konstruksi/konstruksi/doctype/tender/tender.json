@@ -238,8 +238,14 @@
   }
  ],
  "index_web_pages_for_search": 0,
- "links": [],
- "modified": "2026-10-02 23:50:00.000000",
+ "links": [
+  {
+   "group": "Penawaran",
+   "link_doctype": "RAB Penawaran",
+   "link_fieldname": "tender"
+  }
+ ],
+ "modified": "2026-10-03 08:10:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Tender",

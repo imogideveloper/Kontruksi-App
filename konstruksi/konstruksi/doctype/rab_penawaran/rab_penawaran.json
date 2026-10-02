@@ -1,0 +1,185 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-03 08:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "data_section",
+  "data_tender_column",
+  "kode",
+  "tender",
+  "nama_project",
+  "pemberi_kerja",
+  "ringkasan_column",
+  "hps",
+  "status_ppn",
+  "tarif_ppn",
+  "total_sebelum_ppn",
+  "total_ppn",
+  "total_rab",
+  "persen_hps",
+  "items_section",
+  "items"
+ ],
+ "fields": [
+  {
+   "fieldname": "data_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "data_tender_column",
+   "fieldtype": "Column Break",
+   "label": "Data Tender"
+  },
+  {
+   "fieldname": "kode",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Kode",
+   "no_copy": 1,
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "tender",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Tender",
+   "options": "Tender",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "tender.nama_paket",
+   "fieldname": "nama_project",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "label": "Nama Project",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "tender.pemberi_kerja",
+   "fieldname": "pemberi_kerja",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Pemberi Kerja",
+   "options": "Customer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ringkasan_column",
+   "fieldtype": "Column Break",
+   "label": "Ringkasan"
+  },
+  {
+   "fetch_from": "tender.hps",
+   "fieldname": "hps",
+   "fieldtype": "Currency",
+   "label": "HPS (Rp)",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "tender.status_ppn",
+   "fieldname": "status_ppn",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Status PPN",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "tender.tarif_ppn",
+   "fieldname": "tarif_ppn",
+   "fieldtype": "Percent",
+   "label": "Tarif PPN (%)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_sebelum_ppn",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Sebelum PPN (Rp)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_ppn",
+   "fieldtype": "Currency",
+   "label": "Total PPN (Rp)",
+   "read_only": 1
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_rab",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total RAB + PPN (Rp)",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.hps && doc.total_rab",
+   "fieldname": "persen_hps",
+   "fieldtype": "Percent",
+   "label": "Total RAB / HPS (%)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "items_section",
+   "fieldtype": "Section Break",
+   "label": "Item Pekerjaan"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Item Pekerjaan",
+   "options": "RAB Penawaran Item"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-03 08:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Konstruksi",
+ "name": "RAB Penawaran",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Projects User"
+  }
+ ],
+ "search_fields": "tender,nama_project",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "nama_project",
+ "track_changes": 1
+}

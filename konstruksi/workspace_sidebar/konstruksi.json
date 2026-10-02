@@ -33,6 +33,18 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "calculator",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "RAB Penawaran",
+   "link_to": "RAB Penawaran",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
    "icon": "list",
    "indent": 0,
    "keep_closed": 0,
@@ -43,7 +55,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-02 20:25:12.522450",
+ "modified": "2026-10-02 21:01:34.414707",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Konstruksi",
