@@ -100,7 +100,7 @@
    "description": "Nomor pengenal paket dari pemberi kerja — di LPSE disebut \"Kode Tender\"; untuk swasta pakai nomor surat undangan / RFQ.",
    "fieldname": "kode_paket",
    "fieldtype": "Data",
-   "label": "Kode Paket / Sumber",
+   "label": "Kode Project / Sumber",
    "placeholder": "mis. kode LPSE, nomor undangan"
   },
   {
@@ -238,7 +238,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-02 23:00:00.000000",
+ "modified": "2026-10-02 23:30:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Tender",
