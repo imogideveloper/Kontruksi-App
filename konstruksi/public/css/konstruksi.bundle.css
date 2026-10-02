@@ -13,6 +13,8 @@
 	--konstruksi-active-accent: #3c7dd1;
 	/* Teks header list & tabel: abu-abu, tidak tebal. */
 	--konstruksi-header-fg: #6b7280;
+	/* Jarak vertikal antar field form (bawaan 16px). */
+	--konstruksi-field-gap: 8px;
 	/* Sudut blok warna: lancip. */
 	--konstruksi-block-radius: 0;
 }
@@ -30,6 +32,11 @@
 .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon .icon,
 .body-sidebar .standard-sidebar-item.active-sidebar .item-anchor {
 	color: var(--konstruksi-active-fg) !important;
+}
+
+/* Field form lebih rapat. */
+.form-layout .frappe-control > .form-group {
+	margin-bottom: var(--konstruksi-field-gap) !important;
 }
 
 /* Form horizontal: label di kiri (rata kiri, lebar tetap), input di kanan — posisi & lebar input simetris antar kolom — berlaku di form & dialog desk.
