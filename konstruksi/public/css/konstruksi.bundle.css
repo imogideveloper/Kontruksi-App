@@ -445,3 +445,66 @@ body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .
 	background: var(--konstruksi-active-accent);
 	color: #fff;
 }
+
+/* Judul kelompok model kartu: nama + jalur induk, lalu total, jumlah data, dan badge level di kanan. */
+.frappe-list .konstruksi-group-row,
+.frappe-list .konstruksi-group-row:hover {
+	padding: 4px 0 4px calc(var(--konstruksi-level, 0) * 28px);
+	border-bottom: none !important;
+	background: transparent !important;
+}
+
+.frappe-list .konstruksi-group-row .konstruksi-group-head,
+.frappe-list .konstruksi-group-row[style*="--konstruksi-level: 1"] .konstruksi-group-head,
+.frappe-list .konstruksi-group-row[style*="--konstruksi-level: 2"] .konstruksi-group-head {
+	padding: 10px 16px;
+	gap: 12px;
+	border: 1px solid var(--border-color);
+	border-radius: var(--konstruksi-block-radius);
+	background: var(--subtle-fg, #f8f9fb);
+	font-weight: normal;
+}
+
+.frappe-list .konstruksi-group-title {
+	flex: 1;
+	min-width: 0;
+}
+
+.frappe-list .konstruksi-group-label {
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.frappe-list .konstruksi-group-sub {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
+.frappe-list .konstruksi-group-sum {
+	font-weight: 600;
+	color: var(--text-color);
+	white-space: nowrap;
+}
+
+.frappe-list .konstruksi-group-count,
+.frappe-list .konstruksi-group-badge {
+	padding: 2px 10px;
+	border: 1px solid var(--border-color);
+	border-radius: 10px;
+	background: var(--fg-color, #fff);
+	font-size: var(--text-xs);
+	white-space: nowrap;
+}
+
+.frappe-list .konstruksi-group-badge {
+	font-weight: 600;
+	color: var(--text-muted);
+}
+
+.konstruksi-group-menu .konstruksi-group-subhead {
+	border-top: 1px solid var(--border-color);
+	margin-top: 4px;
+	padding-top: 8px;
+	font-weight: 600;
+	text-transform: uppercase;
+}

@@ -5,6 +5,8 @@
 const GROUP_FIELDTYPES = ["Select", "Link", "Date", "Datetime", "Check", "Data"];
 const DATE_FIELDTYPES = ["Date", "Datetime"];
 const SETTING_KEY = "konstruksi_group_by";
+const SUM_SETTING_KEY = "konstruksi_group_sum";
+const SUM_FIELDTYPES = ["Currency", "Float", "Int"];
 const MAX_LEVEL = 3;
 // Pemisah kunci antar level; harus sama dengan PATH_SEP di konstruksi/api.py.
 const PATH_SEP = "\x1f";
@@ -46,6 +48,11 @@ function patch_list_view() {
 			// Tanggal: terbaru dulu; lainnya A-Z.
 			return `${column} ${granularity ? "desc" : "asc"}`;
 		});
+		const sum_df = get_sum_df(this);
+		if (sum_df) {
+			const column = `\`tab${this.doctype}\`.\`${sum_df.fieldname}\``;
+			if (!args.fields.includes(column)) args.fields.push(column);
+		}
 		args.order_by = orders.join(", ") + (args.order_by ? `, ${args.order_by}` : "");
 		return args;
 	};
@@ -115,6 +122,26 @@ function get_group_options(listview) {
 	return options;
 }
 
+function get_sum_options(listview) {
+	const visible = listview.meta.fields.filter((df) => SUM_FIELDTYPES.includes(df.fieldtype) && !df.hidden);
+	const di_list = visible.filter((df) => df.in_list_view);
+	return di_list.length ? di_list : visible.filter((df) => df.fieldtype === "Currency");
+}
+
+// Kolom yang dijumlahkan per kelompok: pilihan user, default kolom Rupiah pertama di list. "" = tanpa total.
+function get_sum_df(listview) {
+	const saved = frappe.get_user_settings(listview.doctype)?.[SUM_SETTING_KEY];
+	const options = get_sum_options(listview);
+	if (saved === "") return null;
+	return options.find((df) => df.fieldname === saved) ||
+		options.find((df) => df.fieldtype === "Currency") || null;
+}
+
+function set_sum_field(listview, fieldname) {
+	frappe.model.user_settings.save(listview.doctype, SUM_SETTING_KEY, fieldname);
+	save_groups(listview, listview.konstruksi_group_by, { buka_menu: true });
+}
+
 function save_groups(listview, values, { buka_menu = false } = {}) {
 	listview.konstruksi_group_by = values;
 	listview.konstruksi_toggled = new Set();
@@ -128,14 +155,12 @@ function save_groups(listview, values, { buka_menu = false } = {}) {
 }
 
 // Klik field: tambah sebagai level berikutnya, atau lepas bila sudah dipilih.
-// Field yang sama hanya boleh satu kali (mis. tidak bisa Tanggal (Tahun) dan Tanggal (Bulan) sekaligus).
+// Field tanggal yang sama boleh beda tingkat, mis. Tanggal (Tahun) › Tanggal (Bulan) › Tanggal (Hari).
 function toggle_group(listview, value) {
-	const fieldname = value.split(":")[0];
 	let values = [...listview.konstruksi_group_by];
 	if (values.includes(value)) {
 		values = values.filter((v) => v !== value);
 	} else {
-		values = values.filter((v) => v.split(":")[0] !== fieldname);
 		if (values.length >= MAX_LEVEL) {
 			frappe.show_alert({ message: __("Maksimal {0} level grouping.", [MAX_LEVEL]), indicator: "orange" });
 			return;
@@ -159,6 +184,14 @@ function render_group_button(listview) {
 				<span class="konstruksi-group-level">${level || ""}</span>${esc(group_label(o))}</a></li>`;
 		})
 		.join("");
+	const sum_df = get_sum_df(listview);
+	const sum_items = [{ fieldname: "", label: __("Tanpa total") }, ...get_sum_options(listview)]
+		.map((df) => {
+			const aktif = (sum_df?.fieldname || "") === df.fieldname;
+			return `<li><a class="dropdown-item konstruksi-sum-item ${aktif ? "active" : ""}" data-sum="${df.fieldname}">
+				<span class="konstruksi-group-level">${aktif ? "✓" : ""}</span>${esc(__(df.label))}</a></li>`;
+		})
+		.join("");
 	const title = groups.map(group_label).join(" › ");
 
 	const $group = $(`
@@ -173,6 +206,8 @@ function render_group_button(listview) {
 			<ul class="dropdown-menu dropdown-menu-right konstruksi-group-menu">
 				<li class="konstruksi-group-hint">${__("Klik untuk menambah level (maks. {0}), klik lagi untuk melepas.", [MAX_LEVEL])}</li>
 				${items}
+				<li class="konstruksi-group-hint konstruksi-group-subhead">${__("Jumlahkan")}</li>
+				${sum_items}
 			</ul>
 		</div>`);
 
@@ -181,7 +216,10 @@ function render_group_button(listview) {
 		// Jangan biarkan Bootstrap menutup menu; menu dibuka ulang setelah tombol dirender ulang.
 		e.preventDefault();
 		e.stopPropagation();
-		toggle_group(listview, $(e.currentTarget).attr("data-value"));
+		const $item = $(e.currentTarget);
+		$item.hasClass("konstruksi-sum-item")
+			? set_sum_field(listview, $item.attr("data-sum"))
+			: toggle_group(listview, $item.attr("data-value"));
 	});
 	$group.find(".konstruksi-group-clear").on("click", () => save_groups(listview, []));
 }
@@ -202,6 +240,10 @@ function format_group_value(key, group) {
 	if (df.fieldtype === "Check") return cint(key) ? __("Ya") : __("Tidak");
 	if (df.fieldtype === "Link") return frappe.utils.get_link_title(df.options, key) || key;
 	return __(key);
+}
+
+function level_badge(group) {
+	return group.granularity ? GRANULARITY[group.granularity] : __(group.df.label || group.df.fieldname);
 }
 
 // Kelompok Tahun & Bulan dimulai tertutup agar langsung terlihat ringkas; lainnya terbuka.
@@ -238,9 +280,11 @@ function update_visibility(listview) {
 function render_groups(listview) {
 	const groups = get_groups(listview);
 	if (!groups.length || !listview.data.length) return;
+	const sum_df = get_sum_df(listview);
 
 	const $rows = listview.$result.find(".list-row-container").filter((_, el) => $(el).children(".list-row").length);
 	const counts = {};
+	const sums = {};
 	let sebelumnya = [];
 
 	$rows.each((i, el) => {
@@ -252,23 +296,34 @@ function render_groups(listview) {
 		keys.forEach((_, level) => {
 			const path = keys.slice(0, level + 1).join(PATH_SEP);
 			counts[path] = (counts[path] || 0) + 1;
+			if (sum_df) sums[path] = (sums[path] || 0) + flt(doc[sum_df.fieldname]);
 		});
 
 		// Judul baru untuk level pertama yang berubah dan semua level di bawahnya.
-		let berubah = keys.findIndex((key, level) => key !== sebelumnya[level]);
+		const berubah = keys.findIndex((key, level) => key !== sebelumnya[level]);
 		if (berubah === -1) return;
 		for (let level = berubah; level < groups.length; level++) {
 			const path = keys.slice(0, level + 1).join(PATH_SEP);
+			const judul_induk = keys.slice(0, level).map((key, l) => format_group_value(key, groups[l]));
 			const $head = $(`
 				<div class="list-row-container konstruksi-group-row" style="--konstruksi-level: ${level}">
 					<div class="konstruksi-group-head">
 						<span class="konstruksi-group-chevron">${frappe.utils.icon("right", "sm")}</span>
-						<span class="konstruksi-group-label"></span>
+						<div class="konstruksi-group-title">
+							<div class="konstruksi-group-label"></div>
+							<div class="konstruksi-group-sub"></div>
+						</div>
+						<span class="konstruksi-group-sum"></span>
 						<span class="konstruksi-group-count"></span>
+						<span class="konstruksi-group-badge"></span>
 					</div>
 				</div>`);
 			$head.attr("data-konstruksi-path", path);
 			$head.find(".konstruksi-group-label").text(format_group_value(keys[level], groups[level]));
+			$head.find(".konstruksi-group-sub").text(
+				level ? judul_induk.join(" / ") : __("Group per {0}", [level_badge(groups[level])])
+			);
+			$head.find(".konstruksi-group-badge").text(level_badge(groups[level]));
 			$head.on("click", () => {
 				listview.konstruksi_toggled.has(path)
 					? listview.konstruksi_toggled.delete(path)
@@ -280,20 +335,28 @@ function render_groups(listview) {
 		sebelumnya = keys;
 	});
 
-	const set_counts = (source) =>
+	const set_totals = (counts_src, sums_src) =>
 		listview.$result.find(".konstruksi-group-row").each((_, el) => {
-			const n = source[$(el).attr("data-konstruksi-path")];
-			if (n !== undefined) $(el).find(".konstruksi-group-count").text(__("{0} baris", [n]));
+			const path = $(el).attr("data-konstruksi-path");
+			if (counts_src[path] !== undefined) {
+				$(el).find(".konstruksi-group-count").text(__("{0} data", [counts_src[path]]));
+			}
+			if (sum_df && sums_src[path] !== undefined) {
+				$(el)
+					.find(".konstruksi-group-sum")
+					.text(sum_df.fieldtype === "Currency" ? format_currency(sums_src[path]) : format_number(sums_src[path]));
+			}
 		});
-	set_counts(counts);
+	set_totals(counts, sums);
 	update_visibility(listview);
 
-	// Jumlah sebenarnya untuk seluruh data (bukan hanya halaman ini).
+	// Jumlah & total sebenarnya untuk seluruh data (bukan hanya halaman ini).
 	frappe
 		.xcall("konstruksi.api.get_group_counts", {
 			doctype: listview.doctype,
 			groups: groups.map((g) => [g.df.fieldname, g.granularity]),
 			filters: listview.get_filters_for_args(),
+			sum_field: sum_df?.fieldname || null,
 		})
-		.then(set_counts);
+		.then((r) => set_totals(r.counts, r.sums));
 }

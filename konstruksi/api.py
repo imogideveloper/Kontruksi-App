@@ -1,14 +1,15 @@
-from collections import Counter
+from collections import Counter, defaultdict
 
 import frappe
 from frappe import _
-from frappe.utils import cstr, getdate
+from frappe.utils import cstr, flt, getdate
 
 STANDARD_GROUP_FIELDS = ("owner", "creation", "modified")
 GRANULARITIES = (None, "", "year", "month", "day")
 # Pemisah kunci antar level; harus sama dengan PATH_SEP di list_group_by.bundle.js.
 PATH_SEP = "\x1f"
 MAX_LEVEL = 3
+SUM_FIELDTYPES = ("Currency", "Float", "Int")
 
 
 def group_key(value, granularity=None):
@@ -22,11 +23,11 @@ def group_key(value, granularity=None):
 
 
 @frappe.whitelist()
-def get_group_counts(doctype, groups, filters=None):
-	"""Jumlah dokumen per jalur kelompok (level 1, level 1+2, ...) untuk seluruh data sesuai filter & hak akses.
+def get_group_counts(doctype, groups, filters=None, sum_field=None):
+	"""Jumlah dokumen (dan total sum_field) per jalur kelompok untuk seluruh data sesuai filter & hak akses.
 
-	groups: [[fieldname, granularity], ...] maksimal 3 level.
-	Hasil: {"<kunci1>": n, "<kunci1>\\x1f<kunci2>": n, ...}
+	groups: [[fieldname, granularity], ...] maksimal 3 level; field tanggal yang sama boleh beda granularity.
+	Hasil: {"counts": {"<kunci1>": n, "<kunci1>\\x1f<kunci2>": n, ...}, "sums": {...}}
 	"""
 	frappe.has_permission(doctype, "read", throw=True)
 	groups = frappe.parse_json(groups) or []
@@ -39,19 +40,30 @@ def get_group_counts(doctype, groups, filters=None):
 			frappe.throw(_("Field {0} tidak ada di {1}").format(fieldname, doctype))
 		if granularity not in GRANULARITIES:
 			frappe.throw(_("Pengelompokan tanggal tidak dikenal: {0}").format(granularity))
+	if sum_field:
+		df = meta.get_field(sum_field)
+		if not df or df.fieldtype not in SUM_FIELDTYPES:
+			frappe.throw(_("Field {0} tidak bisa dijumlahkan").format(sum_field))
 
+	fields = {fieldname for fieldname, _ in groups}
+	if sum_field:
+		fields.add(sum_field)
 	rows = frappe.get_list(
 		doctype,
 		filters=frappe.parse_json(filters) or [],
-		fields=list({fieldname for fieldname, _ in groups}),
+		fields=list(fields),
 		limit_page_length=0,
 		order_by=None,
 	)
 
 	counts = Counter()
+	sums = defaultdict(float)
 	for row in rows:
 		path = []
 		for fieldname, granularity in groups:
 			path.append(group_key(row.get(fieldname), granularity or None))
-			counts[PATH_SEP.join(path)] += 1
-	return counts
+			key = PATH_SEP.join(path)
+			counts[key] += 1
+			if sum_field:
+				sums[key] += flt(row.get(sum_field))
+	return {"counts": counts, "sums": sums}
