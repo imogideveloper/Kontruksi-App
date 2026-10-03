@@ -152,6 +152,15 @@ after_install = "konstruksi.install.after_install"
 # 	}
 # }
 
+doc_events = {
+	"Tender": {
+		"on_update": "konstruksi.konstruksi.doctype.dokumen_tender.dokumen_tender.sinkron_dari_tender",
+	},
+	"File": {
+		"on_trash": "konstruksi.konstruksi.doctype.dokumen_tender.dokumen_tender.hapus_baris_file",
+	},
+}
+
 # Scheduled Tasks
 # ---------------
 

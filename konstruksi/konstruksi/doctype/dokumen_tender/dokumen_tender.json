@@ -1,0 +1,198 @@
+{
+ "actions": [],
+ "creation": "2026-10-03 19:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "data_section",
+  "data_tender_column",
+  "tender",
+  "nama_project",
+  "pemberi_kerja",
+  "status_column",
+  "batas_pemasukan",
+  "status_tender",
+  "diajukan_pada",
+  "persen_lengkap",
+  "wajib_total",
+  "wajib_lengkap",
+  "jumlah_file",
+  "checklist_section",
+  "checklist",
+  "data_tabel_section",
+  "items",
+  "files"
+ ],
+ "fields": [
+  {
+   "fieldname": "data_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "data_tender_column",
+   "fieldtype": "Column Break",
+   "label": "Data Tender"
+  },
+  {
+   "fieldname": "tender",
+   "fieldtype": "Link",
+   "label": "Tender",
+   "options": "Tender",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "nama_project",
+   "fieldtype": "Data",
+   "label": "Nama Project",
+   "fetch_from": "tender.nama_paket",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_global_search": 1
+  },
+  {
+   "fieldname": "pemberi_kerja",
+   "fieldtype": "Link",
+   "label": "Pemberi Kerja",
+   "options": "Customer",
+   "fetch_from": "tender.pemberi_kerja",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "status_column",
+   "fieldtype": "Column Break",
+   "label": "Status"
+  },
+  {
+   "fieldname": "batas_pemasukan",
+   "fieldtype": "Datetime",
+   "label": "Batas Pemasukan",
+   "fetch_from": "tender.batas_pemasukan",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status_tender",
+   "fieldtype": "Data",
+   "label": "Status Tender",
+   "fetch_from": "tender.status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "diajukan_pada",
+   "fieldtype": "Datetime",
+   "label": "Penawaran Diajukan",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "persen_lengkap",
+   "fieldtype": "Percent",
+   "label": "Kelengkapan Wajib",
+   "read_only": 1,
+   "in_list_view": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "wajib_total",
+   "fieldtype": "Int",
+   "label": "Dokumen Wajib",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "wajib_lengkap",
+   "fieldtype": "Int",
+   "label": "Dokumen Wajib Lengkap",
+   "read_only": 1,
+   "hidden": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "jumlah_file",
+   "fieldtype": "Int",
+   "label": "Jumlah File",
+   "read_only": 1,
+   "hidden": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "checklist_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "checklist",
+   "fieldtype": "HTML",
+   "label": "Checklist Dokumen"
+  },
+  {
+   "fieldname": "data_tabel_section",
+   "fieldtype": "Section Break",
+   "label": "Data Tabel",
+   "hidden": 1
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Daftar Dokumen",
+   "options": "Dokumen Tender Item"
+  },
+  {
+   "fieldname": "files",
+   "fieldtype": "Table",
+   "label": "File",
+   "options": "Dokumen Tender File",
+   "no_copy": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-03 19:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Konstruksi",
+ "name": "Dokumen Tender",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Projects User"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "field:tender",
+ "naming_rule": "By fieldname",
+ "title_field": "nama_project",
+ "show_title_field_in_link": 1,
+ "search_fields": "nama_project,pemberi_kerja",
+ "track_changes": 1
+}

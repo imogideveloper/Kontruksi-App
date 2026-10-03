@@ -1,0 +1,71 @@
+{
+ "actions": [],
+ "creation": "2026-10-03 19:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "kategori",
+  "nama_dokumen",
+  "keterangan",
+  "wajib",
+  "tidak_diperlukan",
+  "kustom"
+ ],
+ "fields": [
+  {
+   "fieldname": "kategori",
+   "fieldtype": "Select",
+   "label": "Kategori",
+   "options": "Dokumen Pemilihan\nAdministrasi\nTeknis\nHarga\nHasil",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "nama_dokumen",
+   "fieldtype": "Data",
+   "label": "Nama Dokumen",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 4
+  },
+  {
+   "fieldname": "keterangan",
+   "fieldtype": "Small Text",
+   "label": "Keterangan"
+  },
+  {
+   "fieldname": "wajib",
+   "fieldtype": "Check",
+   "label": "Wajib",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "tidak_diperlukan",
+   "fieldtype": "Check",
+   "label": "Tidak Diperlukan",
+   "description": "Dokumen 'bila ada' yang tidak diminta di tender ini.",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "kustom",
+   "fieldtype": "Check",
+   "label": "Ditambahkan Manual",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-03 19:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Konstruksi",
+ "name": "Dokumen Tender Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1,
+ "editable_grid": 1
+}

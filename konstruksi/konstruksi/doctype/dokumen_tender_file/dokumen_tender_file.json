@@ -1,0 +1,70 @@
+{
+ "actions": [],
+ "creation": "2026-10-03 19:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "item",
+  "file_url",
+  "nama_file",
+  "ukuran",
+  "diunggah_oleh",
+  "diunggah_pada"
+ ],
+ "fields": [
+  {
+   "fieldname": "item",
+   "fieldtype": "Data",
+   "label": "Dokumen",
+   "description": "ID baris Dokumen Tender Item.",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "file_url",
+   "fieldtype": "Attach",
+   "label": "File",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 4
+  },
+  {
+   "fieldname": "nama_file",
+   "fieldtype": "Data",
+   "label": "Nama File",
+   "in_list_view": 1,
+   "columns": 3
+  },
+  {
+   "fieldname": "ukuran",
+   "fieldtype": "Int",
+   "label": "Ukuran (byte)"
+  },
+  {
+   "fieldname": "diunggah_oleh",
+   "fieldtype": "Link",
+   "label": "Diunggah Oleh",
+   "options": "User"
+  },
+  {
+   "fieldname": "diunggah_pada",
+   "fieldtype": "Datetime",
+   "label": "Diunggah Pada",
+   "in_list_view": 1,
+   "columns": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-03 19:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Konstruksi",
+ "name": "Dokumen Tender File",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1,
+ "editable_grid": 1
+}
