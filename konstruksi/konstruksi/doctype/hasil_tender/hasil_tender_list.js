@@ -5,7 +5,8 @@ const KOLOM_SESUDAH_HASIL = ["penawaran_kita", "pemenang", "harga_pemenang", "se
 const KOSONG = `<span class="text-muted">—</span>`;
 
 frappe.listview_settings["Hasil Tender"] = {
-	add_fields: ["hasil"],
+	// Kolom di luar in_list_view hanya terisi bila field-nya ikut diambil.
+	add_fields: ["hasil", ...KOLOM_SEBELUM_HASIL, ...KOLOM_SESUDAH_HASIL],
 	// Kolom "ID" bawaan tidak perlu: ID = kode Tender.
 	hide_name_column: true,
 
