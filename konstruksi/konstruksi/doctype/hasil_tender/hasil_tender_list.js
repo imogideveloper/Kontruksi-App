@@ -1,4 +1,4 @@
-// Kolom list Hasil Tender (mengikuti tabel Riwayat Hasil Tender): Kode, Tanggal Pengajuan, Paket, Pemberi Kerja, Hasil,
+// Kolom list Hasil Tender (mengikuti tabel Riwayat Hasil Tender): Kode, Tanggal Pengajuan, Project, Pemberi Kerja, Hasil,
 // lalu nilai & keterangan.
 const KOLOM_SEBELUM_HASIL = ["tanggal_pengajuan", "nama_project", "pemberi_kerja"];
 const KOLOM_SESUDAH_HASIL = ["penawaran_kita", "pemenang", "harga_pemenang", "selisih_persen", "keterangan"];
@@ -38,7 +38,7 @@ frappe.listview_settings["Hasil Tender"] = {
 	},
 
 	onload(listview) {
-		// Frappe selalu menaruh title field (Paket) di kolom pertama; susun ulang (lihat tender_list.js).
+		// Frappe selalu menaruh title field (Project) di kolom pertama; susun ulang (lihat tender_list.js).
 		const setup_columns = listview.setup_columns.bind(listview);
 		listview.setup_columns = function () {
 			setup_columns();
