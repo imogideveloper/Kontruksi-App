@@ -1013,3 +1013,16 @@ button.dok-file-kosong .icon {
 .dok-tambah-dokumen .icon {
 	stroke: var(--konstruksi-active-fg);
 }
+
+/* Sidebar kiri: item Spacer dijadikan garis pemisah (menu operasional | konfigurasi). */
+.body-sidebar .standard-sidebar-item:has(> div.item-anchor:not(.section-break)) {
+	margin: 6px 0;
+}
+
+.body-sidebar .standard-sidebar-item > div.item-anchor:not(.section-break) {
+	height: 0 !important;
+	min-height: 0 !important;
+	padding: 0 !important;
+	border-top: 1px solid var(--border-color);
+	width: 100%;
+}
