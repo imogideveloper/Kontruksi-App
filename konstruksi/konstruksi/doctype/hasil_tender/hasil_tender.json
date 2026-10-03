@@ -102,8 +102,7 @@
   },
   {
    "fieldname": "hasil_section",
-   "fieldtype": "Section Break",
-   "label": "Hasil"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "hasil",
@@ -168,7 +167,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-04 20:30:00.000000",
+ "modified": "2026-10-04 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Hasil Tender",
