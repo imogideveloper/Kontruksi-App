@@ -6,6 +6,11 @@ const DOK_METHOD = "konstruksi.konstruksi.doctype.dokumen_tender.dokumen_tender"
 const BULAN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 
 frappe.ui.form.on("Dokumen Tender", {
+	setup(frm) {
+		// Label zona waktu (Asia/Jakarta) di bawah field Datetime tidak perlu ditampilkan.
+		["batas_pemasukan", "diajukan_pada"].forEach((fieldname) => (frm.get_docfield(fieldname).hide_timezone = 1));
+	},
+
 	refresh(frm) {
 		tambah_tombol(frm);
 		render_checklist(frm);
