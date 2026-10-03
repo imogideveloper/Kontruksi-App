@@ -1032,3 +1032,11 @@ button.dok-file-kosong .icon {
 	/* Warna sama dengan blok menu aktif. */
 	border-top: 2px solid var(--konstruksi-active-bg);
 }
+
+/* Dokumen Tender: kotak nilai Kelengkapan Wajib diberi blok warna (sama dengan menu sidebar aktif). */
+body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_lengkap"] .control-value,
+body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_lengkap"] input {
+	background-color: var(--konstruksi-active-bg) !important;
+	color: var(--konstruksi-active-fg) !important;
+	border-radius: var(--konstruksi-block-radius) !important;
+}
