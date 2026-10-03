@@ -1,0 +1,205 @@
+{
+ "actions": [],
+ "autoname": "field:tender",
+ "creation": "2026-10-04 17:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "data_section",
+  "data_tender_column",
+  "tender",
+  "nama_project",
+  "pemberi_kerja",
+  "tanggal_tender",
+  "nilai_column",
+  "hps",
+  "penawaran_kita",
+  "hasil_section",
+  "hasil",
+  "tanggal_pengumuman",
+  "pemenang_column",
+  "pemenang",
+  "harga_pemenang",
+  "selisih_persen",
+  "keterangan_section",
+  "keterangan"
+ ],
+ "fields": [
+  {
+   "fieldname": "data_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "data_tender_column",
+   "fieldtype": "Column Break",
+   "label": "Data Tender"
+  },
+  {
+   "fieldname": "tender",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Kode",
+   "options": "Tender",
+   "reqd": 1,
+   "set_only_once": 1,
+   "unique": 1
+  },
+  {
+   "fetch_from": "tender.nama_paket",
+   "fieldname": "nama_project",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "label": "Paket",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "tender.pemberi_kerja",
+   "fieldname": "pemberi_kerja",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Pemberi Kerja",
+   "options": "Customer",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "tender.tanggal",
+   "fieldname": "tanggal_tender",
+   "fieldtype": "Date",
+   "label": "Tanggal Tender",
+   "read_only": 1
+  },
+  {
+   "fieldname": "nilai_column",
+   "fieldtype": "Column Break",
+   "label": "Nilai"
+  },
+  {
+   "fetch_from": "tender.hps",
+   "fieldname": "hps",
+   "fieldtype": "Currency",
+   "label": "HPS",
+   "options": "IDR",
+   "read_only": 1
+  },
+  {
+   "description": "Nilai Penawaran Kita di Tender (termasuk PPN).",
+   "fetch_from": "tender.nilai_penawaran",
+   "fieldname": "penawaran_kita",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Penawaran Kita",
+   "options": "IDR",
+   "read_only": 1
+  },
+  {
+   "fieldname": "hasil_section",
+   "fieldtype": "Section Break",
+   "label": "Hasil"
+  },
+  {
+   "fieldname": "hasil",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Hasil",
+   "options": "Menang\nKalah\nBatal",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "tanggal_pengumuman",
+   "fieldtype": "Date",
+   "label": "Tanggal Pengumuman"
+  },
+  {
+   "fieldname": "pemenang_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.hasil != 'Batal'",
+   "description": "Otomatis \"Kita\" bila menang.",
+   "fieldname": "pemenang",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Pemenang",
+   "mandatory_depends_on": "eval:doc.hasil == 'Kalah'"
+  },
+  {
+   "depends_on": "eval:doc.hasil != 'Batal'",
+   "description": "Bila menang: nilai kontrak (kosongkan = sama dengan penawaran kita).",
+   "fieldname": "harga_pemenang",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Harga Pemenang / Kontrak",
+   "mandatory_depends_on": "eval:doc.hasil == 'Kalah'",
+   "options": "IDR"
+  },
+  {
+   "depends_on": "eval:doc.hasil != 'Batal'",
+   "description": "Penawaran kita dibanding harga pemenang: positif = kita lebih mahal.",
+   "fieldname": "selisih_persen",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Selisih",
+   "read_only": 1
+  },
+  {
+   "fieldname": "keterangan_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Alasan kalah / batal, atau catatan evaluasi untuk penawaran berikutnya.",
+   "fieldname": "keterangan",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Keterangan"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-04 17:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Konstruksi",
+ "name": "Hasil Tender",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Projects User"
+  }
+ ],
+ "search_fields": "nama_project,pemberi_kerja,pemenang",
+ "show_title_field_in_link": 1,
+ "sort_field": "tanggal_pengumuman",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "nama_project",
+ "track_changes": 1
+}

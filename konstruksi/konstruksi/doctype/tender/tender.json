@@ -220,7 +220,8 @@
    "in_standard_filter": 0,
    "label": "Status",
    "options": "Persiapan\nPenawaran Dikirim\nEvaluasi\nMenang\nKalah\nBatal",
-   "reqd": 1
+   "reqd": 1,
+   "description": "Menang / Kalah / Batal diisi otomatis dari menu Hasil Tender."
   },
   {
    "fieldname": "column_break_hasil",
@@ -230,20 +231,26 @@
    "depends_on": "eval:doc.status == \"Kalah\"",
    "fieldname": "pemenang",
    "fieldtype": "Data",
-   "label": "Pemenang"
+   "label": "Pemenang",
+   "read_only": 1,
+   "description": "Diisi dari menu Hasil Tender."
   },
   {
    "depends_on": "eval:doc.status == \"Kalah\"",
    "fieldname": "nilai_pemenang",
    "fieldtype": "Currency",
    "label": "Nilai Pemenang (Rp)",
-   "options": "IDR"
+   "options": "IDR",
+   "read_only": 1,
+   "description": "Diisi dari menu Hasil Tender."
   },
   {
    "depends_on": "eval:in_list([\"Kalah\", \"Batal\"], doc.status)",
    "fieldname": "alasan",
    "fieldtype": "Small Text",
-   "label": "Alasan Kalah / Batal"
+   "label": "Alasan Kalah / Batal",
+   "read_only": 1,
+   "description": "Diisi dari menu Hasil Tender."
   }
  ],
  "index_web_pages_for_search": 0,
@@ -252,9 +259,14 @@
    "group": "Penawaran",
    "link_doctype": "RAB Penawaran",
    "link_fieldname": "tender"
+  },
+  {
+   "group": "Penawaran",
+   "link_doctype": "Hasil Tender",
+   "link_fieldname": "tender"
   }
  ],
- "modified": "2026-10-03 13:30:00.000000",
+ "modified": "2026-10-04 17:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Tender",

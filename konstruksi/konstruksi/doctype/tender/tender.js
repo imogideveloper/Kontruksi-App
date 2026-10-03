@@ -30,6 +30,15 @@ frappe.ui.form.on("Tender", {
 					})
 					.then((r) => frappe.set_route("Form", "Dokumen Tender", r.message));
 			});
+			frm.add_custom_button(__("Hasil Tender"), () => {
+				frappe
+					.call("konstruksi.konstruksi.doctype.hasil_tender.hasil_tender.get_hasil", { tender: frm.doc.name })
+					.then((r) =>
+						r.message
+							? frappe.set_route("Form", "Hasil Tender", r.message)
+							: frappe.new_doc("Hasil Tender", { tender: frm.doc.name })
+					);
+			});
 		}
 		update_persen_hps_note(frm);
 		["hps", "nilai_penawaran"].forEach((fieldname) => format_ribuan_saat_mengetik(frm, fieldname));
