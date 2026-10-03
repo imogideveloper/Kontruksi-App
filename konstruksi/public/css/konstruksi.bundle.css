@@ -1040,18 +1040,3 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 	color: var(--konstruksi-active-fg) !important;
 	border-radius: var(--konstruksi-block-radius) !important;
 }
-
-/* List Hasil Tender: kolom Paket dua baris (nama tebal, pemberi kerja · tanggal di bawahnya). */
-.frappe-list .hasil-paket {
-	min-width: 0;
-	line-height: 1.35;
-}
-
-.frappe-list .hasil-paket-nama {
-	font-weight: 600;
-	color: var(--text-color);
-}
-
-.frappe-list .hasil-paket-sub {
-	font-size: var(--text-xs);
-}
