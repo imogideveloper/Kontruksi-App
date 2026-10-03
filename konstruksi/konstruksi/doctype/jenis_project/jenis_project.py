@@ -9,6 +9,12 @@ from frappe.utils import cint
 
 class JenisProject(Document):
 	def validate(self):
+		if not cint(self.urutan):
+			# Jenis baru tanpa urutan ditaruh paling bawah.
+			terbesar = frappe.get_all(
+				"Jenis Project", filters={"name": ("!=", self.name)}, fields=[{"MAX": "urutan", "as": "urutan"}]
+			)
+			self.urutan = (cint(terbesar[0].urutan) if terbesar else 0) + 10
 		self.lengkapi_sections()
 		self.urutkan_dokumen()
 
@@ -62,3 +68,17 @@ def urutkan(rows, key):
 	for i, row in enumerate(rows, start=1):
 		row.idx = i
 	return rows
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def cari_jenis_project(doctype, txt, searchfield, start, page_len, filters):
+	"""Pilihan Jenis Project di field Link, urut sesuai kolom Urutan (pencarian bawaan Frappe selalu urut abjad)."""
+	return frappe.get_all(
+		"Jenis Project",
+		filters={"disabled": 0, "name": ("like", f"%{txt}%")},
+		order_by="urutan asc, name asc",
+		limit_start=start,
+		limit_page_length=page_len,
+		as_list=True,
+	)

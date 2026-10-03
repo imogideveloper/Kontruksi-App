@@ -5,6 +5,13 @@
 const BATAS_HARGA_WAJAR = 80;
 
 frappe.ui.form.on("Tender", {
+	setup(frm) {
+		// Pilihan Jenis Project urut sesuai kolom Urutan di master, bukan abjad.
+		frm.set_query("jenis_project", () => ({
+			query: "konstruksi.konstruksi.doctype.jenis_project.jenis_project.cari_jenis_project",
+		}));
+	},
+
 	onload(frm) {
 		set_pratinjau_kode(frm);
 	},
