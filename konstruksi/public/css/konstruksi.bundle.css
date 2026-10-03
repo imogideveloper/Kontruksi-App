@@ -1029,5 +1029,6 @@ button.dok-file-kosong .icon {
 .body-sidebar .section-item[data-id="Konfigurasi"] > .standard-sidebar-item > .divider {
 	display: block !important;
 	margin: 0;
-	border-top: 1px solid var(--border-color);
+	/* Warna sama dengan blok menu aktif. */
+	border-top: 2px solid var(--konstruksi-active-bg);
 }
