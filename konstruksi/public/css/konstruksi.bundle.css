@@ -1014,15 +1014,20 @@ button.dok-file-kosong .icon {
 	stroke: var(--konstruksi-active-fg);
 }
 
-/* Sidebar kiri: item Spacer dijadikan garis pemisah (menu operasional | konfigurasi). */
-.body-sidebar .standard-sidebar-item:has(> div.item-anchor:not(.section-break)) {
+/* Sidebar kiri: Section Break "Konfigurasi" tampil sebagai garis pemisah (menu operasional | konfigurasi).
+   Spacer bawaan Frappe tidak dirender di sidebar workspace, jadi dipakai Section Break berisi menu konfigurasi. */
+.body-sidebar .section-item[data-id="Konfigurasi"] > .standard-sidebar-item {
 	margin: 6px 0;
+	min-height: 0;
+	pointer-events: none;
 }
 
-.body-sidebar .standard-sidebar-item > div.item-anchor:not(.section-break) {
-	height: 0 !important;
-	min-height: 0 !important;
-	padding: 0 !important;
+.body-sidebar .section-item[data-id="Konfigurasi"] > .standard-sidebar-item > .item-anchor.section-break {
+	display: none !important;
+}
+
+.body-sidebar .section-item[data-id="Konfigurasi"] > .standard-sidebar-item > .divider {
+	display: block !important;
+	margin: 0;
 	border-top: 1px solid var(--border-color);
-	width: 100%;
 }
