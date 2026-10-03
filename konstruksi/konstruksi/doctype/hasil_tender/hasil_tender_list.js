@@ -11,7 +11,7 @@ frappe.listview_settings["Hasil Tender"] = {
 	hide_name_column: true,
 
 	get_indicator(doc) {
-		const colors = { Menunggu: "orange", Menang: "green", Kalah: "red", Batal: "gray" };
+		const colors = { Menunggu: "orange", Menang: "green", Kalah: "red", "Batal / Mundur": "gray" };
 		return [__(doc.hasil), colors[doc.hasil] || "gray", "hasil,=," + doc.hasil];
 	},
 
@@ -24,7 +24,7 @@ frappe.listview_settings["Hasil Tender"] = {
 		},
 		selisih_persen(value, df, doc) {
 			value = flt(value);
-			if (!value || ["Menunggu", "Batal"].includes(doc.hasil)) return KOSONG;
+			if (!value || ["Menunggu", "Batal / Mundur"].includes(doc.hasil)) return KOSONG;
 			const teks = `${value > 0 ? "+" : ""}${format_number(value, null, 1)}%`;
 			return value > 0
 				? `<span class="text-danger">${__("{0} lebih mahal", [teks])}</span>`

@@ -219,9 +219,9 @@
    "in_list_view": 0,
    "in_standard_filter": 0,
    "label": "Status",
-   "options": "Persiapan\nPenawaran Dikirim\nEvaluasi\nMenang\nKalah\nBatal",
+   "options": "Persiapan\nPenawaran Dikirim\nEvaluasi\nMenang\nKalah\nBatal / Mundur",
    "reqd": 1,
-   "description": "Menang / Kalah / Batal diisi otomatis dari menu Hasil Tender."
+   "description": "Menang / Kalah / Batal / Mundur diisi otomatis dari menu Hasil Tender."
   },
   {
    "fieldname": "column_break_hasil",
@@ -245,10 +245,10 @@
    "description": "Diisi dari menu Hasil Tender."
   },
   {
-   "depends_on": "eval:in_list([\"Kalah\", \"Batal\"], doc.status)",
+   "depends_on": "eval:in_list([\"Kalah\", \"Batal / Mundur\"], doc.status)",
    "fieldname": "alasan",
    "fieldtype": "Small Text",
-   "label": "Alasan Kalah / Batal",
+   "label": "Alasan Kalah / Batal / Mundur",
    "read_only": 1,
    "description": "Diisi dari menu Hasil Tender."
   }

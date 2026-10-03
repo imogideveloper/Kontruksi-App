@@ -110,7 +110,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Hasil",
-   "options": "Menunggu\nMenang\nKalah\nBatal",
+   "options": "Menunggu\nMenang\nKalah\nBatal / Mundur",
    "reqd": 1,
    "default": "Menunggu"
   },
@@ -126,7 +126,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:!['Menunggu', 'Batal'].includes(doc.hasil)",
+   "depends_on": "eval:!['Menunggu', 'Batal / Mundur'].includes(doc.hasil)",
    "description": "Otomatis \"Kita\" bila menang.",
    "fieldname": "pemenang",
    "fieldtype": "Data",
@@ -135,7 +135,7 @@
    "mandatory_depends_on": "eval:doc.hasil == 'Kalah'"
   },
   {
-   "depends_on": "eval:!['Menunggu', 'Batal'].includes(doc.hasil)",
+   "depends_on": "eval:!['Menunggu', 'Batal / Mundur'].includes(doc.hasil)",
    "description": "Bila menang: nilai kontrak (kosongkan = sama dengan penawaran kita).",
    "fieldname": "harga_pemenang",
    "fieldtype": "Currency",
@@ -145,7 +145,7 @@
    "options": "IDR"
   },
   {
-   "depends_on": "eval:!['Menunggu', 'Batal'].includes(doc.hasil)",
+   "depends_on": "eval:!['Menunggu', 'Batal / Mundur'].includes(doc.hasil)",
    "description": "Penawaran kita dibanding harga pemenang: positif = kita lebih mahal.",
    "fieldname": "selisih_persen",
    "fieldtype": "Percent",

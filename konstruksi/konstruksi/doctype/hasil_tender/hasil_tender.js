@@ -29,7 +29,7 @@ frappe.ui.form.on("Hasil Tender", {
 
 	setup(frm) {
 		// Hanya tender yang hasilnya belum dicatat.
-		frm.set_query("tender", () => ({ filters: { status: ["not in", ["Menang", "Kalah", "Batal"]] } }));
+		frm.set_query("tender", () => ({ filters: { status: ["not in", ["Menang", "Kalah", "Batal / Mundur"]] } }));
 	},
 
 	hasil(frm) {

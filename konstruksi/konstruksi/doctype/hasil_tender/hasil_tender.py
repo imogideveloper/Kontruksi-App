@@ -7,7 +7,7 @@ from frappe.model.document import Document
 from frappe.utils import flt, getdate, today
 
 PEMENANG_KITA = "Kita"
-HASIL_FINAL = ("Menang", "Kalah", "Batal")
+HASIL_FINAL = ("Menang", "Kalah", "Batal / Mundur")
 
 
 class HasilTender(Document):
@@ -35,7 +35,7 @@ class HasilTender(Document):
 			self.pemenang = PEMENANG_KITA
 			if not flt(self.harga_pemenang):
 				self.harga_pemenang = self.penawaran_kita
-		elif self.hasil in ("Menunggu", "Batal"):
+		elif self.hasil in ("Menunggu", "Batal / Mundur"):
 			self.pemenang = None
 			self.harga_pemenang = 0
 		elif self.pemenang == PEMENANG_KITA:
@@ -51,7 +51,7 @@ class HasilTender(Document):
 
 	def on_update(self):
 		if self.hasil in HASIL_FINAL:
-			alasan = self.keterangan if self.hasil in ("Kalah", "Batal") else None
+			alasan = self.keterangan if self.hasil in ("Kalah", "Batal / Mundur") else None
 			set_hasil_tender(self.tender, self.hasil, self.pemenang, self.harga_pemenang, alasan)
 		elif frappe.db.get_value("Tender", self.tender, "status") in HASIL_FINAL:
 			# Hasil dikembalikan ke Menunggu: tender kembali menunggu pengumuman.

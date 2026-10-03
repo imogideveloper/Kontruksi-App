@@ -21,7 +21,7 @@ frappe.listview_settings["Tender"] = {
 			Evaluasi: "orange",
 			Menang: "green",
 			Kalah: "red",
-			Batal: "darkgrey",
+			"Batal / Mundur": "darkgrey",
 		};
 		return [__(doc.status), colors[doc.status] || "gray", "status,=," + doc.status];
 	},
