@@ -11,6 +11,7 @@
   "nama_project",
   "pemberi_kerja",
   "tanggal_tender",
+  "tanggal_pengajuan",
   "nilai_column",
   "hps",
   "penawaran_kita",
@@ -67,6 +68,13 @@
    "fieldname": "tanggal_tender",
    "fieldtype": "Date",
    "label": "Tanggal Tender",
+   "read_only": 1
+  },
+  {
+   "description": "Tanggal penawaran diajukan di Dokumen Tender.",
+   "fieldname": "tanggal_pengajuan",
+   "fieldtype": "Date",
+   "label": "Tanggal Pengajuan",
    "read_only": 1
   },
   {
@@ -160,7 +168,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-04 19:00:00.000000",
+ "modified": "2026-10-04 20:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Hasil Tender",

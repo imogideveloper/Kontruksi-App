@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import flt, today
+from frappe.utils import flt, getdate, today
 
 PEMENANG_KITA = "Kita"
 HASIL_FINAL = ("Menang", "Kalah", "Batal")
@@ -20,6 +20,7 @@ class HasilTender(Document):
 		self.tanggal_tender = tender.tanggal
 		self.hps = tender.hps
 		self.penawaran_kita = tender.nilai_penawaran
+		self.tanggal_pengajuan = get_tanggal_pengajuan(self.tender)
 
 		if self.hasil == "Menang":
 			self.pemenang = PEMENANG_KITA
@@ -66,9 +67,17 @@ def set_hasil_tender(tender, status, pemenang, nilai_pemenang, alasan):
 	sinkron_dari_tender(tender_doc)
 
 
+def get_tanggal_pengajuan(tender):
+	diajukan_pada = frappe.db.get_value("Dokumen Tender", {"tender": tender}, "diajukan_pada")
+	return getdate(diajukan_pada) if diajukan_pada else None
+
+
 def buat_menunggu(tender):
 	"""Penawaran diajukan: catat Hasil Tender berstatus Menunggu (bila belum ada)."""
-	if not frappe.db.exists("Hasil Tender", {"tender": tender}):
+	name = frappe.db.get_value("Hasil Tender", {"tender": tender})
+	if name:
+		frappe.db.set_value("Hasil Tender", name, "tanggal_pengajuan", get_tanggal_pengajuan(tender))
+	else:
 		frappe.get_doc({"doctype": "Hasil Tender", "tender": tender, "hasil": "Menunggu"}).insert(ignore_permissions=True)
 
 

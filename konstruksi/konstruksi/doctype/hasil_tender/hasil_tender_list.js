@@ -1,6 +1,6 @@
-// Kolom list Hasil Tender (mengikuti tabel Riwayat Hasil Tender): Kode, Tanggal, Paket, Pemberi Kerja, Hasil,
+// Kolom list Hasil Tender (mengikuti tabel Riwayat Hasil Tender): Kode, Tanggal Pengajuan, Paket, Pemberi Kerja, Hasil,
 // lalu nilai & keterangan.
-const KOLOM_SEBELUM_HASIL = ["tanggal_tender", "nama_project", "pemberi_kerja"];
+const KOLOM_SEBELUM_HASIL = ["tanggal_pengajuan", "nama_project", "pemberi_kerja"];
 const KOLOM_SESUDAH_HASIL = ["penawaran_kita", "pemenang", "harga_pemenang", "selisih_persen", "keterangan"];
 const KOSONG = `<span class="text-muted">—</span>`;
 
