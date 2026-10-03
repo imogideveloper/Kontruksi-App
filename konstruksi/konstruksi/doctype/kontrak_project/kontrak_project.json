@@ -1,0 +1,517 @@
+{
+ "actions": [],
+ "autoname": "PRJ-.YYYY.-.###",
+ "creation": "2026-10-04 22:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "ringkasan_section",
+  "ringkasan",
+  "kelengkapan_section",
+  "kelengkapan_html",
+  "identitas_section",
+  "tender",
+  "nama_project",
+  "pemberi_kerja",
+  "jenis_project",
+  "lokasi",
+  "identitas_column",
+  "nomor_kontrak",
+  "tanggal_kontrak",
+  "jenis_kontrak",
+  "sumber_dana",
+  "pihak_section",
+  "wakil_pemberi_kerja",
+  "pihak_column",
+  "konsultan_pengawas",
+  "pihak_column_2",
+  "project_manager",
+  "nilai_section",
+  "nilai_kontrak",
+  "status_ppn",
+  "tarif_ppn",
+  "nilai_column",
+  "nilai_sebelum_ppn",
+  "nilai_ppn",
+  "waktu_section",
+  "nomor_spmk",
+  "tanggal_spmk",
+  "waktu_column",
+  "masa_pelaksanaan",
+  "tanggal_selesai",
+  "waktu_column_2",
+  "masa_pemeliharaan",
+  "akhir_pemeliharaan",
+  "pembayaran_section",
+  "cara_pembayaran",
+  "uang_muka_persen",
+  "nilai_uang_muka",
+  "pembayaran_column",
+  "retensi_persen",
+  "pph_final_persen",
+  "pembayaran_column_2",
+  "syarat_bayar_dikonfirmasi",
+  "jaminan_section",
+  "jaminan_pelaksanaan_wajib",
+  "jaminan_pelaksanaan_nilai",
+  "jaminan_pelaksanaan_diserahkan",
+  "jaminan_column",
+  "jaminan_pelaksanaan_nomor",
+  "jaminan_pelaksanaan_penerbit",
+  "jaminan_pelaksanaan_berlaku",
+  "jaminan_column_2",
+  "jaminan_uang_muka_nilai",
+  "jaminan_uang_muka_diserahkan",
+  "dokumen_section",
+  "file_kontrak",
+  "dokumen_column",
+  "file_spmk",
+  "catatan_section",
+  "catatan",
+  "kelengkapan_terisi",
+  "kelengkapan_total"
+ ],
+ "fields": [
+  {
+   "fieldname": "ringkasan_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "ringkasan",
+   "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "kelengkapan_section",
+   "fieldtype": "Section Break",
+   "label": "Kelengkapan Kontrak",
+   "collapsible": 0
+  },
+  {
+   "fieldname": "kelengkapan_html",
+   "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "identitas_section",
+   "fieldtype": "Section Break",
+   "label": "Identitas Kontrak"
+  },
+  {
+   "fieldname": "tender",
+   "fieldtype": "Link",
+   "label": "Asal Tender",
+   "options": "Tender",
+   "reqd": 1,
+   "unique": 1,
+   "set_only_once": 1,
+   "in_standard_filter": 1,
+   "description": "Hanya tender dengan Hasil Tender = Menang."
+  },
+  {
+   "fieldname": "nama_project",
+   "fieldtype": "Data",
+   "label": "Project",
+   "fetch_from": "tender.nama_paket",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_global_search": 1
+  },
+  {
+   "fieldname": "pemberi_kerja",
+   "fieldtype": "Link",
+   "label": "Pemberi Kerja",
+   "options": "Customer",
+   "fetch_from": "tender.pemberi_kerja",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "jenis_project",
+   "fieldtype": "Link",
+   "label": "Jenis Project",
+   "options": "Jenis Project",
+   "fetch_from": "tender.jenis_project",
+   "read_only": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "lokasi",
+   "fieldtype": "Data",
+   "label": "Lokasi Project",
+   "fetch_from": "tender.lokasi",
+   "read_only": 1
+  },
+  {
+   "fieldname": "identitas_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "nomor_kontrak",
+   "fieldtype": "Data",
+   "label": "Nomor Kontrak",
+   "in_global_search": 1
+  },
+  {
+   "fieldname": "tanggal_kontrak",
+   "fieldtype": "Date",
+   "label": "Tanggal Kontrak",
+   "description": "Tanggal penandatanganan kontrak."
+  },
+  {
+   "fieldname": "jenis_kontrak",
+   "fieldtype": "Select",
+   "label": "Jenis Kontrak",
+   "options": "\nLumsum\nHarga Satuan\nGabungan Lumsum dan Harga Satuan\nTerima Jadi (Turnkey)\nKontrak Payung",
+   "fetch_from": "tender.jenis_kontrak",
+   "fetch_if_empty": 1
+  },
+  {
+   "fieldname": "sumber_dana",
+   "fieldtype": "Data",
+   "label": "Sumber Dana",
+   "fetch_from": "tender.sumber_dana",
+   "fetch_if_empty": 1
+  },
+  {
+   "fieldname": "pihak_section",
+   "fieldtype": "Section Break",
+   "label": "Para Pihak"
+  },
+  {
+   "fieldname": "wakil_pemberi_kerja",
+   "fieldtype": "Data",
+   "label": "Wakil Pemberi Kerja",
+   "description": "Nama PPK / PIC dari pemberi kerja yang menandatangani kontrak."
+  },
+  {
+   "fieldname": "pihak_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "konsultan_pengawas",
+   "fieldtype": "Data",
+   "label": "Konsultan Pengawas"
+  },
+  {
+   "fieldname": "pihak_column_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "project_manager",
+   "fieldtype": "Link",
+   "label": "Project Manager",
+   "options": "User",
+   "fetch_from": "tender.penanggung_jawab",
+   "fetch_if_empty": 1
+  },
+  {
+   "fieldname": "nilai_section",
+   "fieldtype": "Section Break",
+   "label": "Nilai Kontrak"
+  },
+  {
+   "fieldname": "nilai_kontrak",
+   "fieldtype": "Currency",
+   "label": "Nilai Kontrak (termasuk PPN)",
+   "options": "IDR",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "Awalnya diisi dari Harga Pemenang / Kontrak di Hasil Tender; sesuaikan bila ada negosiasi."
+  },
+  {
+   "fieldname": "status_ppn",
+   "fieldtype": "Select",
+   "label": "Status PPN",
+   "options": "PPN\nTidak Kena PPN",
+   "default": "PPN",
+   "fetch_from": "tender.status_ppn",
+   "fetch_if_empty": 1
+  },
+  {
+   "fieldname": "tarif_ppn",
+   "fieldtype": "Percent",
+   "label": "Tarif PPN (%)",
+   "default": "11",
+   "fetch_from": "tender.tarif_ppn",
+   "fetch_if_empty": 1,
+   "depends_on": "eval:doc.status_ppn == 'PPN'"
+  },
+  {
+   "fieldname": "nilai_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "nilai_sebelum_ppn",
+   "fieldtype": "Currency",
+   "label": "Nilai Sebelum PPN",
+   "options": "IDR",
+   "read_only": 1
+  },
+  {
+   "fieldname": "nilai_ppn",
+   "fieldtype": "Currency",
+   "label": "PPN",
+   "options": "IDR",
+   "read_only": 1,
+   "depends_on": "eval:doc.status_ppn == 'PPN'"
+  },
+  {
+   "fieldname": "waktu_section",
+   "fieldtype": "Section Break",
+   "label": "Waktu Pelaksanaan"
+  },
+  {
+   "fieldname": "nomor_spmk",
+   "fieldtype": "Data",
+   "label": "Nomor SPMK",
+   "description": "Surat Perintah Mulai Kerja."
+  },
+  {
+   "fieldname": "tanggal_spmk",
+   "fieldtype": "Date",
+   "label": "Tanggal SPMK",
+   "in_list_view": 1,
+   "description": "Hari pertama pelaksanaan."
+  },
+  {
+   "fieldname": "waktu_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "masa_pelaksanaan",
+   "fieldtype": "Int",
+   "label": "Masa Pelaksanaan (hari)",
+   "fetch_from": "tender.masa_pelaksanaan",
+   "fetch_if_empty": 1
+  },
+  {
+   "fieldname": "tanggal_selesai",
+   "fieldtype": "Date",
+   "label": "Tanggal Selesai",
+   "read_only": 1,
+   "in_list_view": 1,
+   "description": "Dihitung dari Tanggal SPMK + masa pelaksanaan."
+  },
+  {
+   "fieldname": "waktu_column_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "masa_pemeliharaan",
+   "fieldtype": "Int",
+   "label": "Masa Pemeliharaan (hari)",
+   "description": "Setelah serah terima pertama (PHO), sesuai kontrak."
+  },
+  {
+   "fieldname": "akhir_pemeliharaan",
+   "fieldtype": "Date",
+   "label": "Akhir Pemeliharaan",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pembayaran_section",
+   "fieldtype": "Section Break",
+   "label": "Syarat Pembayaran"
+  },
+  {
+   "fieldname": "cara_pembayaran",
+   "fieldtype": "Select",
+   "label": "Cara Pembayaran",
+   "options": "\nTermin (sesuai progres)\nBulanan\nSekaligus di akhir"
+  },
+  {
+   "fieldname": "uang_muka_persen",
+   "fieldtype": "Percent",
+   "label": "Uang Muka (%)"
+  },
+  {
+   "fieldname": "nilai_uang_muka",
+   "fieldtype": "Currency",
+   "label": "Nilai Uang Muka",
+   "options": "IDR",
+   "read_only": 1,
+   "depends_on": "eval:doc.uang_muka_persen"
+  },
+  {
+   "fieldname": "pembayaran_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "retensi_persen",
+   "fieldtype": "Percent",
+   "label": "Retensi (%)",
+   "default": "5",
+   "description": "Ditahan dari tiap pembayaran, dibayar setelah masa pemeliharaan."
+  },
+  {
+   "fieldname": "pph_final_persen",
+   "fieldtype": "Percent",
+   "label": "PPh Final (%)",
+   "description": "Sesuai kualifikasi usaha (SBU)."
+  },
+  {
+   "fieldname": "pembayaran_column_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "syarat_bayar_dikonfirmasi",
+   "fieldtype": "Check",
+   "label": "Syarat pembayaran sudah dicek sesuai kontrak",
+   "description": "Centang setelah isian di kiri dicocokkan dengan pasal pembayaran di kontrak."
+  },
+  {
+   "fieldname": "jaminan_section",
+   "fieldtype": "Section Break",
+   "label": "Jaminan"
+  },
+  {
+   "fieldname": "jaminan_pelaksanaan_wajib",
+   "fieldtype": "Check",
+   "label": "Wajib Jaminan Pelaksanaan",
+   "default": "1",
+   "description": "Hilangkan centang bila kontrak tidak mensyaratkan (umumnya swasta / nilai kecil)."
+  },
+  {
+   "fieldname": "jaminan_pelaksanaan_nilai",
+   "fieldtype": "Currency",
+   "label": "Nilai Jaminan Pelaksanaan",
+   "options": "IDR",
+   "read_only": 1,
+   "depends_on": "eval:doc.jaminan_pelaksanaan_wajib"
+  },
+  {
+   "fieldname": "jaminan_pelaksanaan_diserahkan",
+   "fieldtype": "Check",
+   "label": "Jaminan Pelaksanaan Sudah Diserahkan",
+   "depends_on": "eval:doc.jaminan_pelaksanaan_wajib"
+  },
+  {
+   "fieldname": "jaminan_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "jaminan_pelaksanaan_nomor",
+   "fieldtype": "Data",
+   "label": "Nomor Jaminan Pelaksanaan",
+   "depends_on": "eval:doc.jaminan_pelaksanaan_wajib"
+  },
+  {
+   "fieldname": "jaminan_pelaksanaan_penerbit",
+   "fieldtype": "Data",
+   "label": "Penerbit (Bank / Asuransi)",
+   "depends_on": "eval:doc.jaminan_pelaksanaan_wajib"
+  },
+  {
+   "fieldname": "jaminan_pelaksanaan_berlaku",
+   "fieldtype": "Date",
+   "label": "Berlaku Sampai",
+   "depends_on": "eval:doc.jaminan_pelaksanaan_wajib"
+  },
+  {
+   "fieldname": "jaminan_column_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "jaminan_uang_muka_nilai",
+   "fieldtype": "Currency",
+   "label": "Nilai Jaminan Uang Muka",
+   "options": "IDR",
+   "read_only": 1,
+   "depends_on": "eval:doc.uang_muka_persen"
+  },
+  {
+   "fieldname": "jaminan_uang_muka_diserahkan",
+   "fieldtype": "Check",
+   "label": "Jaminan Uang Muka Sudah Diserahkan",
+   "depends_on": "eval:doc.uang_muka_persen"
+  },
+  {
+   "fieldname": "dokumen_section",
+   "fieldtype": "Section Break",
+   "label": "Dokumen Kontrak"
+  },
+  {
+   "fieldname": "file_kontrak",
+   "fieldtype": "Attach",
+   "label": "Scan Kontrak Bertanda Tangan"
+  },
+  {
+   "fieldname": "dokumen_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "file_spmk",
+   "fieldtype": "Attach",
+   "label": "Scan SPMK"
+  },
+  {
+   "fieldname": "catatan_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "catatan",
+   "fieldtype": "Small Text",
+   "label": "Catatan"
+  },
+  {
+   "fieldname": "kelengkapan_terisi",
+   "fieldtype": "Int",
+   "label": "Kelengkapan Terisi",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "kelengkapan_total",
+   "fieldtype": "Int",
+   "label": "Kelengkapan Total",
+   "read_only": 1,
+   "hidden": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-04 22:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Konstruksi",
+ "name": "Kontrak Project",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "role": "Projects Manager",
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "role": "Projects User",
+   "read": 1,
+   "report": 1
+  }
+ ],
+ "search_fields": "nama_project,pemberi_kerja,nomor_kontrak",
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "nama_project",
+ "track_changes": 1
+}

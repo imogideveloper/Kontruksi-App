@@ -1040,3 +1040,61 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 	color: var(--konstruksi-active-fg) !important;
 	border-radius: var(--konstruksi-block-radius) !important;
 }
+
+/* Kontrak Project: checklist kelengkapan (kontrak_project.js). Kartu ringkasan memakai .dok-ringkasan / .dok-tile. */
+.kp-kelengkapan {
+	border: 1px solid var(--border-color);
+	background: var(--fg-color, #fff);
+}
+
+.kp-cek {
+	display: grid;
+	grid-template-columns: 28px minmax(0, 1fr) auto;
+	gap: 12px;
+	align-items: center;
+	padding: 10px 16px;
+	border-top: 1px solid var(--border-color);
+}
+
+.kp-cek:first-child {
+	border-top: none;
+}
+
+.kp-cek-ikon {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+}
+
+.kp-cek-ok .kp-cek-ikon {
+	background: var(--dok-ok);
+}
+
+.kp-cek-ok .kp-cek-ikon .icon {
+	stroke: #fff;
+}
+
+.kp-cek-kurang .kp-cek-ikon {
+	background: var(--dok-warn-bg);
+}
+
+.kp-cek-kurang .kp-cek-ikon .icon {
+	stroke: var(--dok-warn);
+}
+
+.kp-cek-label {
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.kp-cek-ket {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
+.kp-cek-kurang .kp-cek-ket {
+	color: var(--dok-warn);
+}

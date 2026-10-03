@@ -1,0 +1,194 @@
+# Copyright (c) 2026, Imogi Indonesia and contributors
+# For license information, please see license.txt
+
+import frappe
+from frappe import _
+from frappe.model.document import Document
+from frappe.utils import add_days, cint, flt, fmt_money, getdate
+
+from konstruksi.konstruksi.doctype.tender.tender import BATAS_HARGA_WAJAR
+
+# Jaminan pelaksanaan 5% dari nilai kontrak; bila nilai kontrak < 80% HPS, 5% dari HPS (Perpres 12/2021).
+PERSEN_JAMINAN_PELAKSANAAN = 5
+
+
+class KontrakProject(Document):
+	def validate(self):
+		cek_tender_menang(self.tender)
+		self.hitung_nilai()
+		self.hitung_waktu()
+		self.hitung_jaminan()
+
+		if self.tanggal_kontrak and self.tanggal_spmk and getdate(self.tanggal_spmk) < getdate(self.tanggal_kontrak):
+			frappe.throw(_("Tanggal SPMK tidak boleh sebelum Tanggal Kontrak."))
+		for fieldname in ("uang_muka_persen", "retensi_persen", "pph_final_persen", "tarif_ppn"):
+			if not 0 <= flt(self.get(fieldname)) <= 100:
+				frappe.throw(_("{0} harus antara 0 dan 100.").format(_(self.meta.get_label(fieldname))))
+
+		kelengkapan = self.get_kelengkapan()
+		self.kelengkapan_total = len(kelengkapan)
+		self.kelengkapan_terisi = sum(1 for item in kelengkapan if item["ok"])
+
+	def onload(self):
+		self.set_onload("kelengkapan", self.get_kelengkapan())
+
+	def hitung_nilai(self):
+		if self.status_ppn != "PPN":
+			self.tarif_ppn = 0
+		nilai = flt(self.nilai_kontrak)
+		self.nilai_sebelum_ppn = flt(nilai / (1 + flt(self.tarif_ppn) / 100), 2)
+		self.nilai_ppn = flt(nilai - self.nilai_sebelum_ppn, 2)
+		self.nilai_uang_muka = flt(nilai * flt(self.uang_muka_persen) / 100, 2)
+
+	def hitung_waktu(self):
+		# Hari ke-1 = tanggal SPMK, jadi tanggal selesai = SPMK + (masa - 1) hari.
+		mulai, masa = self.tanggal_spmk, cint(self.masa_pelaksanaan)
+		self.tanggal_selesai = add_days(mulai, masa - 1) if mulai and masa else None
+		pemeliharaan = cint(self.masa_pemeliharaan)
+		self.akhir_pemeliharaan = (
+			add_days(self.tanggal_selesai, pemeliharaan) if self.tanggal_selesai and pemeliharaan else None
+		)
+
+	def hitung_jaminan(self):
+		nilai, hps = flt(self.nilai_kontrak), flt(frappe.db.get_value("Tender", self.tender, "hps"))
+		dasar = hps if hps and nilai and nilai / hps * 100 < BATAS_HARGA_WAJAR else nilai
+		self.jaminan_pelaksanaan_nilai = (
+			flt(dasar * PERSEN_JAMINAN_PELAKSANAAN / 100, 2) if self.jaminan_pelaksanaan_wajib else 0
+		)
+		# Jaminan uang muka senilai uang muka yang diterima.
+		self.jaminan_uang_muka_nilai = self.nilai_uang_muka
+		if not flt(self.uang_muka_persen):
+			self.jaminan_uang_muka_diserahkan = 0
+
+	def get_kelengkapan(self):
+		"""Checklist kelengkapan kontrak: label, ok, keterangan, dan field yang perlu diisi."""
+		items = [
+			{
+				"label": _("Nomor & tanggal kontrak"),
+				"ok": bool(self.nomor_kontrak and self.tanggal_kontrak),
+				"ket": _("{0} · {1}").format(self.nomor_kontrak, frappe.format(self.tanggal_kontrak, "Date"))
+				if self.nomor_kontrak and self.tanggal_kontrak
+				else _("Isi nomor dan tanggal penandatanganan kontrak."),
+				"field": "nomor_kontrak" if not self.nomor_kontrak else "tanggal_kontrak",
+			},
+			{
+				"label": _("SPMK"),
+				"ok": bool(self.nomor_spmk and self.tanggal_spmk),
+				"ket": _("Mulai kerja {0}").format(frappe.format(self.tanggal_spmk, "Date"))
+				if self.nomor_spmk and self.tanggal_spmk
+				else _("Tanggal SPMK = hari pertama pelaksanaan."),
+				"field": "nomor_spmk" if not self.nomor_spmk else "tanggal_spmk",
+			},
+			{
+				"label": _("Dokumen kontrak terlampir"),
+				"ok": bool(self.file_kontrak),
+				"ket": _("Scan kontrak sudah diunggah.") if self.file_kontrak else _("Unggah scan kontrak bertanda tangan."),
+				"field": "file_kontrak",
+			},
+			{
+				"label": _("Syarat pembayaran dikonfirmasi"),
+				"ok": bool(self.syarat_bayar_dikonfirmasi),
+				"ket": _("Sudah dicocokkan dengan kontrak.")
+				if self.syarat_bayar_dikonfirmasi
+				else _("Isi uang muka, retensi, PPh, lalu centang konfirmasi."),
+				"field": "syarat_bayar_dikonfirmasi",
+			},
+		]
+		if self.jaminan_pelaksanaan_wajib:
+			items.append(
+				{
+					"label": _("Jaminan pelaksanaan"),
+					"ok": bool(self.jaminan_pelaksanaan_diserahkan),
+					"ket": _("Diserahkan · {0}").format(fmt_money(self.jaminan_pelaksanaan_nilai, 0, "IDR"))
+					if self.jaminan_pelaksanaan_diserahkan
+					else _("Belum diserahkan · nilai {0}").format(fmt_money(self.jaminan_pelaksanaan_nilai, 0, "IDR")),
+					"field": "jaminan_pelaksanaan_diserahkan",
+				}
+			)
+		if flt(self.uang_muka_persen):
+			items.append(
+				{
+					"label": _("Jaminan uang muka"),
+					"ok": bool(self.jaminan_uang_muka_diserahkan),
+					"ket": _("Diserahkan · {0}").format(fmt_money(self.jaminan_uang_muka_nilai, 0, "IDR"))
+					if self.jaminan_uang_muka_diserahkan
+					else _("Wajib sebelum uang muka dibayar · nilai {0}").format(
+						fmt_money(self.jaminan_uang_muka_nilai, 0, "IDR")
+					),
+					"field": "jaminan_uang_muka_diserahkan",
+				}
+			)
+		items.append(self.cek_rab())
+		return items
+
+	def cek_rab(self):
+		"""RAB Penawaran terakhir tender ini harus sama dengan nilai kontrak (setelah negosiasi)."""
+		rab = frappe.get_all(
+			"RAB Penawaran",
+			filters={"tender": self.tender},
+			fields=["name", "total_rab"],
+			order_by="creation desc",
+			limit=1,
+		)
+		item = {"label": _("RAB = nilai kontrak"), "field": None, "rab": rab[0].name if rab else None}
+		if not rab:
+			return {**item, "ok": False, "ket": _("Belum ada RAB Penawaran untuk tender ini.")}
+		selisih = flt(rab[0].total_rab) - flt(self.nilai_kontrak)
+		if abs(selisih) < 1:
+			return {**item, "ok": True, "ket": _("{0} · {1}").format(rab[0].name, fmt_money(rab[0].total_rab, 0, "IDR"))}
+		return {
+			**item,
+			"ok": False,
+			"ket": _("{0} {1} dari nilai kontrak · sesuaikan RAB hasil negosiasi.").format(
+				rab[0].name, _("lebih {0}").format(fmt_money(abs(selisih), 0, "IDR"))
+				if selisih > 0
+				else _("kurang {0}").format(fmt_money(abs(selisih), 0, "IDR")),
+			),
+		}
+
+
+def cek_tender_menang(tender):
+	if frappe.db.get_value("Hasil Tender", {"tender": tender}, "hasil") != "Menang":
+		frappe.throw(
+			_("Kontrak Project hanya untuk tender yang menang. Catat dulu hasil Menang di Hasil Tender {0}.").format(tender),
+			title=_("Tender belum menang"),
+		)
+
+
+@frappe.whitelist()
+def get_or_create(tender):
+	"""Buka Kontrak Project milik tender ini; buat baru (nilai dari Hasil Tender) bila belum ada."""
+	name = frappe.db.get_value("Kontrak Project", {"tender": tender})
+	if name:
+		return name
+	cek_tender_menang(tender)
+	doc = frappe.get_doc(
+		{
+			"doctype": "Kontrak Project",
+			"tender": tender,
+			"nilai_kontrak": frappe.db.get_value("Hasil Tender", {"tender": tender}, "harga_pemenang"),
+		}
+	)
+	doc.insert()
+	return doc.name
+
+
+def get_kontrak(tender):
+	return frappe.db.get_value("Kontrak Project", {"tender": tender})
+
+
+def sinkron_dari_tender(tender, method=None):
+	"""Tender.on_update: salin data tender yang ditampilkan di Kontrak Project."""
+	name = get_kontrak(tender.name)
+	if name:
+		frappe.db.set_value(
+			"Kontrak Project",
+			name,
+			{
+				"nama_project": tender.nama_paket,
+				"pemberi_kerja": tender.pemberi_kerja,
+				"jenis_project": tender.jenis_project,
+				"lokasi": tender.lokasi,
+			},
+			update_modified=False,
+		)

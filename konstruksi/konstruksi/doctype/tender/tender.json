@@ -264,9 +264,14 @@
    "group": "Penawaran",
    "link_doctype": "Hasil Tender",
    "link_fieldname": "tender"
+  },
+  {
+   "group": "Kontrak",
+   "link_doctype": "Kontrak Project",
+   "link_fieldname": "tender"
   }
  ],
- "modified": "2026-10-04 17:00:00.000000",
+ "modified": "2026-10-04 22:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Tender",

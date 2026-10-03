@@ -157,6 +157,7 @@ doc_events = {
 		"on_update": [
 			"konstruksi.konstruksi.doctype.dokumen_tender.dokumen_tender.sinkron_dari_tender",
 			"konstruksi.konstruksi.doctype.hasil_tender.hasil_tender.sinkron_dari_tender",
+			"konstruksi.konstruksi.doctype.kontrak_project.kontrak_project.sinkron_dari_tender",
 		],
 	},
 	"File": {

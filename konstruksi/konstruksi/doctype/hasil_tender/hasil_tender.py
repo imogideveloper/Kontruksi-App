@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, getdate, today
 
@@ -11,6 +12,14 @@ HASIL_FINAL = ("Menang", "Kalah", "Batal")
 
 class HasilTender(Document):
 	def validate(self):
+		if self.hasil != "Menang" and not self.is_new():
+			kontrak = frappe.db.get_value("Kontrak Project", {"tender": self.tender})
+			if kontrak:
+				frappe.throw(
+					_("Tender ini sudah punya Kontrak Project {0}. Hapus kontraknya dulu bila hasilnya bukan Menang.").format(
+						kontrak
+					)
+				)
 		# Data tender diambil ulang (bukan hanya fetch_from) supaya selalu sesuai nilai terakhir di Tender.
 		tender = frappe.db.get_value(
 			"Tender", self.tender, ["nama_paket", "pemberi_kerja", "tanggal", "hps", "nilai_penawaran"], as_dict=True
@@ -49,6 +58,9 @@ class HasilTender(Document):
 			set_hasil_tender(self.tender, "Penawaran Dikirim", None, 0, None)
 
 	def on_trash(self):
+		kontrak = frappe.db.get_value("Kontrak Project", {"tender": self.tender})
+		if kontrak:
+			frappe.throw(_("Tender ini sudah punya Kontrak Project {0}. Hapus kontraknya dulu.").format(kontrak))
 		# Hasil dihapus: tender kembali menunggu pengumuman.
 		if self.hasil in HASIL_FINAL and frappe.db.get_value("Tender", self.tender, "status") == self.hasil:
 			set_hasil_tender(self.tender, "Penawaran Dikirim", None, 0, None)

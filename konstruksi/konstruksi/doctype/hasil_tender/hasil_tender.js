@@ -3,6 +3,18 @@
 
 frappe.ui.form.on("Hasil Tender", {
 	refresh(frm) {
+		if (!frm.is_new() && frm.doc.hasil === "Menang" && !frm.is_dirty()) {
+			// Hanya tender yang menang dilanjutkan ke kontrak.
+			frm.add_custom_button(__("Kontrak Project"), () =>
+				frappe
+					.call({
+						method: "konstruksi.konstruksi.doctype.kontrak_project.kontrak_project.get_or_create",
+						args: { tender: frm.doc.tender },
+						freeze: true,
+					})
+					.then((r) => frappe.set_route("Form", "Kontrak Project", r.message))
+			).addClass("btn-primary");
+		}
 		if (!frm.is_new()) {
 			frm.add_custom_button(__("Buka Tender"), () => frappe.set_route("Form", "Tender", frm.doc.tender));
 			frm.add_custom_button(__("Dokumen Tender"), () =>
