@@ -35,11 +35,11 @@
   },
   {
    "default": "0",
-   "description": "Section ditampilkan dari urutan terkecil.",
+   "description": "Urutan awal saat section ini dipakai di Jenis Project. Urutan section per jenis project diatur di form Jenis Project (tabel Urutan Section).",
    "fieldname": "urutan",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "label": "Urutan",
+   "label": "Urutan Bawaan",
    "reqd": 1
   },
   {
@@ -53,7 +53,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-04 10:00:00.000000",
+ "modified": "2026-10-04 14:30:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kategori Dokumen Tender",

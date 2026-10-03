@@ -9,3 +9,5 @@ konstruksi.patches.v1_0.isi_tanggal_tender
 konstruksi.patches.v1_0.isi_tanggal_rab_penawaran
 konstruksi.patches.v1_0.buat_template_dokumen_tender
 konstruksi.patches.v1_0.isi_jenis_project_dokumen_tender
+konstruksi.patches.v1_0.isi_urutan_template_dokumen
+konstruksi.patches.v1_0.isi_urutan_template_dokumen #isi-subjudul

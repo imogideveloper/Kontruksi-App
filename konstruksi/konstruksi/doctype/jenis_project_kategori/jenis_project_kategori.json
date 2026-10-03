@@ -1,15 +1,13 @@
 {
  "actions": [],
- "creation": "2026-10-04 10:00:00.000000",
+ "creation": "2026-10-04 14:00:00.000000",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "urutan",
   "kategori",
-  "nama_dokumen",
-  "wajib",
-  "keterangan"
+  "subjudul"
  ],
  "fields": [
   {
@@ -21,7 +19,7 @@
    "description": "Kosongkan untuk ditaruh paling bawah."
   },
   {
-   "columns": 2,
+   "columns": 4,
    "fieldname": "kategori",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -30,27 +28,13 @@
    "reqd": 1
   },
   {
-   "columns": 4,
-   "fieldname": "nama_dokumen",
+   "columns": 5,
+   "fetch_from": "kategori.subjudul",
+   "fieldname": "subjudul",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Nama Dokumen",
-   "reqd": 1
-  },
-  {
-   "columns": 1,
-   "default": "0",
-   "fieldname": "wajib",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "label": "Wajib"
-  },
-  {
-   "columns": 2,
-   "fieldname": "keterangan",
-   "fieldtype": "Small Text",
-   "in_list_view": 1,
-   "label": "Keterangan"
+   "label": "Subjudul",
+   "read_only": 1
   }
  ],
  "istable": 1,
@@ -58,7 +42,7 @@
  "modified": "2026-10-04 14:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
- "name": "Jenis Project Dokumen",
+ "name": "Jenis Project Kategori",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",

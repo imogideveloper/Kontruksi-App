@@ -53,7 +53,7 @@ class DokumenTender(Document):
 		self.jumlah_file = len(self.files)
 
 	def onload(self):
-		self.set_onload("kategori", get_kategori())
+		self.set_onload("kategori", get_kategori(self.jenis_project))
 		self.set_onload(
 			"rab_penawaran",
 			frappe.get_all(
@@ -83,13 +83,26 @@ class DokumenTender(Document):
 			)
 
 
-def get_kategori():
-	"""Section Dokumen Tender sesuai urutan tampil."""
-	return frappe.get_all(
+def get_kategori(jenis_project=None):
+	"""Section Dokumen Tender sesuai urutan tampil.
+
+	Urutan Section di Jenis Project didahulukan; section lain menyusul sesuai urutan bawaan di Kategori Dokumen Tender.
+	"""
+	semua = frappe.get_all(
 		"Kategori Dokumen Tender",
 		fields=["name", "subjudul", "bebas_kunci"],
 		order_by="urutan asc, name asc",
 	)
+	if not jenis_project:
+		return semua
+	urutan = frappe.get_all(
+		"Jenis Project Kategori",
+		filters={"parent": jenis_project, "parenttype": "Jenis Project"},
+		pluck="kategori",
+		order_by="idx asc",
+	)
+	posisi = {kategori: i for i, kategori in enumerate(urutan)}
+	return sorted(semua, key=lambda k: posisi.get(k.name, len(posisi)))
 
 
 def get_doc_untuk_ubah(name):

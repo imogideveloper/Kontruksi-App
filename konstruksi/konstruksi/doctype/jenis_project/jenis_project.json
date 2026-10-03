@@ -9,6 +9,8 @@
  "field_order": [
   "jenis_project",
   "disabled",
+  "section_section",
+  "sections",
   "template_section",
   "dokumen"
  ],
@@ -30,10 +32,22 @@
    "label": "Nonaktif"
   },
   {
+   "fieldname": "section_section",
+   "fieldtype": "Section Break",
+   "label": "Urutan Section",
+   "description": "Urutan section di Dokumen Tender untuk jenis project ini (angka terkecil di atas). Section yang dipakai di template dokumen otomatis ditambahkan di sini saat disimpan."
+  },
+  {
+   "fieldname": "sections",
+   "fieldtype": "Table",
+   "label": "Section",
+   "options": "Jenis Project Kategori"
+  },
+  {
    "fieldname": "template_section",
    "fieldtype": "Section Break",
    "label": "Template Dokumen Tender",
-   "description": "Daftar dokumen yang otomatis dibuat di Dokumen Tender untuk tender dengan jenis project ini. Urutan baris = urutan dokumen dalam section; urutan section diatur di Kategori Dokumen Tender."
+   "description": "Daftar dokumen yang otomatis dibuat di Dokumen Tender untuk tender dengan jenis project ini. Dokumen ditampilkan per section, diurutkan berdasarkan kolom Urutan."
   },
   {
    "fieldname": "dokumen",
@@ -44,7 +58,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-04 10:00:00.000000",
+ "modified": "2026-10-04 14:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Jenis Project",
