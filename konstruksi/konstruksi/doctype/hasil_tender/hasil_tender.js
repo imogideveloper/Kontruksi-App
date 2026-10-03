@@ -21,6 +21,9 @@ frappe.ui.form.on("Hasil Tender", {
 	},
 
 	hasil(frm) {
+		if (frm.doc.hasil !== "Menunggu" && !frm.doc.tanggal_pengumuman) {
+			frm.set_value("tanggal_pengumuman", frappe.datetime.get_today());
+		}
 		if (frm.doc.hasil === "Menang") {
 			frm.set_value("pemenang", "Kita");
 		} else if (frm.doc.pemenang === "Kita") {

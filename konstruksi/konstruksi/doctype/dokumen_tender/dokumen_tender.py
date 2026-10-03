@@ -6,6 +6,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, now_datetime
 
+from konstruksi.konstruksi.doctype.hasil_tender.hasil_tender import buat_menunggu, hapus_menunggu
+
 class DokumenTender(Document):
 	def before_insert(self):
 		if not self.items:
@@ -235,6 +237,7 @@ def ajukan_penawaran(name):
 	doc.diajukan_pada = now_datetime()
 	doc.save()
 	ubah_status_tender(doc.tender, "Persiapan", "Penawaran Dikirim")
+	buat_menunggu(doc.tender)
 
 
 @frappe.whitelist()
@@ -243,6 +246,7 @@ def batalkan_pengajuan(name):
 	doc.diajukan_pada = None
 	doc.save()
 	ubah_status_tender(doc.tender, "Penawaran Dikirim", "Persiapan")
+	hapus_menunggu(doc.tender)
 
 
 def sinkron_dari_tender(tender, method=None):

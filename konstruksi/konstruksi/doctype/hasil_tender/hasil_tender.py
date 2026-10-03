@@ -3,9 +3,10 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import flt
+from frappe.utils import flt, today
 
 PEMENANG_KITA = "Kita"
+HASIL_FINAL = ("Menang", "Kalah", "Batal")
 
 
 class HasilTender(Document):
@@ -24,22 +25,31 @@ class HasilTender(Document):
 			self.pemenang = PEMENANG_KITA
 			if not flt(self.harga_pemenang):
 				self.harga_pemenang = self.penawaran_kita
-		elif self.hasil == "Batal":
+		elif self.hasil in ("Menunggu", "Batal"):
 			self.pemenang = None
 			self.harga_pemenang = 0
 		elif self.pemenang == PEMENANG_KITA:
 			self.pemenang = None
 
+		if self.hasil in HASIL_FINAL and not self.tanggal_pengumuman:
+			self.tanggal_pengumuman = today()
+		elif self.hasil == "Menunggu":
+			self.tanggal_pengumuman = None
+
 		harga, penawaran = flt(self.harga_pemenang), flt(self.penawaran_kita)
 		self.selisih_persen = flt((penawaran - harga) / harga * 100, 2) if harga and penawaran else 0
 
 	def on_update(self):
-		alasan = self.keterangan if self.hasil in ("Kalah", "Batal") else None
-		set_hasil_tender(self.tender, self.hasil, self.pemenang, self.harga_pemenang, alasan)
+		if self.hasil in HASIL_FINAL:
+			alasan = self.keterangan if self.hasil in ("Kalah", "Batal") else None
+			set_hasil_tender(self.tender, self.hasil, self.pemenang, self.harga_pemenang, alasan)
+		elif frappe.db.get_value("Tender", self.tender, "status") in HASIL_FINAL:
+			# Hasil dikembalikan ke Menunggu: tender kembali menunggu pengumuman.
+			set_hasil_tender(self.tender, "Penawaran Dikirim", None, 0, None)
 
 	def on_trash(self):
 		# Hasil dihapus: tender kembali menunggu pengumuman.
-		if frappe.db.get_value("Tender", self.tender, "status") == self.hasil:
+		if self.hasil in HASIL_FINAL and frappe.db.get_value("Tender", self.tender, "status") == self.hasil:
 			set_hasil_tender(self.tender, "Penawaran Dikirim", None, 0, None)
 
 
@@ -54,6 +64,19 @@ def set_hasil_tender(tender, status, pemenang, nilai_pemenang, alasan):
 	from konstruksi.konstruksi.doctype.dokumen_tender.dokumen_tender import sinkron_dari_tender
 
 	sinkron_dari_tender(tender_doc)
+
+
+def buat_menunggu(tender):
+	"""Penawaran diajukan: catat Hasil Tender berstatus Menunggu (bila belum ada)."""
+	if not frappe.db.exists("Hasil Tender", {"tender": tender}):
+		frappe.get_doc({"doctype": "Hasil Tender", "tender": tender, "hasil": "Menunggu"}).insert(ignore_permissions=True)
+
+
+def hapus_menunggu(tender):
+	"""Pengajuan dibatalkan: Hasil Tender yang masih Menunggu ikut dihapus."""
+	name = frappe.db.get_value("Hasil Tender", {"tender": tender, "hasil": "Menunggu"})
+	if name:
+		frappe.delete_doc("Hasil Tender", name, ignore_permissions=True)
 
 
 @frappe.whitelist()

@@ -103,21 +103,23 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Hasil",
-   "options": "Menang\nKalah\nBatal",
-   "reqd": 1
+   "options": "Menunggu\nMenang\nKalah\nBatal",
+   "reqd": 1,
+   "default": "Menunggu"
   },
   {
-   "default": "Today",
    "fieldname": "tanggal_pengumuman",
    "fieldtype": "Date",
-   "label": "Tanggal Pengumuman"
+   "label": "Tanggal Pengumuman",
+   "depends_on": "eval:doc.hasil != 'Menunggu'",
+   "description": "Otomatis hari ini bila dikosongkan saat hasil dicatat."
   },
   {
    "fieldname": "pemenang_column",
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.hasil != 'Batal'",
+   "depends_on": "eval:!['Menunggu', 'Batal'].includes(doc.hasil)",
    "description": "Otomatis \"Kita\" bila menang.",
    "fieldname": "pemenang",
    "fieldtype": "Data",
@@ -126,7 +128,7 @@
    "mandatory_depends_on": "eval:doc.hasil == 'Kalah'"
   },
   {
-   "depends_on": "eval:doc.hasil != 'Batal'",
+   "depends_on": "eval:!['Menunggu', 'Batal'].includes(doc.hasil)",
    "description": "Bila menang: nilai kontrak (kosongkan = sama dengan penawaran kita).",
    "fieldname": "harga_pemenang",
    "fieldtype": "Currency",
@@ -136,7 +138,7 @@
    "options": "IDR"
   },
   {
-   "depends_on": "eval:doc.hasil != 'Batal'",
+   "depends_on": "eval:!['Menunggu', 'Batal'].includes(doc.hasil)",
    "description": "Penawaran kita dibanding harga pemenang: positif = kita lebih mahal.",
    "fieldname": "selisih_persen",
    "fieldtype": "Percent",
@@ -158,7 +160,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-04 17:00:00.000000",
+ "modified": "2026-10-04 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Hasil Tender",
