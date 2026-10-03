@@ -1,5 +1,5 @@
-// Urutan kolom list RAB Penawaran: Kode paling kiri, Pemberi Kerja sebelum Tender.
-const KOLOM_RAB = ["nama_project", "pemberi_kerja", "tender", "total_sebelum_ppn", "total_rab"];
+// Urutan kolom list RAB Penawaran: Kode paling kiri, Tanggal sebelum Nama Project, Pemberi Kerja sebelum Tender.
+const KOLOM_RAB = ["tanggal", "nama_project", "pemberi_kerja", "tender", "total_sebelum_ppn", "total_rab"];
 
 frappe.listview_settings["RAB Penawaran"] = {
 	add_fields: KOLOM_RAB,

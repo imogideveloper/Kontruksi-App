@@ -9,6 +9,7 @@
   "data_section",
   "data_tender_column",
   "kode",
+  "tanggal",
   "tender",
   "nama_project",
   "pemberi_kerja",
@@ -43,6 +44,14 @@
    "no_copy": 1,
    "read_only": 1,
    "unique": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "tanggal",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Tanggal",
+   "reqd": 1
   },
   {
    "fieldname": "tender",

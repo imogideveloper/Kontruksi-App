@@ -6,3 +6,4 @@
 # Patches added in this section will be executed after doctypes are migrated
 konstruksi.patches.v1_0.buat_jenis_project_default
 konstruksi.patches.v1_0.isi_tanggal_tender
+konstruksi.patches.v1_0.isi_tanggal_rab_penawaran
