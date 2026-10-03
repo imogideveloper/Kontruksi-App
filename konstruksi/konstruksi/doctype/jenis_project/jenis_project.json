@@ -52,8 +52,7 @@
   {
    "fieldname": "section_section",
    "fieldtype": "Section Break",
-   "label": "Urutan Section",
-   "description": "Urutan section di Dokumen Tender untuk jenis project ini (angka terkecil di atas). Section yang dipakai di template dokumen otomatis ditambahkan di sini saat disimpan."
+   "label": "Urutan Section"
   },
   {
    "fieldname": "sections",
@@ -76,7 +75,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-04 15:45:00.000000",
+ "modified": "2026-10-04 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Jenis Project",
