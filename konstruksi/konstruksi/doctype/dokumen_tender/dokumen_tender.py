@@ -6,34 +6,35 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, now_datetime
 
-# Checklist bawaan tiap tender baru: (kategori, nama dokumen, wajib, keterangan).
-TEMPLATE_DOKUMEN = (
-	("Dokumen Pemilihan", "Dokumen pemilihan / RKS & gambar", 1, "Syarat, spesifikasi teknis, gambar, dan daftar kuantitas dari pemberi kerja."),
-	("Dokumen Pemilihan", "BA penjelasan (aanwijzing)", 0, "Berita acara rapat penjelasan & tanya jawab."),
-	("Dokumen Pemilihan", "Adendum dokumen pemilihan", 0, "Bila ada perubahan dokumen setelah rapat penjelasan."),
-	("Administrasi", "Surat penawaran", 1, "Ditandatangani direktur, mencantumkan harga & masa berlaku penawaran."),
-	("Administrasi", "Izin usaha (NIB / SBU)", 1, "Sesuai subklasifikasi & kualifikasi yang diminta."),
-	("Administrasi", "Jaminan penawaran", 0, "Bila disyaratkan dokumen pemilihan."),
-	("Teknis", "Metode pelaksanaan", 1, "Urutan & cara kerja tiap pekerjaan utama."),
-	("Teknis", "Jadwal pelaksanaan / kurva S", 1, "Tidak melebihi masa pelaksanaan yang diminta."),
-	("Teknis", "Daftar personel manajerial", 1, "Beserta SKK / sertifikat kompetensi."),
-	("Teknis", "Daftar peralatan utama", 1, "Bukti kepemilikan / sewa."),
-	("Teknis", "Rencana Keselamatan Konstruksi (RKK)", 1, "Identifikasi bahaya & pengendaliannya."),
-	("Harga", "RAB / daftar kuantitas & harga bertanda tangan", 1, "Unduh dari menu RAB Penawaran, tanda tangani, lalu unggah."),
-	("Harga", "Analisa harga satuan", 0, "Bila diminta / untuk klarifikasi kewajaran harga."),
-	("Hasil", "Pengumuman / BA hasil pemilihan", 0, "Dasar mencatat menang atau kalah."),
-	("Hasil", "SPPBJ / surat penunjukan pemenang", 0, "Bila menang, dasar penandatanganan kontrak."),
-)
-
-# Setelah penawaran diajukan, dokumen di kategori ini dikunci (sesuai yang dikirim ke panitia).
-KATEGORI_BEBAS_KUNCI = ("Hasil",)
-
-
 class DokumenTender(Document):
 	def before_insert(self):
 		if not self.items:
-			for kategori, nama, wajib, keterangan in TEMPLATE_DOKUMEN:
-				self.append("items", {"kategori": kategori, "nama_dokumen": nama, "wajib": wajib, "keterangan": keterangan})
+			self.tambah_dari_template()
+
+	def tambah_dari_template(self):
+		"""Tambahkan dokumen template Jenis Project milik tender yang belum ada di checklist.
+
+		Section yang sudah dikunci (penawaran diajukan) dilewati. Mengembalikan jumlah dokumen yang ditambahkan.
+		"""
+		jenis_project = frappe.db.get_value("Tender", self.tender, "jenis_project")
+		if not jenis_project:
+			return 0
+		sudah_ada = {(item.kategori, item.nama_dokumen) for item in self.items}
+		jumlah = 0
+		for row in frappe.get_doc("Jenis Project", jenis_project).dokumen:
+			if (row.kategori, row.nama_dokumen) in sudah_ada or self.terkunci(row.kategori):
+				continue
+			self.append(
+				"items",
+				{
+					"kategori": row.kategori,
+					"nama_dokumen": row.nama_dokumen,
+					"wajib": row.wajib,
+					"keterangan": row.keterangan,
+				},
+			)
+			jumlah += 1
+		return jumlah
 
 	def validate(self):
 		item_ids = {item.name for item in self.items}
@@ -52,6 +53,7 @@ class DokumenTender(Document):
 		self.jumlah_file = len(self.files)
 
 	def onload(self):
+		self.set_onload("kategori", get_kategori())
 		self.set_onload(
 			"rab_penawaran",
 			frappe.get_all(
@@ -68,14 +70,26 @@ class DokumenTender(Document):
 			frappe.throw(_("Dokumen tidak ditemukan. Muat ulang halaman."))
 		return row
 
+	def terkunci(self, kategori):
+		return bool(self.diajukan_pada) and not frappe.db.get_value("Kategori Dokumen Tender", kategori, "bebas_kunci")
+
 	def cek_kunci(self, kategori):
-		if self.diajukan_pada and kategori not in KATEGORI_BEBAS_KUNCI:
+		if self.terkunci(kategori):
 			frappe.throw(
 				_("Penawaran sudah diajukan, dokumen {0} dikunci. Batalkan pengajuan dulu bila perlu mengubah.").format(
 					_(kategori)
 				),
 				title=_("Dokumen terkunci"),
 			)
+
+
+def get_kategori():
+	"""Section Dokumen Tender sesuai urutan tampil."""
+	return frappe.get_all(
+		"Kategori Dokumen Tender",
+		fields=["name", "subjudul", "bebas_kunci"],
+		order_by="urutan asc, name asc",
+	)
 
 
 def get_doc_untuk_ubah(name):
@@ -180,6 +194,16 @@ def simpan_dokumen(name, kategori, nama_dokumen, wajib=0, keterangan=None, item=
 
 
 @frappe.whitelist()
+def muat_template(name):
+	"""Tambahkan dokumen dari template Jenis Project yang belum ada di checklist."""
+	doc = get_doc_untuk_ubah(name)
+	jumlah = doc.tambah_dari_template()
+	if jumlah:
+		doc.save()
+	return jumlah
+
+
+@frappe.whitelist()
 def hapus_dokumen(name, item):
 	doc = get_doc_untuk_ubah(name)
 	row = doc.get_item(item)
@@ -218,6 +242,7 @@ def sinkron_dari_tender(tender, method=None):
 			{
 				"nama_project": tender.nama_paket,
 				"pemberi_kerja": tender.pemberi_kerja,
+				"jenis_project": tender.jenis_project,
 				"batas_pemasukan": tender.batas_pemasukan,
 				"status_tender": tender.status,
 			},

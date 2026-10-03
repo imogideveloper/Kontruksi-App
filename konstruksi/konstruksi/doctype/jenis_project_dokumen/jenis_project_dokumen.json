@@ -1,0 +1,58 @@
+{
+ "actions": [],
+ "creation": "2026-10-04 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "kategori",
+  "nama_dokumen",
+  "wajib",
+  "keterangan"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "kategori",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Section",
+   "options": "Kategori Dokumen Tender",
+   "reqd": 1
+  },
+  {
+   "columns": 4,
+   "fieldname": "nama_dokumen",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nama Dokumen",
+   "reqd": 1
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "wajib",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Wajib"
+  },
+  {
+   "columns": 3,
+   "fieldname": "keterangan",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Keterangan"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-04 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Konstruksi",
+ "name": "Jenis Project Dokumen",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

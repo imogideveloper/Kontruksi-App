@@ -14,9 +14,9 @@
  "fields": [
   {
    "fieldname": "kategori",
-   "fieldtype": "Select",
-   "label": "Kategori",
-   "options": "Dokumen Pemilihan\nAdministrasi\nTeknis\nHarga\nHasil",
+   "fieldtype": "Link",
+   "label": "Section",
+   "options": "Kategori Dokumen Tender",
    "reqd": 1,
    "in_list_view": 1,
    "columns": 2
@@ -57,7 +57,7 @@
   }
  ],
  "links": [],
- "modified": "2026-10-03 19:00:00.000000",
+ "modified": "2026-10-04 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Dokumen Tender Item",

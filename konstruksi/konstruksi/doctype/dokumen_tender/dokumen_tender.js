@@ -3,17 +3,6 @@
 
 const DOK_METHOD = "konstruksi.konstruksi.doctype.dokumen_tender.dokumen_tender";
 
-// Urutan & subjudul kategori; sama dengan pilihan field kategori di Dokumen Tender Item.
-const KATEGORI_DOKUMEN = [
-	{ nama: "Dokumen Pemilihan", sub: __("dari pemberi kerja") },
-	{ nama: "Administrasi", sub: __("dokumen penawaran") },
-	{ nama: "Teknis", sub: __("dokumen penawaran") },
-	{ nama: "Harga", sub: __("dokumen penawaran") },
-	{ nama: "Hasil", sub: __("setelah pengumuman") },
-];
-// Sama dengan KATEGORI_BEBAS_KUNCI di dokumen_tender.py.
-const KATEGORI_BEBAS_KUNCI = ["Hasil"];
-
 const BULAN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 
 frappe.ui.form.on("Dokumen Tender", {
@@ -35,6 +24,10 @@ function tambah_tombol(frm) {
 	frm.add_custom_button(__("Buka Tender"), () => frappe.set_route("Form", "Tender", frm.doc.tender));
 	if (!bisa_ubah(frm)) return;
 
+	if (frm.doc.jenis_project) {
+		frm.add_custom_button(__("Muat Template {0}", [frm.doc.jenis_project]), () => muat_template(frm));
+	}
+
 	if (frm.doc.diajukan_pada) {
 		frm.add_custom_button(__("Batalkan Pengajuan"), () => batalkan_pengajuan(frm));
 	} else {
@@ -46,8 +39,25 @@ function bisa_ubah(frm) {
 	return Boolean(frm.perm?.[0]?.write);
 }
 
+// Section sesuai master Kategori Dokumen Tender (urut), ditambah section yang masih dipakai checklist tapi
+// tidak ada di master, supaya dokumennya tetap tampil.
+function daftar_kategori(frm) {
+	const daftar = (frm.doc.__onload?.kategori || []).map((k) => ({
+		nama: k.name,
+		sub: k.subjudul,
+		bebas_kunci: cint(k.bebas_kunci),
+	}));
+	(frm.doc.items || []).forEach((item) => {
+		if (item.kategori && !daftar.some((k) => k.nama === item.kategori)) {
+			daftar.push({ nama: item.kategori, sub: "", bebas_kunci: 0 });
+		}
+	});
+	return daftar;
+}
+
 function terkunci(frm, kategori) {
-	return Boolean(frm.doc.diajukan_pada) && !KATEGORI_BEBAS_KUNCI.includes(kategori);
+	const k = daftar_kategori(frm).find((k) => k.nama === kategori);
+	return Boolean(frm.doc.diajukan_pada) && !k?.bebas_kunci;
 }
 
 function panggil(frm, method, args = {}) {
@@ -120,7 +130,9 @@ function render_checklist(frm) {
 	if (frm.is_new()) {
 		field.$wrapper.html(`<div class="dok-kosong">
 			${frappe.utils.icon("file-text", "lg")}
-			<div>${__("Pilih Tender di atas. Daftar dokumen yang perlu disiapkan akan dibuat otomatis.")}</div>
+			<div>${__(
+				"Pilih Tender di atas. Daftar dokumen dibuat otomatis dari Template Dokumen di Jenis Project tender tersebut."
+			)}</div>
 		</div>`);
 		return;
 	}
@@ -144,7 +156,7 @@ function render_checklist(frm) {
 		return true;
 	};
 
-	const sections = KATEGORI_DOKUMEN.map((kategori) => {
+	const sections = daftar_kategori(frm).map((kategori) => {
 		const semua = items.filter((item) => item.kategori === kategori.nama);
 		const tampil = semua.filter(cocok_filter);
 		if (!semua.length || (state.filter !== "semua" && !tampil.length)) return "";
@@ -178,10 +190,40 @@ function render_checklist(frm) {
 					${__("Seret file langsung ke baris dokumen untuk mengunggah.")}
 				</div>
 			</div>
-			${sections || `<div class="dok-kosong">${__("Tidak ada dokumen yang cocok dengan filter.")}</div>`}
+			${sections || render_kosong(frm)}
 		</div>`);
 
 	pasang_event(frm, field.$wrapper, state);
+}
+
+function render_kosong(frm) {
+	if (items_kosong(frm)) {
+		const boleh = bisa_ubah(frm);
+		return `<div class="dok-kosong">
+			${frappe.utils.icon("file-text", "lg")}
+			<div>${
+				frm.doc.jenis_project
+					? __("Checklist masih kosong. Isi Template Dokumen di Jenis Project {0}, lalu klik Muat Template.", [
+							`<a href="/app/jenis-project/${encodeURIComponent(frm.doc.jenis_project)}">${frappe.utils.escape_html(
+								frm.doc.jenis_project
+							)}</a>`,
+					  ])
+					: __("Checklist masih kosong. Isi Jenis Project di Tender untuk memakai template dokumennya.")
+			}</div>
+			${
+				boleh
+					? `<button class="btn btn-default btn-sm dok-tambah-dokumen">${frappe.utils.icon("add", "sm")} ${__(
+							"Tambah dokumen manual"
+					  )}</button>`
+					: ""
+			}
+		</div>`;
+	}
+	return `<div class="dok-kosong">${__("Tidak ada dokumen yang cocok dengan filter.")}</div>`;
+}
+
+function items_kosong(frm) {
+	return !(frm.doc.items || []).length;
 }
 
 function render_ringkasan(frm, items, files_of) {
@@ -261,8 +303,8 @@ function render_kategori(frm, kategori, semua, tampil, files_of, state) {
 	return `<div class="dok-kategori ${tutup ? "tertutup" : ""}" data-kategori="${esc(kategori.nama)}">
 		<div class="dok-kategori-head">
 			<span class="dok-chevron">${frappe.utils.icon("down", "sm")}</span>
-			<span class="dok-kategori-nama">${__(kategori.nama)}</span>
-			<span class="dok-kategori-sub">${kategori.sub}</span>
+			<span class="dok-kategori-nama">${esc(__(kategori.nama))}</span>
+			<span class="dok-kategori-sub">${kategori.sub ? esc(__(kategori.sub)) : ""}</span>
 			${chip}
 			${kunci ? `<span class="dok-chip dok-chip-kunci">${frappe.utils.icon("lock", "xs")} ${__("terkunci")}</span>` : ""}
 			<span class="dok-kategori-kanan">${rab}</span>
@@ -483,8 +525,9 @@ function dialog_dokumen(frm, item) {
 			{
 				fieldname: "kategori",
 				fieldtype: "Select",
-				label: __("Kategori"),
-				options: KATEGORI_DOKUMEN.filter((k) => !terkunci(frm, k.nama))
+				label: __("Section"),
+				options: daftar_kategori(frm)
+					.filter((k) => !terkunci(frm, k.nama))
 					.map((k) => k.nama)
 					.join("\n"),
 				default: item?.kategori,
@@ -514,12 +557,27 @@ function dialog_dokumen(frm, item) {
 	dialog.show();
 }
 
+function muat_template(frm) {
+	frappe
+		.call({ method: `${DOK_METHOD}.muat_template`, args: { name: frm.doc.name }, freeze: true })
+		.then((r) => {
+			frappe.show_alert({
+				message: r.message
+					? __("{0} dokumen ditambahkan dari template.", [r.message])
+					: __("Semua dokumen di template sudah ada di checklist."),
+				indicator: r.message ? "green" : "blue",
+			});
+			if (r.message) frm.reload_doc();
+		});
+}
+
 function ajukan_penawaran(frm) {
 	const kurang = (frm.doc.items || []).filter(
 		(item) => item.wajib && !(frm.doc.files || []).some((f) => f.item === item.name)
 	);
-	const dikunci = KATEGORI_DOKUMEN.filter((k) => !KATEGORI_BEBAS_KUNCI.includes(k.nama))
-		.map((k) => __(k.nama))
+	const dikunci = daftar_kategori(frm)
+		.filter((k) => !k.bebas_kunci)
+		.map((k) => frappe.utils.escape_html(__(k.nama)))
 		.join(", ");
 	let pesan = __(
 		"Dokumen {0} akan dikunci, dan status tender berubah menjadi <b>Penawaran Dikirim</b>.",

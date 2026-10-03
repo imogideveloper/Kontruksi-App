@@ -65,9 +65,21 @@
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "layers",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Kategori Dokumen Tender",
+   "link_to": "Kategori Dokumen Tender",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-10-03 19:00:00.000000",
+ "modified": "2026-10-04 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Konstruksi",

@@ -9,6 +9,7 @@
   "tender",
   "nama_project",
   "pemberi_kerja",
+  "jenis_project",
   "status_column",
   "batas_pemasukan",
   "status_tender",
@@ -61,6 +62,15 @@
    "fetch_from": "tender.pemberi_kerja",
    "read_only": 1,
    "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "jenis_project",
+   "fieldtype": "Link",
+   "label": "Jenis Project",
+   "options": "Jenis Project",
+   "fetch_from": "tender.jenis_project",
+   "read_only": 1,
    "in_standard_filter": 1
   },
   {
@@ -151,7 +161,7 @@
   }
  ],
  "links": [],
- "modified": "2026-10-03 19:00:00.000000",
+ "modified": "2026-10-04 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Dokumen Tender",

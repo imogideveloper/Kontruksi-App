@@ -1,45 +1,54 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:jenis_project",
- "creation": "2026-10-02 22:40:00.000000",
+ "autoname": "field:kategori",
+ "creation": "2026-10-04 10:00:00.000000",
  "doctype": "DocType",
  "document_type": "Setup",
  "engine": "InnoDB",
  "field_order": [
-  "jenis_project",
-  "disabled",
-  "template_section",
-  "dokumen"
+  "kategori",
+  "subjudul",
+  "column_break_urutan",
+  "urutan",
+  "bebas_kunci"
  ],
  "fields": [
   {
-   "fieldname": "jenis_project",
+   "fieldname": "kategori",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Jenis Project",
+   "label": "Nama Section",
    "reqd": 1,
    "unique": 1
   },
   {
+   "description": "Teks kecil di samping nama section, misalnya \"dari pemberi kerja\".",
+   "fieldname": "subjudul",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Subjudul"
+  },
+  {
+   "fieldname": "column_break_urutan",
+   "fieldtype": "Column Break"
+  },
+  {
    "default": "0",
-   "description": "Jenis yang dinonaktifkan tidak muncul lagi di pilihan Tender.",
-   "fieldname": "disabled",
+   "description": "Section ditampilkan dari urutan terkecil.",
+   "fieldname": "urutan",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Urutan",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "Dokumen di section ini tetap bisa diubah setelah penawaran diajukan (misalnya hasil pengumuman).",
+   "fieldname": "bebas_kunci",
    "fieldtype": "Check",
    "in_list_view": 1,
-   "label": "Nonaktif"
-  },
-  {
-   "fieldname": "template_section",
-   "fieldtype": "Section Break",
-   "label": "Template Dokumen Tender",
-   "description": "Daftar dokumen yang otomatis dibuat di Dokumen Tender untuk tender dengan jenis project ini. Urutan baris = urutan dokumen dalam section; urutan section diatur di Kategori Dokumen Tender."
-  },
-  {
-   "fieldname": "dokumen",
-   "fieldtype": "Table",
-   "label": "Dokumen",
-   "options": "Jenis Project Dokumen"
+   "label": "Tidak Dikunci Saat Diajukan"
   }
  ],
  "index_web_pages_for_search": 0,
@@ -47,7 +56,7 @@
  "modified": "2026-10-04 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
- "name": "Jenis Project",
+ "name": "Kategori Dokumen Tender",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
@@ -81,8 +90,7 @@
    "role": "Projects User"
   }
  ],
- "quick_entry": 0,
- "sort_field": "jenis_project",
+ "sort_field": "urutan",
  "sort_order": "ASC",
  "states": [],
  "track_changes": 1
