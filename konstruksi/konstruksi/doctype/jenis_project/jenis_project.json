@@ -8,7 +8,9 @@
  "engine": "InnoDB",
  "field_order": [
   "jenis_project",
+  "urutan_section",
   "urutan",
+  "urutan_column",
   "disabled",
   "section_section",
   "sections",
@@ -25,11 +27,19 @@
    "unique": 1
   },
   {
+   "fieldname": "urutan_section",
+   "fieldtype": "Section Break"
+  },
+  {
    "fieldname": "urutan",
    "fieldtype": "Int",
    "in_list_view": 1,
    "label": "Urutan",
    "description": "Urutan di daftar & pilihan Jenis Project (angka terkecil di atas). Kosongkan untuk ditaruh paling bawah."
+  },
+  {
+   "fieldname": "urutan_column",
+   "fieldtype": "Column Break"
   },
   {
    "default": "0",
@@ -66,7 +76,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-04 15:00:00.000000",
+ "modified": "2026-10-04 15:30:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Jenis Project",
