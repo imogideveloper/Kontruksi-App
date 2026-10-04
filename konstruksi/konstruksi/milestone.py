@@ -11,6 +11,7 @@
 """
 
 import json
+import re
 
 import frappe
 from frappe import _
@@ -20,6 +21,49 @@ FIELD = [
 	"name", "urutan", "nama_milestone", "tanggal_target", "bobot", "bobot_kumulatif", "nilai_termin", "nilai_kumulatif",
 	"progres", "status", "tanggal_tercapai", "dokumen", "catatan", "sales_invoice",
 ]
+
+
+# Dokumen wajib penagihan per milestone: dasar (semua milestone) + menurut kata kunci lingkup pekerjaan.
+DOKUMEN_DASAR = ["Berita Acara Kemajuan Pekerjaan (opname)", "Laporan progres & foto dokumentasi"]
+ATURAN_DOKUMEN = [
+	(("persiapan", "mobilisasi"), "Berita acara mobilisasi"),
+	(("galian", "urugan", "tanah", "pemadatan", "pematangan"), "Hasil uji pemadatan / pengukuran elevasi"),
+	(("beton", "struktur", "plat", "sloof", "kolom", "balok", "pondasi", "pile", "topping"), "Hasil uji beton (slump & kuat tekan)"),
+	(("kebocoran", "waterproof", "kedap", "tampung"), "Berita acara uji kebocoran / tampung air"),
+	(("pipa", "listrik", "pompa", "panel", "lampu", "aerator", "mekanikal", "elektrikal", "instalasi", "mep", "valve", "pln"),
+		"Berita acara uji fungsi / commissioning"),
+	(("arsitektur", "finishing", "cat", "keramik", "plafon", "paving", "pagar"), "Checklist mutu pekerjaan (QC)"),
+]
+DOKUMEN_AKHIR = ["BAST-1 / Berita Acara Serah Terima Pertama (PHO)", "As-built drawing"]
+
+
+def dokumen_wajib_untuk(uraian, termin_terakhir=False):
+	teks = " ".join(uraian).lower()
+	hasil = list(DOKUMEN_DASAR)
+	for kata, dokumen in ATURAN_DOKUMEN:
+		# Dicocokkan di awal kata, bukan di tengah kata lain (mis. "cat" tidak cocok dengan "lokasi" atau "pengecatan").
+		if any(re.search(r"\b" + re.escape(k), teks) for k in kata) and dokumen not in hasil:
+			hasil.append(dokumen)
+	if termin_terakhir or "serah terima" in teks or "pho" in teks:
+		hasil += [d for d in DOKUMEN_AKHIR if d not in hasil]
+	return hasil
+
+
+def lingkup_terpakai(project, kecuali=None):
+	"""Item WBS (tanpa sub-item) yang sudah tercakup milestone lain: {wbs_item: nama milestone}."""
+	filters = {"project": project}
+	if kecuali:
+		filters["name"] = ("!=", kecuali)
+	ms = frappe.get_all("Milestone Termin", filters=filters, fields=["name", "nama_milestone"])
+	if not ms:
+		return {}
+	items = frappe.get_all("WBS Item", filters={"project": project}, fields=["name", "parent_wbs"])
+	lingkup = lingkup_per_milestone([m.name for m in ms])
+	hasil = {}
+	for m in ms:
+		for w in daun_tercakup(items, lingkup.get(m.name, [])):
+			hasil[w] = m.nama_milestone
+	return hasil
 
 
 def nilai_kontrak(project):
@@ -106,7 +150,27 @@ def get_milestone(project):
 
 	from konstruksi.konstruksi.wbs import kunci_kode
 
-	wbs = frappe.get_all("WBS Item", filters={"project": project}, fields=["name", "kode", "uraian", "is_group", "parent_wbs", "level", "progres"])
+	wbs = frappe.get_all(
+		"WBS Item", filters={"project": project},
+		fields=["name", "kode", "uraian", "is_group", "parent_wbs", "level", "progres", "bobot", "jumlah_harga"],
+	)
+	akhir_task = {
+		r.wbs_item: str(r.akhir)[:10]
+		for r in frappe.db.sql(
+			"""select wbs_item, max(exp_end_date) as akhir from `tabTask` where project = %s and ifnull(wbs_item, '') != ''
+			and status != 'Cancelled' group by wbs_item""",
+			project,
+			as_dict=True,
+		)
+		if r.akhir
+	}
+	dokumen = {}
+	if rows:
+		for x in frappe.get_all(
+			"Dokumen Milestone", filters={"parent": ("in", [r.name for r in rows]), "parenttype": "Milestone Termin"},
+			fields=["parent", "nama_dokumen", "file", "keterangan"], order_by="idx asc",
+		):
+			dokumen.setdefault(x.parent, []).append({"nama_dokumen": x.nama_dokumen, "file": x.file, "keterangan": x.keterangan})
 	per_nama = {w.name: w for w in wbs}
 	hari_ini = getdate(today())
 	semua_lingkup = set()
@@ -115,6 +179,7 @@ def get_milestone(project):
 			{"name": w, "kode": per_nama[w].kode, "uraian": per_nama[w].uraian} for w in lingkup.get(r.name, []) if w in per_nama
 		]
 		r.lingkup.sort(key=lambda x: kunci_kode(x["kode"]))
+		r.dokumen_wajib = dokumen.get(r.name, [])
 		semua_lingkup.update(x["name"] for x in r.lingkup)
 		r.selisih_hari = date_diff(r.tanggal_target, hari_ini) if r.tanggal_target else None
 		r.selisih_tercapai = date_diff(r.tanggal_tercapai, r.tanggal_target) if r.tanggal_tercapai and r.tanggal_target else None
@@ -130,9 +195,18 @@ def get_milestone(project):
 		"project": {"name": doc.name, "project_name": doc.project_name, "nilai_kontrak": nilai, "tarif_ppn": flt(doc.get("tarif_ppn"))},
 		"milestone": rows,
 		"wbs": sorted(
-			[{"name": w.name, "kode": w.kode, "uraian": w.uraian, "is_group": w.is_group, "level": w.level} for w in wbs],
+			[
+				{"name": w.name, "kode": w.kode, "uraian": w.uraian, "is_group": w.is_group, "level": w.level, "parent_wbs": w.parent_wbs,
+					"bobot": flt(w.bobot), "jumlah_harga": flt(w.jumlah_harga), "akhir_task": akhir_task.get(w.name)}
+				for w in wbs
+			],
 			key=lambda w: kunci_kode(w["kode"]),
 		),
+		# Item WBS (tanpa sub-item) yang sudah tercakup milestone: {wbs_item: [nama milestone, ID milestone]}.
+		"terpakai": {
+			w: [r.nama_milestone, r.name] for r in rows for w in daun_tercakup(wbs, [x["name"] for x in r.lingkup])
+		},
+		"aturan_dokumen": {"dasar": DOKUMEN_DASAR, "aturan": [[list(k), d] for k, d in ATURAN_DOKUMEN], "akhir": DOKUMEN_AKHIR},
 		"belum_masuk": [{"kode": w.kode, "uraian": w.uraian} for w in belum],
 		"tercapai": len(tercapai),
 		"bobot_tercapai": sum(flt(r.bobot) for r in tercapai),
@@ -183,7 +257,7 @@ def milestone_milik(project, name, ptype="write"):
 
 
 @frappe.whitelist()
-def simpan_milestone(project, nama_milestone, tanggal_target, bobot, lingkup=None, catatan=None, dokumen=None, name=None):
+def simpan_milestone(project, nama_milestone, tanggal_target, bobot=0, lingkup=None, catatan=None, dokumen=None, name=None):
 	if name:
 		doc = milestone_milik(project, name)
 	else:
@@ -200,14 +274,35 @@ def simpan_milestone(project, nama_milestone, tanggal_target, bobot, lingkup=Non
 
 
 @frappe.whitelist()
-def tandai_tercapai(project, name, tanggal, dokumen=None, catatan=None):
+def tandai_tercapai(project, name, tanggal, dokumen=None, catatan=None, file_dokumen=None):
+	"""file_dokumen: {nama dokumen wajib: file_url}. Semua dokumen wajib harus ada file-nya."""
 	doc = milestone_milik(project, name)
 	if getdate(tanggal) > getdate(today()):
 		frappe.throw(_("Tanggal tercapai tidak boleh di masa depan."))
+	file_dokumen = json.loads(file_dokumen) if isinstance(file_dokumen, str) else (file_dokumen or {})
+	for d in doc.dokumen_wajib:
+		if file_dokumen.get(d.nama_dokumen):
+			d.file = file_dokumen[d.nama_dokumen]
+	kurang = [d.nama_dokumen for d in doc.dokumen_wajib if not d.file]
+	if kurang:
+		frappe.throw(_("Upload dulu dokumen wajib: {0}").format(", ".join(kurang)), title=_("Dokumen belum lengkap"))
 	doc.tanggal_tercapai = tanggal
 	if dokumen:
 		doc.dokumen = dokumen
 	if catatan:
+		doc.catatan = catatan
+	doc.save()
+
+
+@frappe.whitelist()
+def simpan_dokumen(project, name, file_dokumen=None, catatan=None):
+	"""Upload / ganti file dokumen wajib tanpa mengubah status milestone."""
+	doc = milestone_milik(project, name)
+	file_dokumen = json.loads(file_dokumen) if isinstance(file_dokumen, str) else (file_dokumen or {})
+	for d in doc.dokumen_wajib:
+		if d.nama_dokumen in file_dokumen:
+			d.file = file_dokumen[d.nama_dokumen]
+	if catatan is not None:
 		doc.catatan = catatan
 	doc.save()
 

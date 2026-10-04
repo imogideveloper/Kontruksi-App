@@ -1,0 +1,47 @@
+{
+ "actions": [],
+ "creation": "2026-10-09 11:00:00.000000",
+ "modified": "2026-10-09 11:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "module": "Konstruksi",
+ "name": "Dokumen Milestone",
+ "istable": 1,
+ "editable_grid": 1,
+ "links": [],
+ "states": [],
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "fields": [
+  {
+   "fieldname": "nama_dokumen",
+   "fieldtype": "Data",
+   "label": "Dokumen",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 4
+  },
+  {
+   "fieldname": "file",
+   "fieldtype": "Attach",
+   "label": "File",
+   "in_list_view": 1,
+   "columns": 4
+  },
+  {
+   "fieldname": "keterangan",
+   "fieldtype": "Data",
+   "label": "Keterangan",
+   "in_list_view": 1,
+   "columns": 2
+  }
+ ],
+ "field_order": [
+  "nama_dokumen",
+  "file",
+  "keterangan"
+ ]
+}

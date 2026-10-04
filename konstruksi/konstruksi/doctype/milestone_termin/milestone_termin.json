@@ -1,7 +1,7 @@
 {
  "actions": [],
  "creation": "2026-10-09 09:00:00.000000",
- "modified": "2026-10-09 09:00:00.000000",
+ "modified": "2026-10-09 11:00:00.000000",
  "modified_by": "Administrator",
  "owner": "Administrator",
  "doctype": "DocType",
@@ -139,7 +139,7 @@
    "label": "Bobot Termin",
    "reqd": 1,
    "in_list_view": 1,
-   "description": "Porsi nilai kontrak yang ditagih saat milestone ini tercapai."
+   "description": "Otomatis = jumlah bobot WBS lingkupnya (milestone manual: diisi sendiri)."
   },
   {
    "fieldname": "bobot_kumulatif",
@@ -192,9 +192,16 @@
    "label": "Dokumen & Catatan"
   },
   {
+   "fieldname": "dokumen_wajib",
+   "fieldtype": "Table",
+   "label": "Dokumen Wajib",
+   "options": "Dokumen Milestone",
+   "description": "Ditentukan otomatis dari lingkup pekerjaan; semua harus di-upload sebelum milestone ditandai tercapai."
+  },
+  {
    "fieldname": "dokumen",
    "fieldtype": "Attach",
-   "label": "Dokumen (BAST / Berita Acara)"
+   "label": "Dokumen Lain"
   },
   {
    "fieldname": "column_break_dokumen",
@@ -226,6 +233,7 @@
   "section_lingkup",
   "lingkup",
   "section_dokumen",
+  "dokumen_wajib",
   "dokumen",
   "column_break_dokumen",
   "catatan"

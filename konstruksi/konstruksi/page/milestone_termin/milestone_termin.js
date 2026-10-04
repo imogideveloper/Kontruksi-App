@@ -176,7 +176,7 @@ class HalamanMilestone {
 					<td>${manual ? '<span class="kpw-strip">—</span>' : `<div class="kpw-progres"><div class="kpr-progress ${progres >= 100 ? "kpr-progress-ok" : "kpr-progress-biru"}"><div style="width:${progres}%"></div></div><span>${kpm2_persen(progres)}</span></div>`}</td>
 					<td class="text-right"><b>${kpm2_persen(m.bobot)}</b><div class="kpa-sub">${kpm2_persen(m.bobot_kumulatif)}</div></td>
 					<td class="text-right"><b>${kpm2_rp(m.nilai_termin)}</b><div class="kpa-sub">${kpm2_rp(m.nilai_kumulatif)}</div></td>
-					<td>${m.dokumen ? `<a href="${encodeURI(m.dokumen)}" target="_blank" title="${kpm2_esc(m.dokumen.split("/").pop())}">${frappe.utils.icon("file-text", "sm")}</a>` : '<span class="kpw-strip">—</span>'}</td>
+					<td>${this.html_dokumen(m)}</td>
 					<td class="kpa-wrap"><span class="kpa-status kpa-status-${warna}">${__(m.status)}</span><div class="kpa-sub">${ket_status}</div></td>
 					<td class="text-right kpt-aksi">${tombol.join(" ")} ${this.html_aksi(m)}</td>
 				</tr>`;
@@ -214,6 +214,15 @@ class HalamanMilestone {
 			</div>`);
 	}
 
+	html_dokumen(m) {
+		const wajib = m.dokumen_wajib || [];
+		if (!wajib.length) return m.dokumen ? `<a href="${encodeURI(m.dokumen)}" target="_blank">${frappe.utils.icon("file-text", "sm")}</a>` : '<span class="kpw-strip">—</span>';
+		const ada = wajib.filter((x) => x.file).length;
+		const daftar = wajib.map((x) => `${x.file ? "✓" : "○"} ${x.nama_dokumen}`).join("\n");
+		return `<a class="kpm2-dok ${ada === wajib.length ? "kpa-ok" : "kpa-oranye"}" data-kpm2="dokumen" data-name="${kpm2_esc(m.name)}" title="${kpm2_esc(daftar)}">
+			${frappe.utils.icon("file-text", "xs")} ${ada}/${wajib.length}</a>`;
+	}
+
 	html_aksi(m) {
 		const d = this.data;
 		const item = (aksi, ikon, label, kelas = "") =>
@@ -242,7 +251,8 @@ class HalamanMilestone {
 			case "form":
 				return frappe.set_route("Form", "Milestone Termin", name);
 			case "tercapai":
-				return this.dialog_tercapai(m);
+			case "dokumen":
+				return this.dialog_tercapai(m, jenis === "dokumen");
 			case "batalkan":
 				return frappe.confirm(__("Batalkan status tercapai milestone {0}?", [kpm2_esc(m.nama_milestone)]), () =>
 					this.call("batalkan_tercapai", { name }, __("Status tercapai dibatalkan"))
@@ -252,70 +262,207 @@ class HalamanMilestone {
 		}
 	}
 
+	// Dokumen wajib menurut lingkup (aturan sama dengan server: konstruksi.konstruksi.milestone.dokumen_wajib_untuk).
+	dokumen_wajib(uraian, terakhir) {
+		const a = this.data.aturan_dokumen;
+		const teks = uraian.join(" ").toLowerCase();
+		const hasil = [...a.dasar];
+		a.aturan.forEach(([kata, dok]) => {
+			if (kata.some((k) => new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`).test(teks)) && !hasil.includes(dok)) hasil.push(dok);
+		});
+		if (terakhir || teks.includes("serah terima") || teks.includes("pho")) a.akhir.forEach((dok) => !hasil.includes(dok) && hasil.push(dok));
+		return hasil;
+	}
+
 	dialog_milestone(m) {
 		const d = this.data;
 		const baru = !m.name;
-		const sisa_bobot = 100 - d.total_bobot + (baru ? 0 : flt(m.bobot));
-		const opsi_wbs = d.wbs.map((w) => ({
-			value: w.name,
-			label: `${w.kode} ${w.uraian}`,
-			description: w.is_group ? __("termasuk semua sub-item") : "",
-		}));
+		const wbs = d.wbs;
+		const per_nama = Object.fromEntries(wbs.map((w) => [w.name, w]));
+		const anak = {};
+		wbs.forEach((w) => (anak[w.parent_wbs || ""] = anak[w.parent_wbs || ""] || []).push(w));
+		const daun_dari = (name) => {
+			const sub = anak[name] || [];
+			return sub.length ? sub.flatMap((x) => daun_dari(x.name)) : [name];
+		};
+		// Item tanpa sub-item yang terpakai milestone LAIN (dikunci).
+		const terpakai = Object.fromEntries(Object.entries(d.terpakai).filter(([, v]) => v[1] !== m.name));
+		const dipilih = new Set((m.lingkup || []).flatMap((x) => daun_dari(x.name)));
+		const terbuka = new Set();
+		const bobot_lain = d.total_bobot - (baru ? 0 : flt(m.bobot));
+		let nama_manual = !baru;
+
 		const dialog = new frappe.ui.Dialog({
 			title: baru ? __("Milestone / Termin Baru") : __("Ubah Milestone"),
-			size: "large",
-			fields: [
-				{ fieldname: "nama_milestone", fieldtype: "Data", label: __("Nama Milestone"), reqd: 1, default: m.nama_milestone,
-					description: __("Mis. Struktur bawah selesai, Topping off, Serah terima pertama (PHO).") },
-				{ fieldname: "tanggal_target", fieldtype: "Date", label: __("Target Tanggal"), reqd: 1, default: m.tanggal_target },
-				{ fieldname: "col1", fieldtype: "Column Break" },
-				{ fieldname: "bobot", fieldtype: "Percent", label: __("Bobot Termin (%)"), reqd: 1, default: baru ? Math.max(sisa_bobot, 0) : m.bobot,
-					description: __("Sisa bobot yang belum dijadwalkan: {0}", [kpm2_persen(sisa_bobot)]) },
-				{ fieldname: "nilai", fieldtype: "HTML" },
-				{ fieldname: "lingkup_section", fieldtype: "Section Break", label: __("Lingkup WBS") },
-				{ fieldname: "lingkup", fieldtype: "MultiSelectList", label: __("Item WBS yang harus selesai"), options: opsi_wbs,
-					default: (m.lingkup || []).map((w) => w.name),
-					description: __("Progres milestone dihitung otomatis dari item ini. Kosongkan untuk milestone manual.") },
-				{ fieldname: "lain_section", fieldtype: "Section Break" },
-				{ fieldname: "dokumen", fieldtype: "Attach", label: __("Dokumen (BAST / Berita Acara)"), default: m.dokumen },
-				{ fieldname: "col2", fieldtype: "Column Break" },
-				{ fieldname: "catatan", fieldtype: "Small Text", label: __("Catatan"), default: m.catatan },
-			],
+			size: "extra-large",
+			fields: [{ fieldname: "form", fieldtype: "HTML" }],
 			primary_action_label: __("Simpan"),
-			primary_action: (v) => {
-				this.call("simpan_milestone", { ...v, lingkup: v.lingkup || [], name: m.name || null }, baru ? __("Milestone ditambahkan") : __("Milestone disimpan"))
-					.then(() => dialog.hide());
-			},
+			primary_action: () => simpan(),
 			secondary_action_label: __("Batal"),
 			secondary_action: () => dialog.hide(),
 		});
-		const tampil_nilai = () => {
-			const bobot = flt(dialog.get_value("bobot"));
-			dialog.fields_dict.nilai.$wrapper.html(`<div class="kpa-durasi"><div class="kpa-durasi-label">${__("Nilai Termin")}</div>
-				<div class="kpa-durasi-nilai">${kpm2_rp((d.project.nilai_kontrak * bobot) / 100)}</div>
-				<div class="kpa-sub">${__("{0} × nilai kontrak {1}", [kpm2_persen(bobot), kpm2_rp(d.project.nilai_kontrak)])}</div></div>`);
+		dialog.$wrapper.addClass("kpa-form-dialog");
+		const $f = dialog.fields_dict.form.$wrapper;
+		$f.html(`<div class="kpm2-form">
+			<label class="kpm2-label">${__("Nama & Lingkup Pekerjaan (WBS)")} <span class="kpa-wajib">*</span></label>
+			<div class="kpm2-pohon"></div>
+			<label class="kpm2-label">${__("Dihitung Otomatis")}</label>
+			<div class="kpm2-otomatis"></div>
+			<label class="kpm2-label">${__("Dokumen Wajib (otomatis)")}</label>
+			<div class="kpm2-dokumen"></div>
+			<label class="kpm2-label">${__("Catatan")}</label>
+			<textarea class="form-control" name="catatan" rows="2">${kpm2_esc(m.catatan || "")}</textarea>
+		</div>`);
+
+		const status_item = (name) => {
+			const daun = daun_dari(name).filter((x) => !terpakai[x]);
+			const n = daun.filter((x) => dipilih.has(x)).length;
+			return { semua: daun.length && n === daun.length, sebagian: n > 0 && n < daun.length, kosong: !daun.length };
 		};
-		dialog.fields_dict.bobot.df.onchange = tampil_nilai;
-		dialog.fields_dict.bobot.$input?.on("input", () => setTimeout(tampil_nilai, 0));
-		tampil_nilai();
+		const render_pohon = () => {
+			const baris = [];
+			const tulis = (w) => {
+				const sub = anak[w.name] || [];
+				const st = sub.length ? status_item(w.name) : { semua: dipilih.has(w.name), sebagian: false, kosong: !!terpakai[w.name] };
+				const kunci = sub.length ? st.kosong : !!terpakai[w.name];
+				const ket = kunci
+					? `<span class="kpm2-terpakai">${__("sudah di {0}", [kpm2_esc(sub.length ? __("milestone lain") : terpakai[w.name][0])])}</span>`
+					: "";
+				baris.push(`<div class="kpm2-pohon-baris kpm2-level-${Math.min(w.level, 4)} ${kunci ? "kpm2-kunci" : ""}">
+					<span class="kpm2-pohon-toggle" ${sub.length ? `data-toggle-wbs="${kpm2_esc(w.name)}"` : ""}>${sub.length ? frappe.utils.icon(terbuka.has(w.name) ? "down" : "right", "xs") : ""}</span>
+					<label class="kpm2-pohon-cek">
+						<input type="checkbox" data-wbs="${kpm2_esc(w.name)}" ${st.semua ? "checked" : ""} ${kunci ? "disabled" : ""}>
+						<span class="kpm2-pohon-kode">${kpm2_esc(w.kode)}</span>
+						<span class="kpm2-pohon-uraian ${w.level === 1 ? "kpm2-tebal" : ""}">${kpm2_esc(w.uraian)}</span>
+						${ket}
+					</label>
+					<span class="kpm2-pohon-bobot">${kpm2_persen(flt(w.bobot).toFixed(2))}</span>
+				</div>`);
+				if (sub.length && terbuka.has(w.name)) sub.forEach(tulis);
+			};
+			(anak[""] || []).forEach(tulis);
+			$f.find(".kpm2-pohon").html(baris.join("") || `<div class="kpa-form-ket">${__("WBS proyek belum ada.")}</div>`);
+			$f.find(".kpm2-pohon input[type=checkbox]").each((_, el) => {
+				const w = per_nama[el.dataset.wbs];
+				if ((anak[w.name] || []).length) el.indeterminate = status_item(w.name).sebagian;
+			});
+		};
+
+		// Lingkup tersimpan: item induk bila semua sub-itemnya dipilih, selain itu sub-item yang dipilih.
+		const lingkup_ringkas = () => {
+			const hasil = [];
+			const telusur = (w) => {
+				const sub = anak[w.name] || [];
+				if (!sub.length) return dipilih.has(w.name) && hasil.push(w);
+				const daun = daun_dari(w.name).filter((x) => !terpakai[x]);
+				if (daun.length && daun.every((x) => dipilih.has(x)) && !daun_dari(w.name).some((x) => terpakai[x])) return hasil.push(w);
+				sub.forEach(telusur);
+			};
+			(anak[""] || []).forEach(telusur);
+			return hasil;
+		};
+		const hitung = () => {
+			const lingkup = lingkup_ringkas();
+			const daun = [...dipilih].map((x) => per_nama[x]).filter(Boolean);
+			const bobot = daun.reduce((s, w) => s + flt(w.bobot), 0);
+			const target = daun.map((w) => w.akhir_task).filter(Boolean).sort().pop() || "";
+			const nama_otomatis = lingkup.length
+				? `${lingkup.map((w) => w.uraian).slice(0, 2).join(" & ")}${lingkup.length > 2 ? ` ${__("dll.")}` : ""} ${__("selesai")}`
+				: "";
+			return { lingkup, daun, bobot, target, nama_otomatis, terakhir: bobot_lain + bobot >= 99.99 };
+		};
+		const render_otomatis = () => {
+			const h = hitung();
+			const $o = $f.find(".kpm2-otomatis");
+			if (!h.daun.length) {
+				$o.html(`<div class="kpm2-kosong">${__("Centang item WBS level 1 dan sub-item lingkupnya di atas.")}</div>`);
+				$f.find(".kpm2-dokumen").html(`<div class="kpm2-kosong">${__("Pilih lingkup pekerjaan untuk melihat dokumen yang wajib di-upload.")}</div>`);
+				return;
+			}
+			const nama_lama = $f.find('[name="nama_milestone"]').val();
+			const nama = nama_manual ? nama_lama || m.nama_milestone || h.nama_otomatis : h.nama_otomatis;
+			const tanggal_lama = $f.find('[name="tanggal_target"]').val();
+			const tanggal = tanggal_lama || (m.tanggal_target ? String(m.tanggal_target).slice(0, 10) : h.target);
+			const lebih = bobot_lain + h.bobot > 100.01;
+			$o.html(`<div class="kpm2-otomatis-isi">
+				<div class="kpm2-otomatis-baris"><span>${__("Nama Milestone")}</span><input class="form-control" name="nama_milestone" value="${kpm2_esc(nama)}"></div>
+				<div class="kpm2-otomatis-baris"><span>${__("Target")}</span><div><input type="date" class="form-control kpa-input-tanggal" name="tanggal_target" value="${kpm2_esc(tanggal)}">
+					<div class="kpa-form-ket">${h.target ? __("Aktivitas terakhir di lingkup ini selesai {0}.", [kpm2_tgl(h.target)]) : __("Belum ada aktivitas di lingkup ini; isi target sendiri.")}</div></div></div>
+				<div class="kpm2-otomatis-angka">
+					<div><div class="kpa-lapor-label">${__("Bobot = Termin")}</div><div class="kpa-lapor-nilai ${lebih ? "kpa-merah" : ""}">${kpm2_persen(flt(h.bobot).toFixed(2))}</div>
+						<div class="kpa-sub">${__("kumulatif {0}", [kpm2_persen(flt(bobot_lain + h.bobot).toFixed(2))])}${lebih ? ` · ${__("melebihi 100%")}` : ""}</div></div>
+					<div><div class="kpa-lapor-label">${__("Nilai Termin")}</div><div class="kpa-lapor-nilai">${kpm2_rp((d.project.nilai_kontrak * h.bobot) / 100)}</div>
+						<div class="kpa-sub">${__("bruto + PPN, sebelum potongan")}</div></div>
+					<div><div class="kpa-lapor-label">${__("Lingkup")}</div><div class="kpa-lapor-nilai">${__("{0} item", [h.daun.length])}</div>
+						<div class="kpa-sub">${kpm2_esc(h.lingkup.map((w) => w.kode).join(", "))}</div></div>
+				</div>
+			</div>`);
+			const dok = this.dokumen_wajib([...h.lingkup.map((w) => w.uraian), ...h.daun.map((w) => w.uraian), nama], h.terakhir);
+			$f.find(".kpm2-dokumen").html(`<div class="kpm2-dok-list">${dok.map((x) => `<div>${frappe.utils.icon("file-text", "xs")} ${kpm2_esc(x)}</div>`).join("")}</div>
+				<div class="kpa-form-ket">${__("Semua dokumen ini wajib di-upload saat milestone ditandai tercapai.")}</div>`);
+		};
+
+		$f.on("click", "[data-toggle-wbs]", (e) => {
+			const name = e.currentTarget.dataset.toggleWbs;
+			terbuka.has(name) ? terbuka.delete(name) : terbuka.add(name);
+			render_pohon();
+		});
+		$f.on("change", ".kpm2-pohon input[type=checkbox]", (e) => {
+			const daun = daun_dari(e.target.dataset.wbs).filter((x) => !terpakai[x]);
+			daun.forEach((x) => (e.target.checked ? dipilih.add(x) : dipilih.delete(x)));
+			render_pohon();
+			render_otomatis();
+		});
+		$f.on("input", '[name="nama_milestone"]', () => (nama_manual = true));
+
+		const simpan = () => {
+			const h = hitung();
+			const nama = ($f.find('[name="nama_milestone"]').val() || "").trim();
+			const tanggal = $f.find('[name="tanggal_target"]').val();
+			if (!h.lingkup.length) return frappe.msgprint(__("Centang minimal satu item WBS sebagai lingkup milestone."));
+			if (!nama || !tanggal) return frappe.msgprint(__("Lengkapi Nama Milestone dan Target."));
+			this.call(
+				"simpan_milestone",
+				{ nama_milestone: nama, tanggal_target: tanggal, lingkup: h.lingkup.map((w) => w.name), catatan: $f.find('[name="catatan"]').val(), name: m.name || null },
+				baru ? __("Milestone ditambahkan") : __("Milestone disimpan")
+			).then(() => dialog.hide());
+		};
+
+		// Ubah: buka item level 1 yang sebagian dipilih supaya pilihannya terlihat.
+		(anak[""] || []).forEach((w) => status_item(w.name).sebagian && terbuka.add(w.name));
+		render_pohon();
+		render_otomatis();
 		dialog.show();
 	}
 
-	dialog_tercapai(m) {
+	dialog_tercapai(m, hanya_dokumen) {
 		const manual = !m.lingkup.length;
 		const belum = !manual && flt(m.progres) < 100;
+		const wajib = m.dokumen_wajib || [];
+		const fields = [
+			{ fieldname: "info", fieldtype: "HTML", options: !hanya_dokumen && belum
+				? `<div class="kpa-peringatan">${__("Progres lingkup WBS baru {0}. Pastikan pekerjaan memang sudah selesai di lapangan.", [kpm2_persen(m.progres)])}</div>`
+				: "" },
+		];
+		if (!hanya_dokumen) fields.push({ fieldname: "tanggal", fieldtype: "Date", label: __("Tanggal Tercapai"), reqd: 1, default: frappe.datetime.get_today() });
+		if (wajib.length) {
+			fields.push({ fieldname: "dok_section", fieldtype: "Section Break", label: __("Dokumen Wajib") });
+			wajib.forEach((x, i) => fields.push({ fieldname: `dok_${i}`, fieldtype: "Attach", label: x.nama_dokumen, reqd: hanya_dokumen ? 0 : 1, default: x.file }));
+		}
+		fields.push({ fieldname: "lain_section", fieldtype: "Section Break" },
+			{ fieldname: "catatan", fieldtype: "Small Text", label: __("Catatan"), default: m.catatan });
 		const dialog = new frappe.ui.Dialog({
-			title: __("Tandai Tercapai — {0}", [m.nama_milestone]),
-			fields: [
-				{ fieldname: "info", fieldtype: "HTML", options: belum
-					? `<div class="kpa-peringatan">${__("Progres lingkup WBS baru {0}. Pastikan pekerjaan memang sudah selesai di lapangan.", [kpm2_persen(m.progres)])}</div>`
-					: "" },
-				{ fieldname: "tanggal", fieldtype: "Date", label: __("Tanggal Tercapai"), reqd: 1, default: frappe.datetime.get_today() },
-				{ fieldname: "dokumen", fieldtype: "Attach", label: __("Dokumen (BAST / Berita Acara Kemajuan)"), default: m.dokumen },
-				{ fieldname: "catatan", fieldtype: "Small Text", label: __("Catatan"), default: m.catatan },
-			],
-			primary_action_label: __("Tandai Tercapai"),
-			primary_action: (v) => this.call("tandai_tercapai", { ...v, name: m.name }, __("Milestone ditandai tercapai")).then(() => dialog.hide()),
+			title: hanya_dokumen ? __("Dokumen — {0}", [m.nama_milestone]) : __("Tandai Tercapai — {0}", [m.nama_milestone]),
+			fields,
+			primary_action_label: hanya_dokumen ? __("Simpan Dokumen") : __("Tandai Tercapai"),
+			primary_action: (v) => {
+				const file_dokumen = Object.fromEntries(wajib.map((x, i) => [x.nama_dokumen, v[`dok_${i}`] || null]));
+				const args = { name: m.name, file_dokumen, catatan: v.catatan };
+				const aksi = hanya_dokumen
+					? this.call("simpan_dokumen", args, __("Dokumen disimpan"))
+					: this.call("tandai_tercapai", { ...args, tanggal: v.tanggal }, __("Milestone ditandai tercapai"));
+				aksi.then(() => dialog.hide());
+			},
 		});
 		dialog.show();
 	}
