@@ -192,7 +192,10 @@ def get_milestone(project):
 	nilai = nilai_kontrak(project)
 	tercapai = [r for r in rows if r.status == "Tercapai"]
 	return {
-		"project": {"name": doc.name, "project_name": doc.project_name, "nilai_kontrak": nilai, "tarif_ppn": flt(doc.get("tarif_ppn"))},
+		"project": {
+			"name": doc.name, "project_name": doc.project_name, "nilai_kontrak": nilai, "tarif_ppn": flt(doc.get("tarif_ppn")),
+			"selesai": str(doc.expected_end_date) if doc.expected_end_date else None,
+		},
 		"milestone": rows,
 		"wbs": sorted(
 			[
@@ -265,7 +268,9 @@ def simpan_milestone(project, nama_milestone, tanggal_target, bobot=0, lingkup=N
 		doc = frappe.new_doc("Milestone Termin")
 		doc.project = project
 	lingkup = json.loads(lingkup) if isinstance(lingkup, str) else (lingkup or [])
-	doc.update({"nama_milestone": nama_milestone, "tanggal_target": tanggal_target, "bobot": flt(bobot), "catatan": catatan})
+	doc.update({"nama_milestone": nama_milestone, "tanggal_target": tanggal_target, "bobot": flt(bobot)})
+	if catatan is not None:
+		doc.catatan = catatan
 	if dokumen is not None:
 		doc.dokumen = dokumen
 	doc.set("lingkup", [{"wbs_item": w} for w in dict.fromkeys(lingkup) if w])
