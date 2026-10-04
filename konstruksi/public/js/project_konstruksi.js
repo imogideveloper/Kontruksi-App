@@ -194,24 +194,35 @@
 		</div>`;
 	}
 
-	// Satu tombol "Aksi" per baris personel; isinya sesuai hak user.
+	// Satu tombol "Aksi" per baris personel, dikelompokkan Biaya & Penugasan; isinya sesuai hak user.
 	function html_aksi(p, bisa) {
 		const item = (kelas, ikon, label, attr = "") =>
-			`<a class="dropdown-item ${kelas}" ${attr}>${frappe.utils.icon(ikon, "sm")} ${label}</a>`;
-		const menu = [
+			`<a class="dropdown-item kpt-aksi-item ${kelas}" ${attr}>
+				<span class="kpt-aksi-ikon">${frappe.utils.icon(ikon, "sm")}</span><span>${label}</span></a>`;
+		const judul = (teks) => `<div class="kpt-aksi-judul">${teks}</div>`;
+
+		const biaya = [
 			frappe.model.can_create("Timesheet") &&
 				item("kpt-catat-jam", "clock", __("Catat Jam Kerja"), `data-employee="${esc(p.employee)}" data-activity="${esc(p.activity_type || "")}"`),
 			frappe.model.can_create("Expense Claim") &&
 				item("kpt-klaim", "wallet", __("Ajukan Klaim Biaya"), `data-employee="${esc(p.employee)}"`),
-			bisa && item("", "edit", __("Ubah Penugasan"), `href="/app/penugasan-personel/${encodeURIComponent(p.name)}"`),
-			bisa && '<div class="dropdown-divider"></div>',
-			bisa &&
-				item("kpt-hapus text-danger", "delete", __("Hapus dari Tim"), `data-name="${esc(p.name)}" data-nama="${esc(p.nama_personel)}"`),
 		].filter(Boolean);
-		if (!menu.length) return "";
+		const penugasan = bisa
+			? [
+					item("", "pencil", __("Ubah Penugasan"), `href="/app/penugasan-personel/${encodeURIComponent(p.name)}"`),
+					item("kpt-hapus kpt-aksi-bahaya", "trash-2", __("Hapus dari Tim"), `data-name="${esc(p.name)}" data-nama="${esc(p.nama_personel)}"`),
+			  ]
+			: [];
+		if (!biaya.length && !penugasan.length) return "";
+
+		const menu = [
+			biaya.length ? judul(__("Biaya")) + biaya.join("") : "",
+			biaya.length && penugasan.length ? '<div class="dropdown-divider"></div>' : "",
+			penugasan.length ? judul(__("Penugasan")) + penugasan.join("") : "",
+		].join("");
 		return `<div class="dropdown kpt-aksi-dropdown">
 			<button class="btn btn-xs kpt-aksi-btn" data-toggle="dropdown">${__("Aksi")} ${frappe.utils.icon("down", "xs")}</button>
-			<div class="dropdown-menu dropdown-menu-right">${menu.join("")}</div>
+			<div class="dropdown-menu dropdown-menu-right kpt-aksi-menu">${menu}</div>
 		</div>`;
 	}
 

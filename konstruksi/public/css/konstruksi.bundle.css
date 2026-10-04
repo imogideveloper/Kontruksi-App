@@ -2239,9 +2239,60 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	stroke: var(--konstruksi-active-fg);
 }
 
-.kpt-aksi-dropdown .dropdown-item {
-	display: flex;
+/* Menu Aksi: rata kiri (sel tabelnya rata kanan), ikon & teks dalam kolom sejajar, dikelompokkan dengan judul. */
+.kpt-aksi-menu {
+	min-width: 210px;
+	padding: 6px;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.kpt-aksi-judul {
+	padding: 6px 10px 4px;
+	font-size: var(--text-xs);
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--konstruksi-header-fg);
+}
+
+.kpt-aksi-menu .kpt-aksi-item {
+	display: grid;
+	grid-template-columns: 18px minmax(0, 1fr);
+	gap: 10px;
 	align-items: center;
-	gap: 8px;
+	padding: 7px 10px;
+	border-radius: 6px;
+	color: var(--text-color);
 	cursor: pointer;
+}
+
+.kpt-aksi-menu .kpt-aksi-item:hover {
+	background: var(--konstruksi-active-bg);
+	color: var(--konstruksi-active-fg);
+}
+
+.kpt-aksi-ikon {
+	display: inline-flex;
+	justify-content: center;
+}
+
+.kpt-aksi-ikon .icon {
+	width: 16px;
+	height: 16px;
+	margin: 0;
+	stroke: currentColor !important;
+}
+
+.kpt-aksi-menu .kpt-aksi-bahaya,
+.kpt-aksi-menu .kpt-aksi-bahaya:hover {
+	color: var(--red-600, #dc2626);
+}
+
+.kpt-aksi-menu .kpt-aksi-bahaya:hover {
+	background: #fee2e2;
+}
+
+.kpt-aksi-menu .dropdown-divider {
+	margin: 6px 0;
 }
