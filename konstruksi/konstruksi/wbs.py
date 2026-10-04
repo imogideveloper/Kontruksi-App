@@ -143,6 +143,10 @@ def hitung_ulang(project):
 		}
 		if any(flt(it.get(k), 4) != flt(v, 4) for k, v in baru.items()):
 			frappe.db.set_value("WBS Item", it.name, baru, update_modified=False)
+	# Progres milestone mengikuti progres item WBS lingkupnya.
+	from konstruksi.konstruksi.milestone import hitung_ulang as hitung_milestone
+
+	hitung_milestone(project)
 
 
 def ringkasan_wbs(project, items):

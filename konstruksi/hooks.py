@@ -211,6 +211,7 @@ scheduler_events = {
 		],
 		"5 0 * * *": [
 			"konstruksi.konstruksi.project_konstruksi.perbarui_status_harian",
+			"konstruksi.konstruksi.milestone.perbarui_semua",
 		],
 		"15 0 1 * *": [
 			"konstruksi.konstruksi.doctype.biaya_personel_bulanan.biaya_personel_bulanan.buat_bulan_lalu",

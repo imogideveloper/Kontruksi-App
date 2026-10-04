@@ -1,0 +1,233 @@
+{
+ "actions": [],
+ "creation": "2026-10-09 09:00:00.000000",
+ "modified": "2026-10-09 09:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "module": "Konstruksi",
+ "links": [],
+ "states": [],
+ "sort_field": "tanggal_target",
+ "sort_order": "ASC",
+ "name": "Milestone Termin",
+ "autoname": "MST-.YYYY.-.####",
+ "naming_rule": "Expression (old style)",
+ "title_field": "nama_milestone",
+ "show_title_field_in_link": 1,
+ "search_fields": "nama_milestone,project",
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "export": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1
+  },
+  {
+   "role": "Projects Manager",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "export": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1
+  },
+  {
+   "role": "Accounts Manager",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "export": 1
+  },
+  {
+   "role": "Accounts User",
+   "read": 1,
+   "report": 1,
+   "print": 1
+  },
+  {
+   "role": "Projects User",
+   "read": 1,
+   "report": 1,
+   "print": 1
+  }
+ ],
+ "fields": [
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "nama_project",
+   "fieldtype": "Data",
+   "label": "Nama Project",
+   "fetch_from": "project.project_name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "nama_milestone",
+   "fieldtype": "Data",
+   "label": "Milestone",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "tanggal_target",
+   "fieldtype": "Date",
+   "label": "Target",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_target",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "urutan",
+   "fieldtype": "Int",
+   "label": "Urutan",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Rencana\nTerlambat\nTercapai",
+   "default": "Rencana",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "tanggal_tercapai",
+   "fieldtype": "Date",
+   "label": "Tanggal Tercapai",
+   "read_only": 1
+  },
+  {
+   "fieldname": "progres",
+   "fieldtype": "Percent",
+   "label": "Progres Lingkup WBS",
+   "read_only": 1,
+   "description": "Rata-rata tertimbang nilai progres item WBS lingkup milestone ini."
+  },
+  {
+   "fieldname": "section_termin",
+   "fieldtype": "Section Break",
+   "label": "Termin"
+  },
+  {
+   "fieldname": "bobot",
+   "fieldtype": "Percent",
+   "label": "Bobot Termin",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "Porsi nilai kontrak yang ditagih saat milestone ini tercapai."
+  },
+  {
+   "fieldname": "bobot_kumulatif",
+   "fieldtype": "Percent",
+   "label": "Bobot Kumulatif",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_nilai",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "nilai_termin",
+   "fieldtype": "Currency",
+   "label": "Nilai Termin",
+   "options": "IDR",
+   "read_only": 1,
+   "in_list_view": 1,
+   "description": "Bobot × nilai kontrak (termasuk PPN), sebelum potongan uang muka & retensi."
+  },
+  {
+   "fieldname": "nilai_kumulatif",
+   "fieldtype": "Currency",
+   "label": "Nilai Kumulatif",
+   "options": "IDR",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "options": "Sales Invoice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_lingkup",
+   "fieldtype": "Section Break",
+   "label": "Lingkup WBS"
+  },
+  {
+   "fieldname": "lingkup",
+   "fieldtype": "Table MultiSelect",
+   "label": "Lingkup WBS",
+   "options": "Milestone Termin WBS",
+   "description": "Item WBS yang harus selesai; kosong = milestone manual."
+  },
+  {
+   "fieldname": "section_dokumen",
+   "fieldtype": "Section Break",
+   "label": "Dokumen & Catatan"
+  },
+  {
+   "fieldname": "dokumen",
+   "fieldtype": "Attach",
+   "label": "Dokumen (BAST / Berita Acara)"
+  },
+  {
+   "fieldname": "column_break_dokumen",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "catatan",
+   "fieldtype": "Small Text",
+   "label": "Catatan"
+  }
+ ],
+ "field_order": [
+  "project",
+  "nama_project",
+  "nama_milestone",
+  "tanggal_target",
+  "column_break_target",
+  "urutan",
+  "status",
+  "tanggal_tercapai",
+  "progres",
+  "section_termin",
+  "bobot",
+  "bobot_kumulatif",
+  "column_break_nilai",
+  "nilai_termin",
+  "nilai_kumulatif",
+  "sales_invoice",
+  "section_lingkup",
+  "lingkup",
+  "section_dokumen",
+  "dokumen",
+  "column_break_dokumen",
+  "catatan"
+ ]
+}

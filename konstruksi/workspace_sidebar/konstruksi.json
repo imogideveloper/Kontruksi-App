@@ -141,6 +141,18 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "flag",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Milestone & Termin",
+   "link_to": "milestone-termin",
+   "link_type": "Page",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
    "label": "Konfigurasi",
@@ -239,6 +251,18 @@
    "keep_closed": 0,
    "label": "Laporan Progres",
    "link_to": "Laporan Progres",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "flag",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Milestone Termin",
+   "link_to": "Milestone Termin",
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
@@ -352,7 +376,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-08 18:00:00.000000",
+ "modified": "2026-10-09 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Konstruksi",

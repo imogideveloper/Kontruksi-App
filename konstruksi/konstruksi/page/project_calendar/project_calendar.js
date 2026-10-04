@@ -322,8 +322,11 @@ class KalenderProyek {
 				const a = [...d.agenda, ...d.agenda_mendatang].find((x) => x.name === name);
 				return a && this.dialog_agenda(a);
 			}
-			case "task":
+			case "task": {
+				const m = d.milestone.find((x) => x.name === $el.attr("data-name"));
+				if (m?.jenis === "termin") return frappe.set_route("milestone-termin", this.project);
 				return frappe.set_route("Form", "Task", $el.attr("data-name"));
+			}
 			case "hari-kerja": {
 				const py = Number($el.attr("data-py"));
 				const off = new Set(d.libur_mingguan);

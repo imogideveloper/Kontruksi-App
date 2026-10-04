@@ -107,6 +107,10 @@ def sinkron_project(kontrak):
 	from konstruksi.konstruksi.project_calendar import pastikan_kalender
 
 	pastikan_kalender(name)
+	# Nilai termin milestone mengikuti nilai kontrak terkini (mis. setelah addendum).
+	from konstruksi.konstruksi.milestone import hitung_ulang as hitung_milestone
+
+	hitung_milestone(name)
 	beri_tahu_form("Project", name)
 
 

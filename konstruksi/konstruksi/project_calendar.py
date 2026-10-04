@@ -15,7 +15,7 @@ from datetime import timedelta
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, add_years, get_first_day, getdate
+from frappe.utils import add_days, add_years, flt, get_first_day, getdate
 
 NAMA_HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]  # weekday() Python: 0 = Senin
 # Bawaan proyek konstruksi: Senin–Sabtu kerja, Minggu libur.
@@ -184,6 +184,16 @@ def get_kalender(project, tahun, bulan):
 			continue
 		for d in rentang(max(getdate(t.exp_start_date), awal), min(getdate(t.exp_end_date or t.exp_start_date), akhir)):
 			aktivitas[str(d)] = aktivitas.get(str(d), 0) + 1
+
+	for m in frappe.get_all(
+		"Milestone Termin",
+		filters={"project": project, "tanggal_target": ("between", [awal, akhir])},
+		fields=["name", "nama_milestone", "tanggal_target", "bobot", "status"],
+	):
+		milestone.append(
+			{"name": m.name, "subject": f"{m.nama_milestone} ({flt(m.bobot):g}%)", "tanggal": str(getdate(m.tanggal_target)),
+				"jenis": "termin", "status": m.status}
+		)
 
 	return {
 		"project": {

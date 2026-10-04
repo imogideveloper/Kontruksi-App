@@ -3730,3 +3730,50 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpa-buka-tutup .icon {
 	stroke: currentColor;
 }
+
+/* Milestone & Termin (page/milestone_termin). Memakai .kpw-*, .kpa-*, .kpr-*. */
+.kpm2-tabel {
+	min-width: 1300px;
+}
+
+.kpm2-manual {
+	display: inline-block;
+	margin-top: 4px;
+	padding: 1px 8px;
+	border-radius: 999px;
+	background: var(--kpr-oranye-bg);
+	color: var(--kpr-oranye);
+	font-size: 11px;
+	font-weight: 500;
+}
+
+.kpm2-lingkup {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.kpm2-lingkup .kpw-badge {
+	min-width: 0;
+}
+
+.kpm2-tautkan {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	color: var(--text-muted) !important;
+	cursor: pointer;
+}
+
+.kpm2-tautkan:hover {
+	color: var(--kpr-biru) !important;
+}
+
+.kpm2-tautkan .icon,
+.kpm2-tabel .btn .icon {
+	stroke: currentColor;
+}
+
+.kpm2-tabel tfoot td {
+	font-weight: 700;
+}
