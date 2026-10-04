@@ -263,6 +263,17 @@ def buat_biaya_personel_default():
 		]
 		frappe.get_doc({"doctype": "Expense Claim Type", "expense_type": nama, "accounts": accounts}).insert(ignore_permissions=True)
 
+	# Tabel jam kerja Timesheet: kolom To Time ditampilkan (Hours terhitung otomatis dari From–To Time);
+	# Is Billable (penagihan jam ke klien) disembunyikan dari tabel supaya muat.
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	for fieldname, prop, nilai, tipe in (
+		("to_time", "in_list_view", 1, "Check"),
+		("to_time", "columns", 2, "Int"),
+		("is_billable", "in_list_view", 0, "Check"),
+	):
+		make_property_setter("Timesheet Detail", fieldname, prop, nilai, tipe, validate_fields_for_doctype=False)
+
 	# Expense Claim butuh akun hutang (Payable) default di Company; dibuat di samping akun Creditors.
 	for c in companies:
 		if c.default_expense_claim_payable_account or not c.default_payable_account:

@@ -28,3 +28,4 @@ konstruksi.patches.v1_0.buat_tim_proyek #skk-setelah-grade
 konstruksi.patches.v1_0.buat_tim_proyek #hapus-keterangan-company-email
 konstruksi.patches.v1_0.hitung_ulang_status_skk
 konstruksi.patches.v1_0.buat_biaya_personel
+konstruksi.patches.v1_0.buat_biaya_personel #to-time-timesheet
