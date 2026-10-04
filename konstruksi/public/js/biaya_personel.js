@@ -19,4 +19,29 @@
 
 	frappe.ui.form.on("Timesheet", events);
 	frappe.ui.form.on("Expense Claim", events);
+
+	// Timesheet: Total Working Hours ditampilkan sebagai baris total di bawah tabel Time Sheets
+	// (field total_hours di bagian Totals disembunyikan supaya tidak dobel).
+	function render_total_jam(frm) {
+		const grid = frm.fields_dict.time_logs?.grid;
+		if (!grid) return;
+		frm.set_df_property("total_hours", "hidden", 1);
+		const logs = frm.doc.time_logs || [];
+		const jam = logs.reduce((s, row) => s + flt(row.hours), 0);
+		const biaya = logs.reduce((s, row) => s + flt(row.costing_amount), 0);
+		grid.wrapper.find(".konstruksi-total-jam").remove();
+		grid.wrapper.find(".form-grid").after(`<div class="konstruksi-total-jam">
+			<span>${__("Total Working Hours")}</span>
+			<b>${format_number(jam, null, 2).replace(/[.,]00$/, "")} ${__("jam")}</b>
+			${biaya ? `<span class="text-muted">· ${__("Biaya")} ${format_currency(biaya, frm.doc.currency, 0)}</span>` : ""}
+		</div>`);
+	}
+
+	frappe.ui.form.on("Timesheet", { refresh: render_total_jam, time_logs_remove: render_total_jam });
+	frappe.ui.form.on("Timesheet Detail", {
+		hours: (frm) => setTimeout(() => render_total_jam(frm), 0),
+		from_time: (frm) => setTimeout(() => render_total_jam(frm), 0),
+		to_time: (frm) => setTimeout(() => render_total_jam(frm), 0),
+		activity_type: (frm) => setTimeout(() => render_total_jam(frm), 500),
+	});
 })();

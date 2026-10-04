@@ -2197,3 +2197,16 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row-col:last-child .indicator-pill {
 	max-width: none;
 }
+
+/* Timesheet: baris total jam kerja di bawah tabel Time Sheets (biaya_personel.js). */
+.konstruksi-total-jam {
+	display: flex;
+	justify-content: flex-end;
+	align-items: baseline;
+	gap: 10px;
+	margin-top: -1px;
+	padding: 10px 14px;
+	border: 1px solid var(--border-color);
+	background: var(--konstruksi-active-bg);
+	color: var(--konstruksi-active-fg);
+}
