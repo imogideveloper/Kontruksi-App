@@ -30,13 +30,10 @@
   "project_manager",
   "nilai_waktu_tab",
   "nilai_section",
-  "nilai_kontrak",
-  "nilai_column",
-  "status_ppn",
-  "nilai_column_2",
-  "tarif_ppn",
-  "nilai_tabel_section",
   "nilai_tabel",
+  "nilai_kontrak",
+  "status_ppn",
+  "tarif_ppn",
   "nilai_sebelum_ppn",
   "nilai_ppn",
   "waktu_section",
@@ -235,17 +232,18 @@
    "label": "Nilai Kontrak"
   },
   {
+   "fieldname": "nilai_tabel",
+   "fieldtype": "HTML"
+  },
+  {
    "fieldname": "nilai_kontrak",
    "fieldtype": "Currency",
    "label": "Nilai Kontrak (termasuk PPN)",
    "options": "IDR",
    "reqd": 1,
    "in_list_view": 1,
-   "description": "Awalnya diisi dari Harga Pemenang / Kontrak di Hasil Tender; sesuaikan bila ada negosiasi."
-  },
-  {
-   "fieldname": "nilai_column",
-   "fieldtype": "Column Break"
+   "description": "Awalnya diisi dari Harga Pemenang / Kontrak di Hasil Tender; sesuaikan bila ada negosiasi.",
+   "hidden": 1
   },
   {
    "fieldname": "status_ppn",
@@ -254,11 +252,8 @@
    "options": "PPN\nTidak Kena PPN",
    "default": "PPN",
    "fetch_from": "tender.status_ppn",
-   "fetch_if_empty": 1
-  },
-  {
-   "fieldname": "nilai_column_2",
-   "fieldtype": "Column Break"
+   "fetch_if_empty": 1,
+   "hidden": 1
   },
   {
    "fieldname": "tarif_ppn",
@@ -267,15 +262,8 @@
    "default": "11",
    "fetch_from": "tender.tarif_ppn",
    "fetch_if_empty": 1,
-   "depends_on": "eval:doc.status_ppn == 'PPN'"
-  },
-  {
-   "fieldname": "nilai_tabel_section",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "nilai_tabel",
-   "fieldtype": "HTML"
+   "depends_on": "eval:doc.status_ppn == 'PPN'",
+   "hidden": 1
   },
   {
    "fieldname": "nilai_sebelum_ppn",
@@ -530,7 +518,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-05 11:00:00.000000",
+ "modified": "2026-10-05 11:30:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kontrak Project",

@@ -64,7 +64,7 @@ const kontrak_events = {
 	kontrak_events[fieldname] = (frm) => {
 		if (FIELD_RINGKASAN.includes(fieldname)) {
 			render_ringkasan_kontrak(frm);
-			render_tabel_nilai(frm);
+			update_tabel_nilai(frm);
 		}
 		if (FIELD_KELENGKAPAN.includes(fieldname)) muat_kelengkapan(frm);
 	};
@@ -170,15 +170,17 @@ function render_ringkasan_kontrak(frm) {
 	</div>`);
 }
 
-// Rincian nilai kontrak dalam satu baris tabel (nilai sebelum PPN & PPN dihitung dari nilai kontrak).
+// Rincian nilai kontrak dalam satu baris tabel. Nilai Kontrak, Status PPN, dan Tarif PPN diisi langsung di sel
+// tabel (field aslinya disembunyikan); nilai sebelum PPN & PPN dihitung dari nilai kontrak.
+const INPUT_NILAI = [
+	{ fieldname: "nilai_kontrak", fieldtype: "Currency", options: "IDR" },
+	{ fieldname: "status_ppn", fieldtype: "Select", options: "PPN\nTidak Kena PPN" },
+	{ fieldname: "tarif_ppn", fieldtype: "Percent" },
+];
+
 function render_tabel_nilai(frm) {
 	const field = frm.fields_dict.nilai_tabel;
 	if (!field) return;
-	const doc = frm.doc;
-	const nilai = flt(doc.nilai_kontrak);
-	const tarif = doc.status_ppn === "PPN" ? flt(doc.tarif_ppn) : 0;
-	const sebelum_ppn = nilai / (1 + tarif / 100);
-	const isi = (value) => (nilai ? rupiah(value) : `<span class="text-muted">—</span>`);
 
 	field.$wrapper.html(`<div class="kp-tabel-wrap">
 		<table class="kp-tabel">
@@ -186,20 +188,73 @@ function render_tabel_nilai(frm) {
 				<tr>
 					<th>${__("Uraian")}</th>
 					<th class="text-right">${__("Nilai Sebelum PPN")}</th>
-					<th class="text-right">${tarif ? __("PPN {0}%", [format_number(tarif, null, 0)]) : __("PPN")}</th>
+					<th>${__("Status PPN")}</th>
+					<th class="text-right">${__("Tarif PPN (%)")}</th>
+					<th class="text-right">${__("PPN")}</th>
 					<th class="text-right">${__("Nilai Kontrak")}<div class="kp-tabel-sub">${__("termasuk PPN")}</div></th>
 				</tr>
 			</thead>
 			<tbody>
 				<tr>
 					<td><b>${__("Kontrak awal")}</b></td>
-					<td class="text-right">${isi(sebelum_ppn)}</td>
-					<td class="text-right">${tarif ? isi(nilai - sebelum_ppn) : `<span class="text-muted">${__("Tidak kena PPN")}</span>`}</td>
-					<td class="text-right"><b>${isi(nilai)}</b></td>
+					<td class="text-right" data-hasil="sebelum_ppn"></td>
+					<td class="kp-tabel-input" data-input="status_ppn"></td>
+					<td class="kp-tabel-input" data-input="tarif_ppn"></td>
+					<td class="text-right" data-hasil="ppn"></td>
+					<td class="kp-tabel-input" data-input="nilai_kontrak"></td>
 				</tr>
 			</tbody>
 		</table>
 	</div>`);
+
+	const bisa_ubah = Boolean(frm.perm?.[0]?.write) && frm.doc.docstatus === 0;
+	frm.__input_nilai = {};
+	if (!bisa_ubah) {
+		// Tanpa hak ubah: cukup tampilkan nilainya.
+		INPUT_NILAI.forEach((df) => {
+			const $cell = field.$wrapper.find(`[data-input="${df.fieldname}"]`);
+			$cell.removeClass("kp-tabel-input").addClass(df.fieldtype === "Select" ? "" : "text-right");
+			$cell.html(frappe.format(frm.doc[df.fieldname], df, null, frm.doc));
+		});
+		update_tabel_nilai(frm);
+		return;
+	}
+	INPUT_NILAI.forEach((df) => {
+		const control = frappe.ui.form.make_control({
+			df: {
+				...df,
+				change() {
+					const value = control.get_value();
+					if (value !== frm.doc[df.fieldname]) frm.set_value(df.fieldname, value);
+				},
+			},
+			parent: field.$wrapper.find(`[data-input="${df.fieldname}"]`),
+			only_input: true,
+			render_input: true,
+		});
+		control.set_value(frm.doc[df.fieldname]);
+		frm.__input_nilai[df.fieldname] = control;
+	});
+	update_tabel_nilai(frm);
+}
+
+// Dipanggil tiap nilai berubah: hanya sel hasil yang diperbarui supaya input yang sedang diisi tidak hilang.
+function update_tabel_nilai(frm) {
+	const $w = frm.fields_dict.nilai_tabel?.$wrapper;
+	if (!$w) return;
+	const doc = frm.doc;
+	const nilai = flt(doc.nilai_kontrak);
+	const tarif = doc.status_ppn === "PPN" ? flt(doc.tarif_ppn) : 0;
+	const sebelum_ppn = nilai / (1 + tarif / 100);
+	const isi = (value) => (nilai ? rupiah(value) : `<span class="text-muted">—</span>`);
+
+	$w.find('[data-hasil="sebelum_ppn"]').html(isi(sebelum_ppn));
+	$w.find('[data-hasil="ppn"]').html(tarif ? isi(nilai - sebelum_ppn) : `<span class="text-muted">—</span>`);
+	// Tarif hanya berlaku bila kena PPN.
+	frm.__input_nilai.tarif_ppn?.$wrapper.toggle(doc.status_ppn === "PPN");
+	Object.entries(frm.__input_nilai || {}).forEach(([fieldname, control]) => {
+		if (control.get_value() !== doc[fieldname]) control.set_value(doc[fieldname]);
+	});
 }
 
 function render_kelengkapan_kontrak(frm) {

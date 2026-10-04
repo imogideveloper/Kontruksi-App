@@ -1114,6 +1114,27 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 	border-collapse: collapse;
 }
 
+.kp-tabel th,
+.kp-tabel td {
+	border: 1px solid var(--border-color);
+}
+
+.kp-tabel tr > :first-child {
+	border-left: none;
+}
+
+.kp-tabel tr > :last-child {
+	border-right: none;
+}
+
+.kp-tabel thead th {
+	border-top: none;
+}
+
+.kp-tabel tbody tr:last-child td {
+	border-bottom: none;
+}
+
 .kp-tabel th {
 	padding: 8px 12px;
 	background: var(--konstruksi-active-bg);
@@ -1125,8 +1146,27 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 
 .kp-tabel td {
 	padding: 10px 12px;
-	border-top: 1px solid var(--border-color);
 	white-space: nowrap;
+}
+
+/* Sel berisi input: input mengisi penuh sel. */
+.kp-tabel td.kp-tabel-input {
+	padding: 4px 6px;
+	min-width: 140px;
+}
+
+.kp-tabel td.kp-tabel-input .form-group,
+.kp-tabel td.kp-tabel-input .frappe-control {
+	margin: 0 !important;
+}
+
+.kp-tabel td[data-input="nilai_kontrak"] input {
+	font-weight: 600;
+	text-align: right;
+}
+
+.kp-tabel td[data-input="tarif_ppn"] input {
+	text-align: right;
 }
 
 .kp-tabel-sub {
