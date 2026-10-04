@@ -8,8 +8,6 @@
   "ringkasan_tab",
   "ringkasan_section",
   "ringkasan",
-  "kelengkapan_section",
-  "kelengkapan_html",
   "kontrak_tab",
   "identitas_section",
   "tender",
@@ -97,16 +95,6 @@
   },
   {
    "fieldname": "ringkasan",
-   "fieldtype": "HTML"
-  },
-  {
-   "fieldname": "kelengkapan_section",
-   "fieldtype": "Section Break",
-   "label": "Kelengkapan Kontrak",
-   "collapsible": 0
-  },
-  {
-   "fieldname": "kelengkapan_html",
    "fieldtype": "HTML"
   },
   {
@@ -591,7 +579,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-05 20:15:00.000000",
+ "modified": "2026-10-05 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kontrak Project",
