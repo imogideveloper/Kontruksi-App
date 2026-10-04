@@ -98,7 +98,8 @@ CUSTOM_FIELD_TIM = {
 	],
 	"Employee": [
 		{"fieldname": "skk_section", "fieldtype": "Section Break", "label": "SKK (Sertifikat Kompetensi Kerja)",
-			"insert_after": "designation", "collapsible": 0},
+			# Setelah Branch (field terakhir tab ini) supaya section hanya berisi tabel SKK, selebar form.
+			"insert_after": "branch", "collapsible": 0},
 		{"fieldname": "skk", "fieldtype": "Table", "label": "SKK", "options": "SKK Personel", "insert_after": "skk_section"},
 	],
 	"Designation": [
