@@ -18,8 +18,15 @@
 	events.customer = (frm) => setTimeout(() => filter_proyek(frm), 0);
 
 	frappe.ui.form.on("Timesheet", events);
-	// Expense Claim: pilihan Expense Approver tetap dari HRMS, ditambah nama & jabatan.
+	// Expense Claim: Expense Approver terisi otomatis dari Data Personel / Department saat Employee dipilih;
+	// pilihannya tetap dari HRMS, ditambah nama & jabatan.
 	frappe.ui.form.on("Expense Claim", {
+		employee(frm) {
+			if (!frm.doc.employee || frm.doc.docstatus !== 0) return;
+			frappe
+				.xcall("konstruksi.konstruksi.tim_proyek.approver_bawaan", { employee: frm.doc.employee })
+				.then((approver) => frm.set_value("expense_approver", approver || ""));
+		},
 		refresh(frm) {
 			frm.set_query("expense_approver", () => ({
 				query: "konstruksi.konstruksi.tim_proyek.cari_approver",

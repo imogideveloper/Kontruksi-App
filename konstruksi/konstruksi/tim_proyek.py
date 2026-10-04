@@ -210,6 +210,19 @@ def cari_approver(doctype, txt, searchfield, start, page_len, filters):
 	return hasil
 
 
+@frappe.whitelist()
+def approver_bawaan(employee, doctype="Expense Claim"):
+	"""Expense Approver bawaan personel: dari Data Personel, bila kosong dari approver pertama di Department-nya."""
+	from hrms.hr.doctype.department_approver.department_approver import get_approvers
+
+	try:
+		approvers = get_approvers("User", "", "name", 0, 1, {"employee": employee, "doctype": doctype})
+	except frappe.ValidationError:
+		frappe.clear_messages()
+		return None
+	return approvers[0][0] if approvers else None
+
+
 BELUM_PUNYA_AKUN = "Belum punya akun"
 
 
