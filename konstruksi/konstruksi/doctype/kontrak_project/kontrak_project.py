@@ -12,6 +12,20 @@ from konstruksi.api import beri_tahu_form
 
 from konstruksi.konstruksi.doctype.tender.tender import BATAS_HARGA_WAJAR
 
+# Field Kontrak Project yang selalu mengikuti Tender (read-only di kontrak, diubah dari Tender): field kontrak -> Tender.
+FIELD_DARI_TENDER = {
+	"nama_project": "nama_paket",
+	"pemberi_kerja": "pemberi_kerja",
+	"jenis_project": "jenis_project",
+	"lokasi": "lokasi",
+	"jenis_kontrak": "jenis_kontrak",
+	"sumber_dana": "sumber_dana",
+	"masa_pelaksanaan": "masa_pelaksanaan",
+	"nilai_kontrak": "nilai_penawaran",
+	"status_ppn": "status_ppn",
+	"tarif_ppn": "tarif_ppn",
+}
+
 # Jaminan pelaksanaan 5% dari nilai kontrak; bila nilai kontrak < 80% HPS, 5% dari HPS (Perpres 12/2021).
 PERSEN_JAMINAN_PELAKSANAAN = 5
 
@@ -40,11 +54,13 @@ class KontrakProject(Document):
 		self.kelengkapan_terisi = sum(1 for item in kelengkapan if item["ok"])
 
 	def ambil_dari_tender(self):
-		"""Nilai & PPN selalu mengikuti Tender; diubah dari form Tender, bukan di kontrak."""
-		tender = frappe.db.get_value("Tender", self.tender, ["nilai_penawaran", "status_ppn", "tarif_ppn"], as_dict=True)
-		self.nilai_kontrak = tender.nilai_penawaran
-		self.status_ppn = tender.status_ppn
-		self.tarif_ppn = tender.tarif_ppn
+		"""Data tender (FIELD_DARI_TENDER) selalu mengikuti Tender; diubah dari form Tender, bukan di kontrak."""
+		tender = frappe.db.get_value("Tender", self.tender, list(FIELD_DARI_TENDER.values()), as_dict=True)
+		for field_kontrak, field_tender in FIELD_DARI_TENDER.items():
+			self.set(field_kontrak, tender.get(field_tender))
+		# Project Manager diisi di kontrak; awalnya Penanggung Jawab tender.
+		if not self.project_manager:
+			self.project_manager = frappe.db.get_value("Tender", self.tender, "penanggung_jawab")
 
 	def hitung_semua(self):
 		self.hitung_nilai()
@@ -197,14 +213,6 @@ def sinkron_dari_tender(tender, method=None):
 	if not name:
 		return
 	doc = frappe.get_doc("Kontrak Project", name)
-	doc.update(
-		{
-			"nama_project": tender.nama_paket,
-			"pemberi_kerja": tender.pemberi_kerja,
-			"jenis_project": tender.jenis_project,
-			"lokasi": tender.lokasi,
-		}
-	)
 	doc.ambil_dari_tender()
 	doc.hitung_semua()
 	# db_update, bukan save: validasi kontrak (mis. tanggal SPMK) tidak boleh menggagalkan simpan Tender.

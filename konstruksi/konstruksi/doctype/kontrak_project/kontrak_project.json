@@ -180,14 +180,16 @@
    "label": "Jenis Kontrak",
    "options": "\nLumsum\nHarga Satuan\nGabungan Lumsum dan Harga Satuan\nTerima Jadi (Turnkey)\nKontrak Payung",
    "fetch_from": "tender.jenis_kontrak",
-   "fetch_if_empty": 1
+   "read_only": 1,
+   "description": "Mengikuti Tender; ubah di Tender."
   },
   {
    "fieldname": "sumber_dana",
    "fieldtype": "Data",
    "label": "Sumber Dana",
    "fetch_from": "tender.sumber_dana",
-   "fetch_if_empty": 1
+   "read_only": 1,
+   "description": "Mengikuti Tender; ubah di Tender."
   },
   {
    "fieldname": "pihak_section",
@@ -219,7 +221,8 @@
    "label": "Project Manager",
    "options": "User",
    "fetch_from": "tender.penanggung_jawab",
-   "fetch_if_empty": 1
+   "fetch_if_empty": 1,
+   "description": "Awalnya Penanggung Jawab di Tender; boleh diganti di sini."
   },
   {
    "fieldname": "nilai_waktu_tab",
@@ -308,7 +311,8 @@
    "fieldtype": "Int",
    "label": "Masa Pelaksanaan (hari)",
    "fetch_from": "tender.masa_pelaksanaan",
-   "fetch_if_empty": 1
+   "read_only": 1,
+   "description": "Mengikuti Tender; ubah di Tender."
   },
   {
    "fieldname": "tanggal_selesai",
@@ -517,7 +521,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-05 12:00:00.000000",
+ "modified": "2026-10-05 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kontrak Project",
