@@ -2426,6 +2426,7 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 
 .kpc-card-head {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	justify-content: space-between;
 	gap: 8px;
@@ -2435,6 +2436,7 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpc-card-title {
 	font-size: var(--text-lg);
 	font-weight: 600;
+	white-space: nowrap;
 	color: var(--heading-color, var(--text-color));
 }
 
