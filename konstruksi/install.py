@@ -208,9 +208,85 @@ def atur_project_erpnext():
 	make_property_setter("Project", None, "sort_order", "DESC", "Data", for_doctype=True, validate_fields_for_doctype=False)
 
 
+# Biaya personel proyek. Activity Type: (nama, tarif biaya per jam) untuk Timesheet; tarif contoh, sesuaikan.
+ACTIVITY_TYPE_KONSTRUKSI = (
+	("Manajemen Proyek", 150000),
+	("Pengawasan Lapangan", 100000),
+	("Engineering & Gambar Kerja", 90000),
+	("Quantity Surveying", 85000),
+	("K3 / HSE", 75000),
+	("Pengukuran", 70000),
+	("Pengendalian Mutu", 70000),
+	("Logistik", 50000),
+	("Administrasi Proyek", 45000),
+)
+# Activity Type bawaan saat mencatat jam dari tab Tim Proyek, per jabatan.
+ACTIVITY_PER_JABATAN = {
+	"Project Manager": "Manajemen Proyek",
+	"Site Manager": "Pengawasan Lapangan",
+	"Site Engineer": "Engineering & Gambar Kerja",
+	"Quantity Surveyor": "Quantity Surveying",
+	"HSE Officer": "K3 / HSE",
+	"Surveyor": "Pengukuran",
+	"Quality Control": "Pengendalian Mutu",
+	"Logistik": "Logistik",
+	"Project Admin": "Administrasi Proyek",
+}
+# Expense Claim Type: (nama, akun biaya tanpa singkatan company).
+EXPENSE_CLAIM_TYPE_KONSTRUKSI = (
+	("Transport Proyek", "Travel Expenses"),
+	("Akomodasi Proyek", "Travel Expenses"),
+	("Perjalanan Dinas", "Travel Expenses"),
+	("Konsumsi Proyek", "Expense Claims"),
+	("Komunikasi Proyek", "Expense Claims"),
+	("Lain-lain Proyek", "Miscellaneous Expenses"),
+)
+AKUN_HUTANG_KLAIM = "Hutang Klaim Biaya Karyawan"
+
+
+def buat_biaya_personel_default():
+	"""Activity Type (Timesheet), Expense Claim Type, dan akun hutang klaim biaya per company bila belum ada."""
+	for nama, tarif in ACTIVITY_TYPE_KONSTRUKSI:
+		if not frappe.db.exists("Activity Type", nama):
+			frappe.get_doc({"doctype": "Activity Type", "activity_type": nama, "costing_rate": tarif, "billing_rate": 0}).insert(
+				ignore_permissions=True
+			)
+
+	companies = frappe.get_all("Company", fields=["name", "abbr", "default_payable_account", "default_expense_claim_payable_account"])
+	for nama, akun in EXPENSE_CLAIM_TYPE_KONSTRUKSI:
+		if frappe.db.exists("Expense Claim Type", nama):
+			continue
+		accounts = [
+			{"company": c.name, "default_account": f"{akun} - {c.abbr}"}
+			for c in companies
+			if frappe.db.exists("Account", f"{akun} - {c.abbr}")
+		]
+		frappe.get_doc({"doctype": "Expense Claim Type", "expense_type": nama, "accounts": accounts}).insert(ignore_permissions=True)
+
+	# Expense Claim butuh akun hutang (Payable) default di Company; dibuat di samping akun Creditors.
+	for c in companies:
+		if c.default_expense_claim_payable_account or not c.default_payable_account:
+			continue
+		akun = f"{AKUN_HUTANG_KLAIM} - {c.abbr}"
+		if not frappe.db.exists("Account", akun):
+			induk = frappe.db.get_value("Account", c.default_payable_account, "parent_account")
+			frappe.get_doc(
+				{
+					"doctype": "Account",
+					"account_name": AKUN_HUTANG_KLAIM,
+					"parent_account": induk,
+					"company": c.name,
+					"account_type": "Payable",
+					"root_type": "Liability",
+				}
+			).insert(ignore_permissions=True)
+		frappe.db.set_value("Company", c.name, "default_expense_claim_payable_account", akun)
+
+
 def after_install():
 	buat_custom_field_project()
 	buat_tim_proyek_default()
+	buat_biaya_personel_default()
 	buat_jenis_project_default()
 	buat_template_dokumen_default()
 	buat_tarif_pph_final_default()

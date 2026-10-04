@@ -12,6 +12,7 @@ from frappe import _
 from frappe.utils import cint, flt, getdate, today
 
 from konstruksi.api import beri_tahu_form
+from konstruksi.install import ACTIVITY_PER_JABATAN
 
 
 def get_skk_berlaku_sampai(employee):
@@ -101,6 +102,8 @@ def get_tim(project):
 		# Biaya per personel ditampilkan sekali (di baris pertama orang itu) bila ia punya lebih dari satu jabatan.
 		p.biaya = biaya[p.employee] if p.employee not in sudah else None
 		sudah.add(p.employee)
+		# Activity Type bawaan saat mencatat jam dari tab Tim Proyek.
+		p.activity_type = ACTIVITY_PER_JABATAN.get(p.jabatan)
 	per_jabatan = {}
 	for p in penugasan:
 		per_jabatan.setdefault(p.jabatan, []).append(p)

@@ -147,6 +147,16 @@
 					<td class="text-right">${p.biaya && flt(p.biaya.biaya_timesheet) ? format_currency(p.biaya.biaya_timesheet, "IDR", 0) : '<span class="text-muted">—</span>'}</td>
 					<td class="text-right">${p.biaya && flt(p.biaya.klaim) ? format_currency(p.biaya.klaim, "IDR", 0) : '<span class="text-muted">—</span>'}</td>
 					<td class="text-right kpt-aksi">${
+						frappe.model.can_create("Timesheet")
+							? `<button class="btn btn-xs btn-default kpt-catat-jam" data-employee="${esc(p.employee)}" data-activity="${esc(p.activity_type || "")}"
+								title="${__("Catat jam kerja (Timesheet)")}">${frappe.utils.icon("clock", "xs")}</button>`
+							: ""
+					}${
+						frappe.model.can_create("Expense Claim")
+							? `<button class="btn btn-xs btn-default kpt-klaim" data-employee="${esc(p.employee)}" title="${__("Ajukan klaim biaya (Expense Claim)")}">
+								${frappe.utils.icon("wallet", "xs")}</button>`
+							: ""
+					}${
 						bisa
 							? `<a class="btn btn-xs btn-default" href="/app/penugasan-personel/${encodeURIComponent(p.name)}" title="${__("Ubah")}">${frappe.utils.icon("edit", "xs")}</a>
 								<button class="btn btn-xs btn-default kpt-hapus" data-name="${esc(p.name)}" data-nama="${esc(p.nama_personel)}" title="${__("Hapus")}">${frappe.utils.icon("delete", "xs")}</button>`
@@ -200,6 +210,20 @@
 	}
 
 	function pasang_aksi_tim(frm, $w) {
+		// Pintasan biaya personel: Timesheet / Expense Claim baru dengan personel & proyek sudah terisi.
+		$w.find(".kpt-catat-jam").on("click", function () {
+			const employee = $(this).attr("data-employee");
+			const activity_type = $(this).attr("data-activity");
+			frappe.new_doc("Timesheet", { employee, company: frm.doc.company }, (doc) => {
+				const row = frappe.model.add_child(doc, "Timesheet Detail", "time_logs");
+				row.project = frm.doc.name;
+				row.activity_type = activity_type || null;
+				row.from_time = frappe.datetime.now_datetime();
+			});
+		});
+		$w.find(".kpt-klaim").on("click", function () {
+			frappe.new_doc("Expense Claim", { employee: $(this).attr("data-employee"), project: frm.doc.name, company: frm.doc.company });
+		});
 		$w.find(".kpt-tugaskan").on("click", function () {
 			dialog_tugaskan(frm, $(this).attr("data-jabatan"));
 		});
