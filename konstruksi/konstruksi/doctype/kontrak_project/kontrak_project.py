@@ -258,18 +258,33 @@ def cari_tender_menang(doctype, txt, searchfield, start, page_len, filters):
 	)
 
 
+# Field hasil hitungan yang dikirim balik ke form sebelum disimpan (lihat get_kelengkapan_live).
+FIELD_HITUNGAN = (
+	"nilai_sebelum_ppn",
+	"nilai_ppn",
+	"nilai_uang_muka",
+	"tanggal_selesai",
+	"akhir_pemeliharaan",
+	"jaminan_pelaksanaan_nilai",
+	"jaminan_uang_muka_nilai",
+)
+
+
 @frappe.whitelist()
 def get_kelengkapan_live(doc):
-	"""Checklist kelengkapan untuk isian form yang belum disimpan (supaya checklist langsung ikut berubah)."""
+	"""Hitungan & checklist untuk isian form yang belum disimpan, supaya langsung terlihat tanpa simpan dulu."""
 	doc = frappe.get_doc(json.loads(doc) if isinstance(doc, str) else doc)
 	doc.check_permission("read")
 	if not doc.tender:
-		return []
+		return {"kelengkapan": [], "hitungan": {}}
 	doc.ambil_dari_tender()
 	doc.hitung_nilai()
 	doc.hitung_waktu()
 	doc.hitung_jaminan()
-	return doc.get_kelengkapan()
+	return {
+		"kelengkapan": doc.get_kelengkapan(),
+		"hitungan": {fieldname: doc.get(fieldname) for fieldname in FIELD_HITUNGAN},
+	}
 
 
 def hitung_ulang_dari_rab(rab, method=None):

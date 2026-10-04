@@ -4,8 +4,10 @@
 const BULAN_KONTRAK = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 const KONTRAK_METHOD = "konstruksi.konstruksi.doctype.kontrak_project.kontrak_project";
 
-// Field yang memengaruhi checklist kelengkapan: tiap perubahan menghitung ulang checklist sebelum disimpan.
+// Field yang memengaruhi hitungan (uang muka, tanggal, jaminan) atau checklist kelengkapan: tiap perubahan
+// menghitung ulang di server sebelum disimpan.
 const FIELD_KELENGKAPAN = [
+	"masa_pemeliharaan",
 	"nomor_kontrak",
 	"tanggal_kontrak",
 	"nomor_spmk",
@@ -115,7 +117,15 @@ const muat_kelengkapan = frappe.utils.debounce((frm) => {
 	frappe
 		.call({ method: `${KONTRAK_METHOD}.get_kelengkapan_live`, args: { doc: frm.doc }, type: "POST" })
 		.then((r) => {
-			frm.__kelengkapan = r.message || [];
+			const { kelengkapan = [], hitungan = {} } = r.message || {};
+			frm.__kelengkapan = kelengkapan;
+			// Field hitungan read-only: isi langsung lalu tampilkan ulang (tanpa memicu event field).
+			Object.entries(hitungan).forEach(([fieldname, value]) => {
+				if (frm.doc[fieldname] !== value) {
+					frm.doc[fieldname] = value;
+					frm.refresh_field(fieldname);
+				}
+			});
 			render_ringkasan_kontrak(frm);
 			render_kelengkapan_kontrak(frm);
 		});
