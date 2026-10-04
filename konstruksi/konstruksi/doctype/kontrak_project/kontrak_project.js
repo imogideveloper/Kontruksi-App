@@ -150,8 +150,8 @@ function render_ringkasan_kontrak(frm) {
 					akhir ? __("sampai {0}", [tanggal_kontrak(akhir)]) : pemeliharaan ? __("menunggu tanggal SPMK") : __("Belum diisi")
 				}</div>
 			</div>
-			<div class="dok-tile ${lengkap ? "dok-tile-ok" : ""}">
-				<div class="dok-tile-label">${__("Kelengkapan kontrak")}</div>
+			<div class="dok-tile kp-tile-kelengkapan ${lengkap ? "dok-tile-ok" : ""}" title="${__("Lihat checklist kelengkapan")}">
+				<div class="dok-tile-label">${__("Kelengkapan kontrak")} ${frappe.utils.icon("right", "xs")}</div>
 				<div class="dok-tile-nilai">${total ? `${terisi} <span>/ ${total}</span>` : "—"}</div>
 				<div class="dok-progress"><div style="width: ${persen}%"></div></div>
 				<div class="dok-tile-sub">${
@@ -164,6 +164,8 @@ function render_ringkasan_kontrak(frm) {
 			</div>
 		</div>
 	</div>`);
+	// Checklist ada di tab Kelengkapan Kontrak.
+	field.$wrapper.find(".kp-tile-kelengkapan").on("click", () => frm.scroll_to_field("kelengkapan_html", false));
 }
 
 function render_kelengkapan_kontrak(frm) {

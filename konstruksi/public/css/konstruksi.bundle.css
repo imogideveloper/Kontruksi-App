@@ -1102,3 +1102,11 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 .kp-cek-catatan {
 	margin-top: 6px;
 }
+
+.kp-tile-kelengkapan {
+	cursor: pointer;
+}
+
+.kp-tile-kelengkapan:hover {
+	background: var(--konstruksi-active-bg);
+}
