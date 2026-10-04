@@ -10,6 +10,7 @@ from frappe.utils import add_days, cint, flt, fmt_money, getdate, now
 
 from konstruksi.api import beri_tahu_form
 from konstruksi.konstruksi.doctype.addendum.addendum import addendum_disetujui
+from konstruksi.konstruksi.project_konstruksi import sinkron_project
 
 from konstruksi.konstruksi.doctype.tarif_pph_final.tarif_pph_final import cek_kualifikasi, get_tarif
 from konstruksi.konstruksi.doctype.tender.tender import BATAS_HARGA_WAJAR
@@ -59,6 +60,9 @@ class KontrakProject(Document):
 				frappe.throw(_("{0} harus antara 0 dan 100.").format(_(self.meta.get_label(fieldname))))
 
 		self.set_jumlah_kelengkapan(self.get_kelengkapan())
+
+	def on_update(self):
+		sinkron_project(self)
 
 	def onload(self):
 		self.set_onload("kelengkapan", self.get_kelengkapan())
@@ -300,6 +304,7 @@ def sinkron_dari_tender(tender, method=None):
 	doc.modified = now()
 	doc.db_update()
 	beri_tahu_form("Kontrak Project", name)
+	sinkron_project(doc)
 
 
 @frappe.whitelist()

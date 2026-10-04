@@ -45,6 +45,9 @@ app_include_js = ["list_group_by.bundle.js", "sinkron_form.bundle.js"]
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
+# Project bawaan ERPNext dipakai sebagai Project Master (project_konstruksi.py).
+doctype_js = {"Project": "public/js/project_konstruksi.js"}
+doctype_list_js = {"Project": "public/js/project_list_konstruksi.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
@@ -163,6 +166,9 @@ doc_events = {
 	"File": {
 		"on_trash": "konstruksi.konstruksi.doctype.dokumen_tender.dokumen_tender.hapus_baris_file",
 	},
+	"Project": {
+		"validate": "konstruksi.konstruksi.project_konstruksi.set_status_erpnext",
+	},
 	"RAB Penawaran": {
 		"on_update": "konstruksi.konstruksi.doctype.kontrak_project.kontrak_project.hitung_ulang_dari_rab",
 		"after_delete": "konstruksi.konstruksi.doctype.kontrak_project.kontrak_project.hitung_ulang_dari_rab",
@@ -177,6 +183,9 @@ scheduler_events = {
 	"cron": {
 		"0 7 * * *": [
 			"konstruksi.tasks.kirim_pengingat_batas_pemasukan",
+		],
+		"5 0 * * *": [
+			"konstruksi.konstruksi.project_konstruksi.perbarui_status_harian",
 		],
 	},
 }

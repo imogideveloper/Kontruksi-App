@@ -4,7 +4,7 @@
 // tidak sampai bila tab sedang tidak terbuka atau koneksi realtime terputus.
 frappe.provide("konstruksi");
 
-const DOCTYPE_IKUT_TENDER = ["Kontrak Project", "Hasil Tender", "Dokumen Tender"];
+const DOCTYPE_IKUT_TENDER = ["Kontrak Project", "Hasil Tender", "Dokumen Tender", "Project"];
 
 konstruksi.cek_versi_server = function (frm) {
 	if (!frm?.doc || frm.is_new() || frm.is_dirty() || !DOCTYPE_IKUT_TENDER.includes(frm.doctype)) return;

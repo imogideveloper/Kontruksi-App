@@ -1655,3 +1655,96 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 	color: var(--konstruksi-active-fg);
 	font-weight: 600;
 }
+
+/* Project Master (Project ERPNext): kartu ringkasan di atas list, kolom dua baris, dashboard di form.
+   Kartu & ikon memakai kelas kpr-* dari tab Ringkasan Kontrak Project. */
+.kpm-ringkasan {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 16px;
+	margin-bottom: 16px;
+}
+
+@media (max-width: 991px) {
+	.kpm-ringkasan {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.kpm-kartu {
+	padding: 14px 18px;
+	border: 1px solid var(--border-color);
+	border-radius: 12px;
+	background: var(--fg-color, #fff);
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+}
+
+.kpm-kartu-aktif {
+	border-top: 3px solid var(--konstruksi-active-accent);
+}
+
+.kpm-kartu-label {
+	font-size: var(--text-sm);
+	font-weight: 500;
+	color: var(--text-muted);
+}
+
+.kpm-kartu-nilai {
+	margin-top: 4px;
+	font-size: 22px;
+	font-weight: 700;
+	color: var(--text-color);
+}
+
+.frappe-list .kpm-dua-baris {
+	min-width: 0;
+	line-height: 1.35;
+}
+
+.frappe-list .kpm-utama {
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.frappe-list .kpm-sub {
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+}
+
+.kpm-dashboard {
+	margin-bottom: 20px;
+}
+
+.kpm-kartu-5 {
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 1199px) {
+	.kpm-kartu-5 {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 767px) {
+	.kpm-kartu-5 {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.kpm-milestone {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 20px;
+}
+
+.kpm-milestone-label {
+	font-size: var(--text-sm);
+	font-weight: 500;
+	color: var(--text-muted);
+}
+
+.kpm-milestone-isi {
+	margin-left: auto;
+	color: var(--text-color);
+}

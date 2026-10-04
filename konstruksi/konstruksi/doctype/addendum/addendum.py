@@ -97,6 +97,10 @@ def perbarui_kontrak(kontrak_project):
 	kontrak.db_update()
 	beri_tahu_form("Kontrak Project", kontrak_project)
 
+	from konstruksi.konstruksi.project_konstruksi import sinkron_project
+
+	sinkron_project(kontrak)
+
 
 @frappe.whitelist()
 def get_kondisi_kontrak(kontrak_project, addendum=None):

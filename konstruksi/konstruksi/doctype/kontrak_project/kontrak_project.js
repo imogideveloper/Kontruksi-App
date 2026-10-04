@@ -79,6 +79,16 @@ const kontrak_events = {
 			frm.add_custom_button(__("Tender"), () => frappe.set_route("Form", "Tender", frm.doc.tender), __("Buka"));
 			frm.add_custom_button(__("Hasil Tender"), () => frappe.set_route("Form", "Hasil Tender", frm.doc.tender), __("Buka"));
 			frm.add_custom_button(__("Buat Addendum"), () => frappe.new_doc("Addendum", { kontrak_project: frm.doc.name }));
+			// Project Master (Project ERPNext) dengan ID sama; dibuat bila belum ada.
+			frm.add_custom_button(__("Project Master"), () =>
+				frappe
+					.call({
+						method: "konstruksi.konstruksi.project_konstruksi.get_or_create_project",
+						args: { kontrak_project: frm.doc.name },
+						freeze: true,
+					})
+					.then((r) => frappe.set_route("Form", "Project", r.message))
+			);
 		}
 		set_pilihan_kualifikasi(frm);
 		const [label, warna] = kontrak_status(frm.doc);

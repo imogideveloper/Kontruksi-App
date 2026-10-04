@@ -620,9 +620,14 @@
    "group": "Perubahan",
    "link_doctype": "Addendum",
    "link_fieldname": "kontrak_project"
+  },
+  {
+   "group": "Pelaksanaan",
+   "link_doctype": "Project",
+   "link_fieldname": "kontrak_project"
   }
  ],
- "modified": "2026-10-06 10:00:00.000000",
+ "modified": "2026-10-06 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kontrak Project",
