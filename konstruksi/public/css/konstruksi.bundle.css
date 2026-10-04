@@ -2210,3 +2210,38 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	background: var(--konstruksi-active-bg);
 	color: var(--konstruksi-active-fg);
 }
+
+/* Tim Proyek: satu tombol Aksi per baris personel, blok warna (sama dengan menu sidebar aktif). Tabel tidak
+   memotong menu dropdown (overflow visible). */
+.kpt-tabel-card .kp-tabel-wrap {
+	overflow: visible;
+}
+
+.kpt-aksi-btn,
+.kpt-aksi-btn:hover,
+.kpt-aksi-btn:focus {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 12px;
+	border: none;
+	border-radius: var(--konstruksi-block-radius);
+	background: var(--konstruksi-active-bg);
+	color: var(--konstruksi-active-fg);
+	font-weight: 600;
+}
+
+.kpt-aksi-btn:hover {
+	filter: brightness(0.96);
+}
+
+.kpt-aksi-btn .icon {
+	stroke: var(--konstruksi-active-fg);
+}
+
+.kpt-aksi-dropdown .dropdown-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	cursor: pointer;
+}

@@ -146,22 +146,7 @@
 					<td class="text-right">${p.biaya && flt(p.biaya.jam) ? format_number(flt(p.biaya.jam), null, 1) : '<span class="text-muted">—</span>'}</td>
 					<td class="text-right">${p.biaya && flt(p.biaya.biaya_timesheet) ? format_currency(p.biaya.biaya_timesheet, "IDR", 0) : '<span class="text-muted">—</span>'}</td>
 					<td class="text-right">${p.biaya && flt(p.biaya.klaim) ? format_currency(p.biaya.klaim, "IDR", 0) : '<span class="text-muted">—</span>'}</td>
-					<td class="text-right kpt-aksi">${
-						frappe.model.can_create("Timesheet")
-							? `<button class="btn btn-xs btn-default kpt-catat-jam" data-employee="${esc(p.employee)}" data-activity="${esc(p.activity_type || "")}"
-								title="${__("Catat jam kerja (Timesheet)")}">${frappe.utils.icon("clock", "xs")}</button>`
-							: ""
-					}${
-						frappe.model.can_create("Expense Claim")
-							? `<button class="btn btn-xs btn-default kpt-klaim" data-employee="${esc(p.employee)}" title="${__("Ajukan klaim biaya (Expense Claim)")}">
-								${frappe.utils.icon("wallet", "xs")}</button>`
-							: ""
-					}${
-						bisa
-							? `<a class="btn btn-xs btn-default" href="/app/penugasan-personel/${encodeURIComponent(p.name)}" title="${__("Ubah")}">${frappe.utils.icon("edit", "xs")}</a>
-								<button class="btn btn-xs btn-default kpt-hapus" data-name="${esc(p.name)}" data-nama="${esc(p.nama_personel)}" title="${__("Hapus")}">${frappe.utils.icon("delete", "xs")}</button>`
-							: ""
-					}</td>
+					<td class="text-right kpt-aksi">${html_aksi(p, bisa)}</td>
 				</tr>`
 			)
 			.join("");
@@ -206,6 +191,27 @@
 						: `<div class="kpr-muted">${__("Belum ada personel. Klik Tugaskan Personel atau tombol Tugaskan di kebutuhan.")}</div>`
 				}
 			</div>
+		</div>`;
+	}
+
+	// Satu tombol "Aksi" per baris personel; isinya sesuai hak user.
+	function html_aksi(p, bisa) {
+		const item = (kelas, ikon, label, attr = "") =>
+			`<a class="dropdown-item ${kelas}" ${attr}>${frappe.utils.icon(ikon, "sm")} ${label}</a>`;
+		const menu = [
+			frappe.model.can_create("Timesheet") &&
+				item("kpt-catat-jam", "clock", __("Catat Jam Kerja"), `data-employee="${esc(p.employee)}" data-activity="${esc(p.activity_type || "")}"`),
+			frappe.model.can_create("Expense Claim") &&
+				item("kpt-klaim", "wallet", __("Ajukan Klaim Biaya"), `data-employee="${esc(p.employee)}"`),
+			bisa && item("", "edit", __("Ubah Penugasan"), `href="/app/penugasan-personel/${encodeURIComponent(p.name)}"`),
+			bisa && '<div class="dropdown-divider"></div>',
+			bisa &&
+				item("kpt-hapus text-danger", "delete", __("Hapus dari Tim"), `data-name="${esc(p.name)}" data-nama="${esc(p.nama_personel)}"`),
+		].filter(Boolean);
+		if (!menu.length) return "";
+		return `<div class="dropdown kpt-aksi-dropdown">
+			<button class="btn btn-xs kpt-aksi-btn" data-toggle="dropdown">${__("Aksi")} ${frappe.utils.icon("down", "xs")}</button>
+			<div class="dropdown-menu dropdown-menu-right">${menu.join("")}</div>
 		</div>`;
 	}
 
