@@ -105,18 +105,6 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "clock",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Timesheet",
-   "link_to": "Timesheet",
-   "link_type": "DocType",
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
    "icon": "receipt",
    "indent": 0,
    "keep_closed": 0,
@@ -129,6 +117,27 @@
   {
    "child": 0,
    "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Konfigurasi",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "clock",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Timesheet",
+   "link_to": "Timesheet",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
    "icon": "wallet",
    "indent": 0,
    "keep_closed": 0,
@@ -137,15 +146,6 @@
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Konfigurasi",
-   "show_arrow": 0,
-   "type": "Section Break"
   },
   {
    "child": 1,
@@ -256,7 +256,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-08 10:00:00.000000",
+ "modified": "2026-10-08 11:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Konstruksi",
