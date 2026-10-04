@@ -189,16 +189,19 @@ function render_ringkasan_kontrak(frm) {
 		return;
 	}
 
+	// Ringkas: kepala, 3 kartu, timeline, lalu hanya item kelengkapan yang belum beres. Data detail ada di tab lain.
 	field.$wrapper.html(`<div class="kpr">
 		${html_kepala_kontrak(frm)}
 		${html_kartu_kontrak(frm)}
 		${html_timeline_kontrak(frm)}
-		<div class="kpr-grid">
-			${html_panel_kelengkapan(frm)}
-			${html_panel_data(frm)}
-		</div>
+		${html_panel_kelengkapan(frm)}
 	</div>`);
 	pasang_aksi_ringkasan(frm, field.$wrapper);
+	field.$wrapper.find(".kpr-lihat-semua").on("click", (e) => {
+		e.preventDefault();
+		frm.__kelengkapan_semua = !frm.__kelengkapan_semua;
+		render_ringkasan_kontrak(frm);
+	});
 }
 
 function pasang_aksi_ringkasan(frm, $w) {
@@ -217,11 +220,6 @@ function jadwal_kontrak(doc) {
 	const selesai = mulai && masa ? frappe.datetime.add_days(mulai, masa - 1) : null;
 	const akhir = selesai && pemeliharaan ? frappe.datetime.add_days(selesai, pemeliharaan) : null;
 	return { masa, pemeliharaan, mulai, selesai, akhir };
-}
-
-function nama_user(user) {
-	// frappe.user.full_name() menampilkan "You" untuk user yang login; di ringkasan perlu nama aslinya.
-	return frappe.user_info(user)?.fullname || user;
 }
 
 function html_kepala_kontrak(frm) {
@@ -273,7 +271,7 @@ function html_kartu_kontrak(frm) {
 		<div class="kpr-kartu-sub">${sub_html}</div>
 	</div>`;
 
-	return `<div class="kpr-kartu-baris">
+	return `<div class="kpr-kartu-baris kpr-kartu-3">
 		${kartu(
 			"wallet",
 			"biru",
@@ -287,13 +285,6 @@ function html_kartu_kontrak(frm) {
 			__("Waktu Pelaksanaan"),
 			masa ? `${masa} <span>${__("hari")}</span>` : "—",
 			selesai ? `${tanggal_kontrak(mulai)} – ${tanggal_kontrak(selesai)}` : __("Menunggu tanggal SPMK")
-		)}
-		${kartu(
-			"hand-coins",
-			"oranye",
-			__("Uang Muka"),
-			uang_muka ? rupiah((nilai * uang_muka) / 100) : "—",
-			uang_muka ? __("{0}% dari nilai kontrak", [format_number(uang_muka, null, 0)]) : __("Tanpa uang muka")
 		)}
 		${kartu(
 			"clipboard-check",
@@ -381,7 +372,9 @@ function html_panel_kelengkapan(frm) {
 	const terisi = items.filter((item) => item.ok).length;
 	const lengkap = items.length && terisi === items.length;
 
-	const rows = items
+	// Default hanya item yang belum lengkap; "Lihat semua" menampilkan seluruh checklist.
+	const tampil = frm.__kelengkapan_semua ? items : items.filter((item) => !item.ok);
+	const rows = tampil
 		.map((item) => {
 			// Item belum lengkap: tombol jelas. Item lengkap: ikon pensil kecil saja (muncul saat diarahkan kursor).
 			let aksi;
@@ -415,77 +408,25 @@ function html_panel_kelengkapan(frm) {
 		? `<div class="kpr-catatan">${frappe.utils.icon("info", "xs")} ${__("Checklist sudah mengikuti isian terbaru. Jangan lupa simpan.")}</div>`
 		: "";
 
+	let isi = rows;
+	if (!items.length) {
+		isi = `<div class="kpr-muted">${__("Memuat checklist…")}</div>`;
+	} else if (!rows) {
+		isi = `<div class="kpr-semua-lengkap">${frappe.utils.icon("check", "sm")} ${__("Semua kelengkapan kontrak sudah lengkap.")}</div>`;
+	}
+	const lihat = items.length
+		? `<a href="#" class="kpr-lihat-semua">${
+				frm.__kelengkapan_semua ? __("Hanya yang belum lengkap") : __("Lihat semua ({0})", [items.length])
+		  }</a>`
+		: "";
+
 	return `<div class="kpr-card">
-		<div class="kpr-judul">${__("Kelengkapan Kontrak")}
+		<div class="kpr-judul">${lengkap ? __("Kelengkapan Kontrak") : __("Perlu Dilengkapi")}
 			${items.length ? `<span class="kpr-badge ${lengkap ? "kpr-badge-ok" : "kpr-badge-kurang"}">${terisi} / ${items.length}</span>` : ""}
+			${lihat}
 		</div>
-		<div class="kpr-cek-daftar">${rows || `<div class="kpr-muted">${__("Memuat checklist…")}</div>`}</div>
+		<div class="kpr-cek-daftar">${isi}</div>
 		${catatan}
-	</div>`;
-}
-
-function html_panel_data(frm) {
-	const doc = frm.doc;
-	const esc = frappe.utils.escape_html;
-	const { pemeliharaan } = jadwal_kontrak(doc);
-	const kosong = (fieldname) => `<a href="#" class="kp-ke-field kpr-tautan-kurang" data-field="${fieldname}">${__("Isi")} →</a>`;
-	const baris = (label, nilai, fieldname) =>
-		`<div class="kpr-data-baris"><div class="kpr-data-label">${label}</div>
-			<div class="kpr-data-nilai">${nilai || (fieldname ? kosong(fieldname) : `<span class="kpr-muted">—</span>`)}</div></div>`;
-	const grup = (ikon, judul, isi) => `<div class="kpr-data-grup">
-		<div class="kpr-data-grup-judul">${frappe.utils.icon(ikon, "xs")} ${judul}</div>${isi}</div>`;
-	const persen = (value) => `${format_number(flt(value), null, 2).replace(/[.,]?0+$/, "")}%`;
-
-	const uang_muka = flt(doc.uang_muka_persen);
-	const jaminan = (wajib, diserahkan, penerbit, berlaku, teks_tidak_wajib) => {
-		if (!wajib) return `<span class="kpr-muted">${teks_tidak_wajib}</span>`;
-		if (!diserahkan) return `<span class="kpr-teks-kurang">${__("Belum diserahkan")}</span>`;
-		return `${esc(penerbit || __("Diserahkan"))}${berlaku ? `<div class="kpr-muted">${__("s.d.")} ${tanggal_kontrak(berlaku)}</div>` : ""}`;
-	};
-
-	return `<div class="kpr-card">
-		<div class="kpr-judul">${__("Data Kontrak")}</div>
-		<div class="kpr-data">
-			${grup(
-				"file-text",
-				__("Kontrak"),
-				baris(__("Nomor"), esc(doc.nomor_kontrak || ""), "nomor_kontrak") +
-					baris(__("Tanggal"), doc.tanggal_kontrak ? tanggal_kontrak(doc.tanggal_kontrak) : "", "tanggal_kontrak") +
-					baris(__("Jenis"), esc(doc.jenis_kontrak || "")) +
-					baris(__("Sumber Dana"), esc(doc.sumber_dana || "")) +
-					baris(__("Pemeliharaan"), pemeliharaan ? __("{0} hari", [pemeliharaan]) : "", "masa_pemeliharaan")
-			)}
-			${grup(
-				"users",
-				__("Para Pihak"),
-				baris(__("Wakil Pemberi Kerja"), esc(doc.wakil_pemberi_kerja || ""), "wakil_pemberi_kerja") +
-					baris(__("Konsultan Pengawas"), esc(doc.konsultan_pengawas || ""), "konsultan_pengawas") +
-					baris(__("Project Manager"), doc.project_manager ? esc(nama_user(doc.project_manager)) : "", "project_manager")
-			)}
-			${grup(
-				"credit-card",
-				__("Pembayaran"),
-				baris(__("Cara Bayar"), esc(doc.cara_pembayaran || ""), "cara_pembayaran") +
-					baris(
-						__("Uang Muka"),
-						uang_muka ? `${persen(uang_muka)} · ${rupiah((flt(doc.nilai_kontrak) * uang_muka) / 100)}` : `<span class="kpr-muted">${__("Tanpa uang muka")}</span>`
-					) +
-					baris(__("Retensi"), flt(doc.retensi_persen) ? persen(doc.retensi_persen) : "", "retensi_persen") +
-					baris(__("PPh Final"), doc.kualifikasi_usaha ? `${persen(doc.pph_final_persen)} · ${esc(doc.kualifikasi_usaha)}` : "", "kualifikasi_usaha")
-			)}
-			${grup(
-				"shield",
-				__("Jaminan"),
-				baris(
-					__("Pelaksanaan"),
-					jaminan(doc.jaminan_pelaksanaan_wajib, doc.jaminan_pelaksanaan_diserahkan, doc.jaminan_pelaksanaan_penerbit, doc.jaminan_pelaksanaan_berlaku, __("Tidak disyaratkan"))
-				) +
-					baris(
-						__("Uang Muka"),
-						jaminan(uang_muka, doc.jaminan_uang_muka_diserahkan, doc.jaminan_uang_muka_penerbit, doc.jaminan_uang_muka_berlaku, __("Tidak diperlukan"))
-					)
-			)}
-		</div>
 	</div>`;
 }
 
