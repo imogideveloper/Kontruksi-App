@@ -306,6 +306,8 @@ def buat_biaya_personel_default():
 	):
 		make_property_setter("Timesheet Detail", fieldname, prop, nilai, tipe, validate_fields_for_doctype=False)
 
+	atur_expense_claim()
+
 	# Expense Claim butuh akun hutang (Payable) default di Company; dibuat di samping akun Creditors.
 	for c in companies:
 		if c.default_expense_claim_payable_account or not c.default_payable_account:
@@ -324,6 +326,22 @@ def buat_biaya_personel_default():
 				}
 			).insert(ignore_permissions=True)
 		frappe.db.set_value("Company", c.name, "default_expense_claim_payable_account", akun)
+
+
+def atur_expense_claim():
+	"""Klaim Biaya: Project dipindah ke tab utama (di bawah Department) supaya tidak terlewat — bawaannya di tab
+	Accounting; filter Project & Approval Status di atas list."""
+	import json
+
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	frappe.clear_cache(doctype="Expense Claim")
+	urutan = [df.fieldname for df in frappe.get_meta("Expense Claim").fields if df.fieldname != "project"]
+	if "department" in urutan:
+		urutan.insert(urutan.index("department") + 1, "project")
+		make_property_setter("Expense Claim", None, "field_order", json.dumps(urutan), "Data", for_doctype=True)
+	for fieldname in ("project", "approval_status"):
+		make_property_setter("Expense Claim", fieldname, "in_standard_filter", 1, "Check", validate_fields_for_doctype=False)
 
 
 def after_install():
