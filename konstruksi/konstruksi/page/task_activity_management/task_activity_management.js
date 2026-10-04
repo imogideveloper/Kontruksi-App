@@ -103,7 +103,13 @@ class HalamanAktivitas {
 	atur_toolbar(mode) {
 		this.page.clear_primary_action();
 		this.page.clear_inner_toolbar();
+		this.page.clear_menu();
 		if (mode !== "proyek") return;
+		// Menu "..." di top bar: Template Excel & Upload Excel aktivitas.
+		this.page.add_menu_item(__("Template Excel"), () =>
+			window.open(`/api/method/${KPA_API}download_template?project=${encodeURIComponent(this.project)}`)
+		);
+		if (this.data?.bisa_buat) this.page.add_menu_item(__("Upload Excel"), () => this.dialog_upload());
 		this.page.add_inner_button(__("Semua Proyek"), () => frappe.set_route("task-activity-management"));
 		this.page.add_inner_button(__("Work Breakdown Structure"), () => frappe.set_route("work-breakdown-structure", this.project));
 		this.page.add_inner_button(__("Project Calendar"), () => frappe.set_route("project-calendar", this.project));
@@ -226,10 +232,6 @@ class HalamanAktivitas {
 						["", __("Tidak dikelompokkan")], ["wbs", __("WBS (induk)")], ["status", __("Status")], ["pj", __("Penanggung Jawab")], ["prioritas", __("Prioritas")],
 					].map(([v, l]) => `<option value="${v}" ${this.kelompok === v ? "selected" : ""}>${l}</option>`).join("")}</select>
 				</label>
-				<div class="kpa-toolbar-kanan">
-					<button class="btn btn-default btn-sm" data-kpa="template" title="${__("Excel berisi aktivitas proyek ini (atau item WBS bila belum ada aktivitas)")}">${frappe.utils.icon("download", "xs")} ${__("Template Excel")}</button>
-					${d.bisa_buat ? `<button class="btn btn-default btn-sm" data-kpa="upload">${frappe.utils.icon("upload", "xs")} ${__("Upload Excel")}</button>` : ""}
-				</div>
 			</div>
 			<div class="kpw-tabel-wrap"><table class="kpw-tabel kpa-tabel">
 				<colgroup><col style="width:60px"><col><col style="width:150px"><col style="width:190px"><col style="width:70px">
@@ -461,10 +463,6 @@ class HalamanAktivitas {
 					__("Tolak Laporan"),
 					__("Tolak")
 				);
-			case "template":
-				return window.open(`/api/method/${KPA_API}download_template?project=${encodeURIComponent(this.project)}`);
-			case "upload":
-				return this.dialog_upload();
 			case "hapus-laporan":
 				return frappe.confirm(__("Hapus laporan {0}?", [kpa_esc(name)]), () => this.call("hapus_laporan", { name }, __("Laporan dihapus")));
 		}
