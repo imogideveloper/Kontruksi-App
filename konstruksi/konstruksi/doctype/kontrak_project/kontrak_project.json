@@ -39,10 +39,8 @@
   "waktu_section",
   "nomor_spmk",
   "tanggal_spmk",
-  "waktu_column",
   "masa_pelaksanaan",
   "tanggal_selesai",
-  "waktu_column_2",
   "masa_pemeliharaan",
   "akhir_pemeliharaan",
   "pembayaran_tab",
@@ -308,10 +306,6 @@
    "description": "Hari pertama pelaksanaan."
   },
   {
-   "fieldname": "waktu_column",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "masa_pelaksanaan",
    "fieldtype": "Int",
    "label": "Masa Pelaksanaan (hari)",
@@ -326,10 +320,6 @@
    "read_only": 1,
    "in_list_view": 1,
    "description": "Dihitung dari Tanggal SPMK + masa pelaksanaan."
-  },
-  {
-   "fieldname": "waktu_column_2",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "masa_pemeliharaan",
@@ -564,7 +554,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-05 18:30:00.000000",
+ "modified": "2026-10-05 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kontrak Project",
