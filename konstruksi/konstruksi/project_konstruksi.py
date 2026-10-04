@@ -49,6 +49,10 @@ def data_dari_kontrak(kontrak):
 		"nilai_sebelum_ppn": flt(nilai / (1 + tarif / 100), 2),
 		"project_manager": kontrak.project_manager,
 		"akhir_pemeliharaan": kontrak.akhir_pemeliharaan,
+		# Estimated Cost = Total Biaya (RAP) dari RAB Penawaran terbaru tender ini.
+		"estimated_costing": flt(
+			frappe.db.get_value("RAB Penawaran", {"tender": kontrak.tender}, "total_biaya", order_by="creation desc")
+		),
 	}
 
 

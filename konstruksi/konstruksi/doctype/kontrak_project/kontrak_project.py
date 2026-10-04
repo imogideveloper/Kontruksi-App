@@ -365,3 +365,5 @@ def hitung_ulang_dari_rab(rab, method=None):
 	doc.set_jumlah_kelengkapan(doc.get_kelengkapan())
 	doc.db_set({"kelengkapan_terisi": doc.kelengkapan_terisi, "kelengkapan_total": doc.kelengkapan_total})
 	beri_tahu_form("Kontrak Project", name)
+	# Estimated Cost di Project ikut Total Biaya RAB.
+	sinkron_project(doc)

@@ -21,6 +21,11 @@
   "total_ppn",
   "total_rab",
   "persen_hps",
+  "biaya_section",
+  "total_biaya",
+  "biaya_column",
+  "estimasi_margin",
+  "persen_margin",
   "rab_tree_section",
   "rab_tree",
   "items_section",
@@ -138,6 +143,46 @@
    "read_only": 1
   },
   {
+   "fieldname": "biaya_section",
+   "fieldtype": "Section Break",
+   "label": "Estimasi Biaya & Margin (Internal)",
+   "permlevel": 1,
+   "description": "Dari Harga Satuan Pokok tiap item. Tidak ikut tercetak dan hanya terlihat oleh Projects Manager."
+  },
+  {
+   "fieldname": "total_biaya",
+   "fieldtype": "Currency",
+   "label": "Total Biaya / RAP (Rp)",
+   "options": "IDR",
+   "read_only": 1,
+   "permlevel": 1,
+   "print_hide": 1,
+   "description": "Menjadi Estimated Cost di Project Master."
+  },
+  {
+   "fieldname": "biaya_column",
+   "fieldtype": "Column Break",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "estimasi_margin",
+   "fieldtype": "Currency",
+   "label": "Estimasi Margin (Rp)",
+   "options": "IDR",
+   "read_only": 1,
+   "permlevel": 1,
+   "print_hide": 1,
+   "description": "Total sebelum PPN − total biaya."
+  },
+  {
+   "fieldname": "persen_margin",
+   "fieldtype": "Percent",
+   "label": "Estimasi Margin (%)",
+   "read_only": 1,
+   "permlevel": 1,
+   "print_hide": 1
+  },
+  {
    "fieldname": "rab_tree_section",
    "fieldtype": "Section Break"
   },
@@ -161,7 +206,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-03 12:00:00.000000",
+ "modified": "2026-10-06 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "RAB Penawaran",
@@ -194,6 +239,18 @@
    "read": 1,
    "report": 1,
    "role": "Projects User"
+  },
+  {
+   "role": "System Manager",
+   "permlevel": 1,
+   "read": 1,
+   "write": 1
+  },
+  {
+   "role": "Projects Manager",
+   "permlevel": 1,
+   "read": 1,
+   "write": 1
   }
  ],
  "search_fields": "tender,nama_project",

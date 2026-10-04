@@ -2,6 +2,8 @@
 // For license information, please see license.txt
 
 const RAB_METHOD = "konstruksi.konstruksi.doctype.rab_penawaran.rab_penawaran";
+// Sama dengan FIELD_HARGA_ITEM di rab_penawaran.py: dikunci setelah penawaran diajukan.
+const FIELD_HARGA_ITEM = ["kode_wbs", "uraian_pekerjaan", "satuan", "volume", "harga_satuan"];
 
 frappe.ui.form.on("RAB Penawaran", {
 	onload(frm) {
@@ -15,10 +17,24 @@ frappe.ui.form.on("RAB Penawaran", {
 	},
 
 	refresh(frm) {
+		const terkunci = harga_terkunci(frm);
 		frm.add_custom_button(__("Download Template"), () => {
 			window.open(`/api/method/${RAB_METHOD}.download_template`);
 		}, __("Excel"));
-		frm.add_custom_button(__("Upload Excel"), () => upload_excel(frm), __("Excel"));
+		if (!terkunci) frm.add_custom_button(__("Upload Excel"), () => upload_excel(frm), __("Excel"));
+
+		// Penawaran sudah diajukan: item & harga dikunci, Harga Satuan Pokok (biaya) tetap bisa diisi.
+		const grid = frm.fields_dict.items.grid;
+		FIELD_HARGA_ITEM.forEach((f) => grid.update_docfield_property(f, "read_only", terkunci ? 1 : 0));
+		grid.cannot_add_rows = terkunci;
+		grid.cannot_delete_rows = terkunci;
+		grid.refresh();
+		if (terkunci) {
+			frm.dashboard.set_headline(
+				__("Penawaran sudah diajukan di Dokumen Tender: item & harga RAB dikunci. Harga Satuan Pokok (biaya) tetap bisa diubah."),
+				"blue"
+			);
+		}
 		render_rab_tree(frm);
 	},
 
@@ -31,6 +47,7 @@ frappe.ui.form.on("RAB Penawaran", {
 frappe.ui.form.on("RAB Penawaran Item", {
 	volume: hitung_total_dari_item,
 	harga_satuan: hitung_total_dari_item,
+	harga_satuan_pokok: hitung_total_dari_item,
 	items_remove: hitung_total_dari_item,
 	items_add: render_rab_tree,
 	kode_wbs: render_rab_tree,
@@ -38,6 +55,10 @@ frappe.ui.form.on("RAB Penawaran Item", {
 	spesifikasi: render_rab_tree,
 	satuan: render_rab_tree,
 });
+
+function harga_terkunci(frm) {
+	return Boolean(frm.doc.__onload?.harga_terkunci);
+}
 
 function hitung_total_dari_item(frm) {
 	hitung_total(frm);
@@ -52,6 +73,9 @@ function hitung_total(frm) {
 		item.jumlah_harga = flt(flt(item.volume) * flt(item.harga_satuan), 2);
 		item.ppn = flt((item.jumlah_harga * tarif) / 100, 2);
 		item.jumlah_harga_ppn = item.jumlah_harga + item.ppn;
+		item.jumlah_biaya = flt(flt(item.volume) * flt(item.harga_satuan_pokok), 2);
+		item.margin_persen =
+			item.jumlah_harga && item.jumlah_biaya ? flt(((item.jumlah_harga - item.jumlah_biaya) / item.jumlah_harga) * 100, 2) : 0;
 	});
 
 	const total = items.reduce((sum, item) => sum + item.jumlah_harga, 0);
@@ -65,7 +89,21 @@ function hitung_total(frm) {
 	frm.doc.total_rab = total + total_ppn;
 	frm.doc.persen_hps = flt(frm.doc.hps) ? flt((frm.doc.total_rab / flt(frm.doc.hps)) * 100, 2) : 0;
 
-	frm.refresh_fields(["items", "total_sebelum_ppn", "total_ppn", "total_rab", "persen_hps"]);
+	const total_biaya = items.reduce((sum, item) => sum + flt(item.jumlah_biaya), 0);
+	frm.doc.total_biaya = total_biaya;
+	frm.doc.estimasi_margin = total_biaya ? total - total_biaya : 0;
+	frm.doc.persen_margin = total_biaya && total ? flt(((total - total_biaya) / total) * 100, 2) : 0;
+
+	frm.refresh_fields([
+		"items",
+		"total_sebelum_ppn",
+		"total_ppn",
+		"total_rab",
+		"persen_hps",
+		"total_biaya",
+		"estimasi_margin",
+		"persen_margin",
+	]);
 	render_rab_tree(frm);
 }
 
@@ -234,7 +272,11 @@ function render_rab_tree(frm) {
 				<label class="rab-filter-harga">
 					<input type="checkbox" ${state.belum_harga ? "checked" : ""}> ${__("Hanya yang belum ada harga")}
 				</label>
-				<button class="btn btn-default btn-sm rab-tambah">${frappe.utils.icon("add", "sm")} ${__("Tambah Item")}</button>
+				${
+					harga_terkunci(frm)
+						? ""
+						: `<button class="btn btn-default btn-sm rab-tambah">${frappe.utils.icon("add", "sm")} ${__("Tambah Item")}</button>`
+				}
 			</div>
 			<table class="rab-table">
 				<thead><tr>
