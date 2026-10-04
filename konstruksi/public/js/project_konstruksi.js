@@ -20,7 +20,7 @@
 
 			pakai_sidebar_konstruksi();
 			FIELD_DARI_KONTRAK.forEach((fieldname) => frm.set_df_property(fieldname, "read_only", 1));
-			frm.set_df_property("estimated_costing", "description", __("Dari Total Biaya (RAP) di RAB Penawaran; ubah lewat Harga Satuan Pokok di RAB."));
+			frm.set_df_property("estimated_costing", "description", __("Dari Total Biaya (RAP) di RAB Penawaran."));
 			frm.add_custom_button(__("Kontrak Project"), () => frappe.set_route("Form", "Kontrak Project", frm.doc.kontrak_project), __("Buka"));
 			if (frm.doc.tender) {
 				frm.add_custom_button(__("Tender"), () => frappe.set_route("Form", "Tender", frm.doc.tender), __("Buka"));
