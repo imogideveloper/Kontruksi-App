@@ -1170,3 +1170,10 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 .kp-tabel-sub {
 	font-size: var(--text-xs);
 }
+
+/* Form Penerbit Jaminan: checkbox Nonaktif sejajar dengan kolom input (di bawah input Jenis), bukan di bawah label. */
+@media (min-width: 768px) {
+	body[data-route^="Form/Penerbit Jaminan"] .form-layout .frappe-control[data-fieldname="disabled"] > .form-group {
+		padding-left: calc(var(--konstruksi-label-width) + 12px);
+	}
+}
