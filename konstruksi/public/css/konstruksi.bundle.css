@@ -1947,3 +1947,34 @@ body.konstruksi-tanpa-sidebar[data-route^="Form"] .layout-main-section-wrapper {
 .konstruksi-lampiran-baris:hover {
 	background: var(--subtle-fg, #f8f9fb);
 }
+
+.konstruksi-tag-daftar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-bottom: 8px;
+}
+
+.konstruksi-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 3px 4px 3px 10px;
+	border-radius: 99px;
+	background: var(--konstruksi-active-bg);
+	color: var(--konstruksi-active-fg);
+	font-size: var(--text-sm);
+}
+
+.konstruksi-tag-hapus {
+	display: inline-flex;
+	padding: 2px;
+	border: none;
+	border-radius: 50%;
+	background: transparent;
+	color: inherit;
+}
+
+.konstruksi-tag-hapus:hover {
+	background: rgba(0, 0, 0, 0.08);
+}
