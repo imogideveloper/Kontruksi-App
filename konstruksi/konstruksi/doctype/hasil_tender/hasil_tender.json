@@ -136,13 +136,14 @@
   },
   {
    "depends_on": "eval:!['Menunggu', 'Batal / Mundur'].includes(doc.hasil)",
-   "description": "Bila menang: nilai kontrak (kosongkan = sama dengan penawaran kita).",
+   "description": "Bila menang: sama dengan Nilai Penawaran Kita di Tender (ubah dari Tender).",
    "fieldname": "harga_pemenang",
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Harga Pemenang / Kontrak",
    "mandatory_depends_on": "eval:doc.hasil == 'Kalah'",
-   "options": "IDR"
+   "options": "IDR",
+   "read_only_depends_on": "eval:doc.hasil == 'Menang'"
   },
   {
    "depends_on": "eval:!['Menunggu', 'Batal / Mundur'].includes(doc.hasil)",
@@ -167,7 +168,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-04 21:15:00.000000",
+ "modified": "2026-10-05 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Hasil Tender",

@@ -17,6 +17,7 @@ PERSEN_JAMINAN_PELAKSANAAN = 5
 class KontrakProject(Document):
 	def validate(self):
 		cek_tender_menang(self.tender)
+		self.ambil_dari_tender()
 		self.hitung_nilai()
 		self.hitung_waktu()
 		self.hitung_jaminan()
@@ -35,6 +36,19 @@ class KontrakProject(Document):
 	def set_jumlah_kelengkapan(self, kelengkapan):
 		self.kelengkapan_total = len(kelengkapan)
 		self.kelengkapan_terisi = sum(1 for item in kelengkapan if item["ok"])
+
+	def ambil_dari_tender(self):
+		"""Nilai & PPN selalu mengikuti Tender; diubah dari form Tender, bukan di kontrak."""
+		tender = frappe.db.get_value("Tender", self.tender, ["nilai_penawaran", "status_ppn", "tarif_ppn"], as_dict=True)
+		self.nilai_kontrak = tender.nilai_penawaran
+		self.status_ppn = tender.status_ppn
+		self.tarif_ppn = tender.tarif_ppn
+
+	def hitung_semua(self):
+		self.hitung_nilai()
+		self.hitung_waktu()
+		self.hitung_jaminan()
+		self.set_jumlah_kelengkapan(self.get_kelengkapan())
 
 	def hitung_nilai(self):
 		if self.status_ppn != "PPN":
@@ -166,13 +180,7 @@ def get_or_create(tender):
 	if name:
 		return name
 	cek_tender_menang(tender)
-	doc = frappe.get_doc(
-		{
-			"doctype": "Kontrak Project",
-			"tender": tender,
-			"nilai_kontrak": frappe.db.get_value("Hasil Tender", {"tender": tender}, "harga_pemenang"),
-		}
-	)
+	doc = frappe.get_doc({"doctype": "Kontrak Project", "tender": tender})
 	doc.insert()
 	return doc.name
 
@@ -182,20 +190,23 @@ def get_kontrak(tender):
 
 
 def sinkron_dari_tender(tender, method=None):
-	"""Tender.on_update: salin data tender yang ditampilkan di Kontrak Project."""
+	"""Tender.on_update: salin data tender ke Kontrak Project, lalu hitung ulang nilai, jaminan & kelengkapan."""
 	name = get_kontrak(tender.name)
-	if name:
-		frappe.db.set_value(
-			"Kontrak Project",
-			name,
-			{
-				"nama_project": tender.nama_paket,
-				"pemberi_kerja": tender.pemberi_kerja,
-				"jenis_project": tender.jenis_project,
-				"lokasi": tender.lokasi,
-			},
-			update_modified=False,
-		)
+	if not name:
+		return
+	doc = frappe.get_doc("Kontrak Project", name)
+	doc.update(
+		{
+			"nama_project": tender.nama_paket,
+			"pemberi_kerja": tender.pemberi_kerja,
+			"jenis_project": tender.jenis_project,
+			"lokasi": tender.lokasi,
+		}
+	)
+	doc.ambil_dari_tender()
+	doc.hitung_semua()
+	# db_update, bukan save: validasi kontrak (mis. tanggal SPMK) tidak boleh menggagalkan simpan Tender.
+	doc.db_update()
 
 
 @frappe.whitelist()
@@ -222,6 +233,7 @@ def get_kelengkapan_live(doc):
 	doc.check_permission("read")
 	if not doc.tender:
 		return []
+	doc.ambil_dari_tender()
 	doc.hitung_nilai()
 	doc.hitung_waktu()
 	doc.hitung_jaminan()

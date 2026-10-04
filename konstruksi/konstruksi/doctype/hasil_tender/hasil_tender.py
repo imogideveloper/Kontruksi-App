@@ -32,9 +32,9 @@ class HasilTender(Document):
 		self.tanggal_pengajuan = get_tanggal_pengajuan(self.tender)
 
 		if self.hasil == "Menang":
+			# Nilai kontrak mengikuti Nilai Penawaran Kita di Tender; diubah dari Tender.
 			self.pemenang = PEMENANG_KITA
-			if not flt(self.harga_pemenang):
-				self.harga_pemenang = self.penawaran_kita
+			self.harga_pemenang = self.penawaran_kita
 		elif self.hasil in ("Menunggu", "Batal / Mundur"):
 			self.pemenang = None
 			self.harga_pemenang = 0
@@ -111,7 +111,13 @@ def sinkron_dari_tender(tender, method=None):
 	name = frappe.db.get_value("Hasil Tender", {"tender": tender.name})
 	if not name:
 		return
-	harga, penawaran = flt(frappe.db.get_value("Hasil Tender", name, "harga_pemenang")), flt(tender.nilai_penawaran)
+	hasil, harga = frappe.db.get_value("Hasil Tender", name, ["hasil", "harga_pemenang"])
+	penawaran = flt(tender.nilai_penawaran)
+	if hasil == "Menang":
+		# Nilai kontrak mengikuti penawaran di Tender.
+		harga = penawaran
+		frappe.db.set_value("Tender", tender.name, "nilai_pemenang", penawaran, update_modified=False)
+	harga = flt(harga)
 	frappe.db.set_value(
 		"Hasil Tender",
 		name,
@@ -121,6 +127,7 @@ def sinkron_dari_tender(tender, method=None):
 			"tanggal_tender": tender.tanggal,
 			"hps": tender.hps,
 			"penawaran_kita": penawaran,
+			"harga_pemenang": harga,
 			"selisih_persen": flt((penawaran - harga) / harga * 100, 2) if harga and penawaran else 0,
 		},
 		update_modified=False,
