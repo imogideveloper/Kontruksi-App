@@ -21,7 +21,7 @@
   "total_ppn",
   "total_rab",
   "persen_hps",
-  "biaya_section",
+  "biaya_column",
   "total_biaya",
   "estimasi_margin",
   "persen_margin",
@@ -142,8 +142,8 @@
    "read_only": 1
   },
   {
-   "fieldname": "biaya_section",
-   "fieldtype": "Section Break",
+   "fieldname": "biaya_column",
+   "fieldtype": "Column Break",
    "label": "Estimasi Biaya & Margin (Internal)",
    "permlevel": 1
   },
@@ -154,8 +154,7 @@
    "options": "IDR",
    "read_only": 1,
    "permlevel": 1,
-   "print_hide": 1,
-   "description": "Menjadi Estimated Cost di Project Master."
+   "print_hide": 1
   },
   {
    "fieldname": "estimasi_margin",
@@ -164,8 +163,7 @@
    "options": "IDR",
    "read_only": 1,
    "permlevel": 1,
-   "print_hide": 1,
-   "description": "Total sebelum PPN − total biaya."
+   "print_hide": 1
   },
   {
    "fieldname": "persen_margin",
@@ -173,8 +171,7 @@
    "label": "Estimasi Margin (%)",
    "read_only": 1,
    "permlevel": 1,
-   "print_hide": 1,
-   "description": "Estimasi margin dibanding total sebelum PPN."
+   "print_hide": 1
   },
   {
    "fieldname": "rab_tree_section",
@@ -201,7 +198,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-06 19:00:00.000000",
+ "modified": "2026-10-06 19:30:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "RAB Penawaran",
