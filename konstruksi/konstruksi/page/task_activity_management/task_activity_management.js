@@ -741,7 +741,7 @@ class HalamanAktivitas {
 					.join("")}</tbody></table>`
 			: `<div class="kpa-form-ket">${__("Belum ada laporan untuk aktivitas ini.")}</div>`;
 
-		$f.html(`<div class="kpa-lapor">
+		$f.html(`<div class="kpa-lapor-form">
 			<div class="kpa-lapor-ringkas">
 				<div><div class="kpa-lapor-label">${__("Target")}</div><div class="kpa-lapor-nilai">${info_target}</div></div>
 				<div><div class="kpa-lapor-label">${__("Progres saat ini")}</div><div class="kpa-lapor-nilai">${kpa_persen(t.progress, 1)}</div><div class="kpa-sub">${info_progres_sub}</div></div>

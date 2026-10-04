@@ -3643,3 +3643,8 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	font-size: var(--text-sm);
 	vertical-align: top;
 }
+
+/* Isi dialog Lapor Progres: susunan vertikal biasa (bukan .kpa-lapor = tombol Lapor di tabel). */
+.kpa-lapor-form {
+	display: block;
+}
