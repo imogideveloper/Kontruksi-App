@@ -191,6 +191,42 @@ def get_wbs(project):
 
 
 @frappe.whitelist()
+def get_daftar_wbs():
+	"""Daftar Project Master (yang boleh dibaca) dengan ringkasan WBS-nya."""
+	projects = frappe.get_list(
+		"Project",
+		filters={"kontrak_project": ("is", "set")},
+		fields=["name", "project_name", "customer", "status_proyek", "nilai_kontrak", "tarif_ppn", "tender"],
+		order_by="creation desc",
+		limit_page_length=0,
+	)
+	if not projects:
+		return []
+	nama = [p.name for p in projects]
+	ringkas = {
+		r.project: r
+		for r in frappe.db.sql(
+			"""select project, count(*) as jumlah_item,
+				sum(case when ifnull(parent_wbs, '') = '' then jumlah_harga else 0 end) as total,
+				sum(case when ifnull(parent_wbs, '') = '' then jumlah_harga * progres else 0 end) as nilai_progres
+			from `tabWBS Item` where project in %s group by project""",
+			(tuple(nama),),
+			as_dict=True,
+		)
+	}
+	bisa_buat = bool(frappe.has_permission("WBS Item", "create"))
+	for p in projects:
+		r = ringkas.get(p.name)
+		p.jumlah_item = r.jumlah_item if r else 0
+		p.total = flt(r.total) if r else 0
+		p.total_ppn = flt(p.total * (1 + flt(p.tarif_ppn) / 100), 0)
+		p.progres = flt(r.nilai_progres / r.total, 2) if r and flt(r.total) else 0
+		p.rab = None if p.jumlah_item else rab_proyek(p.name)
+		p.bisa_buat = bisa_buat
+	return projects
+
+
+@frappe.whitelist()
 def buat_wbs(project):
 	frappe.has_permission("WBS Item", "create", throw=True)
 	if frappe.db.exists("WBS Item", {"project": project}):

@@ -12,7 +12,6 @@ frappe.pages["work-breakdown-structure"].on_page_show = function (wrapper) {
 };
 
 const KPW_API = "konstruksi.konstruksi.wbs.";
-const KPW_STORAGE = "konstruksi.wbs.project";
 const KPW_TERTUTUP = "konstruksi.wbs.tertutup";
 
 const kpw_esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
@@ -35,9 +34,6 @@ class HalamanWBS {
 				if (project && project !== this.project) this.ganti_project(project);
 			},
 		});
-		page.add_inner_button(__("Buka Project Master"), () => this.project && frappe.set_route("Form", "Project", this.project));
-		page.add_inner_button(__("Project Calendar"), () => this.project && frappe.set_route("project-calendar", this.project));
-
 		this.$body = $(`<div class="kpr kpw"></div>`).appendTo(page.main);
 		this.$body.on("click", "[data-kpw]", (e) => this.aksi(e));
 	}
@@ -49,22 +45,101 @@ class HalamanWBS {
 			sidebar.setup("Konstruksi");
 			sidebar.set_active_workspace_item?.();
 		}
+		// /app/work-breakdown-structure → daftar proyek; /app/work-breakdown-structure/<ID Project> → WBS proyek itu.
 		const dari_route = frappe.get_route()[1];
-		let simpanan = null;
-		try {
-			simpanan = localStorage.getItem(KPW_STORAGE);
-		} catch (e) {
-			// localStorage tidak tersedia: tetap jalan tanpa ingatan proyek terakhir.
-		}
-		const project = dari_route || this.project || simpanan;
-		if (project) return this.ganti_project(project);
-		frappe.db
-			.get_list("Project", { filters: { kontrak_project: ["is", "set"] }, fields: ["name"], order_by: "creation desc", limit: 1 })
-			.then((rows) => (rows.length ? this.ganti_project(rows[0].name) : this.kosong()));
+		return dari_route ? this.ganti_project(dari_route) : this.daftar();
 	}
 
-	kosong() {
-		this.$body.html(`<div class="kpr-card kpr-kosong">${__("Belum ada Project Master. Buat dari Kontrak Project terlebih dahulu.")}</div>`);
+	atur_toolbar(mode) {
+		this.page.clear_primary_action();
+		this.page.clear_inner_toolbar();
+		if (mode === "proyek") {
+			this.page.add_inner_button(__("Semua Proyek"), () => frappe.set_route("work-breakdown-structure"));
+			this.page.add_inner_button(__("Buka Project Master"), () => frappe.set_route("Form", "Project", this.project));
+			this.page.add_inner_button(__("Project Calendar"), () => frappe.set_route("project-calendar", this.project));
+		}
+	}
+
+	// ---------- daftar proyek ----------
+
+	daftar() {
+		this.project = null;
+		this.data = null;
+		if (this.field_project.get_value()) this.field_project.set_value("");
+		this.atur_toolbar("daftar");
+		return frappe.xcall(KPW_API + "get_daftar_wbs").then((rows) => {
+			this.daftar_data = rows;
+			this.render_daftar();
+		});
+	}
+
+	render_daftar() {
+		const rows = this.daftar_data || [];
+		const kepala = `<div class="kpw-head">
+			<div class="kpw-sub">${__("Pilih proyek untuk melihat dan mengelola Work Breakdown Structure-nya. WBS dibuat otomatis dari RAB Penawaran saat Project Master dibuat.")}</div>
+		</div>`;
+		if (!rows.length) {
+			this.$body.html(`${kepala}<div class="kpr-card kpr-kosong">${__("Belum ada Project Master. Buat dari Kontrak Project terlebih dahulu.")}</div>`);
+			return;
+		}
+		const ada = rows.filter((r) => r.jumlah_item);
+		const total = ada.reduce((s, r) => s + flt(r.total), 0);
+		const progres = total ? ada.reduce((s, r) => s + flt(r.total) * flt(r.progres), 0) / total : 0;
+		const tidak_cocok = ada.filter((r) => r.nilai_kontrak && Math.abs(r.total_ppn - r.nilai_kontrak) >= 1).length;
+		const kartu = (warna, label, nilai, sub) => `<div class="kpr-card kpw-kartu">
+			<div class="kpw-kartu-label">${label}</div><div class="kpw-kartu-nilai">${nilai}</div>
+			<div class="kpw-kartu-sub">${sub}</div><span class="kpw-kartu-garis kpw-garis-${warna}"></span></div>`;
+
+		const baris = rows
+			.map((r) => {
+				const progres_r = Math.min(flt(r.progres), 100);
+				let cocok;
+				if (!r.jumlah_item) cocok = `<span class="kpw-strip">—</span>`;
+				else if (!r.nilai_kontrak) cocok = `<span class="kpw-strip">${__("Belum ada nilai kontrak")}</span>`;
+				else if (Math.abs(r.total_ppn - r.nilai_kontrak) < 1) cocok = `<span class="kpw-ok">${frappe.utils.icon("check", "xs")} ${__("Sesuai kontrak")}</span>`;
+				else cocok = `<span class="kpw-beda" title="${__("WBS + PPN dibanding nilai kontrak")}">${__("Selisih {0}", [kpw_rp(r.total_ppn - r.nilai_kontrak)])}</span>`;
+				const isi_wbs = r.jumlah_item
+					? `<td class="text-right">${r.jumlah_item}</td>
+						<td class="text-right kpw-nilai">${kpw_rp(r.total)}</td>
+						<td class="text-right">${kpw_rp(r.nilai_kontrak)}</td>
+						<td>${cocok}</td>
+						<td><div class="kpw-progres"><div class="kpr-progress ${progres_r >= 100 ? "kpr-progress-ok" : "kpr-progress-biru"}"><div style="width:${progres_r}%"></div></div>
+							<span>${kpw_persen(progres_r, 0)}</span></div></td>`
+					: `<td colspan="5" class="kpw-belum">${__("Belum ada WBS")}${
+							r.rab && r.bisa_buat
+								? ` <button class="btn btn-xs btn-default" data-kpw="buat-proyek" data-project="${kpw_esc(r.name)}">${__("Buat dari RAB")}</button>`
+								: r.rab ? "" : ` · ${__("RAB Penawaran tidak ditemukan")}`
+					  }</td>`;
+				return `<tr class="kpw-baris-proyek" data-kpw="buka" data-project="${kpw_esc(r.name)}">
+					<td><div class="kpw-proyek-nama">${kpw_esc(r.project_name)}</div><div class="kpw-proyek-id">${kpw_esc(r.name)}${r.customer ? ` · ${kpw_esc(r.customer)}` : ""}</div></td>
+					<td>${r.status_proyek ? `<span class="kpw-badge">${kpw_esc(__(r.status_proyek))}</span>` : ""}</td>
+					${isi_wbs}
+					<td class="text-right"><span class="kpw-buka">${__("Buka")} ${frappe.utils.icon("right", "xs")}</span></td>
+				</tr>`;
+			})
+			.join("");
+
+		this.$body.html(`${kepala}
+			<div class="kpw-kartu-baris kpw-kartu-baris-4">
+				${kartu("biru", __("Proyek"), rows.length, __("{0} sudah punya WBS", [ada.length]))}
+				${kartu("ungu", __("Total Nilai WBS"), kpw_rp(total), __("Sebelum PPN, semua proyek"))}
+				${kartu("biru", __("Progres Gabungan"), kpw_persen(progres, 2), __("Tertimbang nilai WBS"))}
+				${kartu(tidak_cocok ? "oranye" : "hijau", __("Belum Sesuai Kontrak"), tidak_cocok, tidak_cocok ? __("WBS + PPN berbeda dengan nilai kontrak (cek addendum)") : __("Semua WBS sesuai nilai kontrak"))}
+			</div>
+			<div class="kpr-card kpw-tabel-card">
+				<div class="kpw-tabel-wrap">
+					<table class="kpw-tabel kpw-tabel-daftar">
+						<colgroup><col><col style="width:120px"><col style="width:80px"><col style="width:150px"><col style="width:150px">
+							<col style="width:190px"><col style="width:150px"><col style="width:80px"></colgroup>
+						<thead><tr>
+							<th>${__("Proyek")}</th><th>${__("Status")}</th><th class="text-right">${__("Item")}</th>
+							<th class="text-right">${__("Nilai WBS")}</th><th class="text-right">${__("Nilai Kontrak")}</th>
+							<th>${__("Kesesuaian")}</th><th>${__("Progres")}</th><th></th>
+						</tr></thead>
+						<tbody>${baris}</tbody>
+					</table>
+				</div>
+			</div>`);
 	}
 
 	ganti_project(project) {
@@ -72,7 +147,6 @@ class HalamanWBS {
 		this.project = project;
 		if (this.field_project.get_value() !== project) this.field_project.set_value(project);
 		try {
-			localStorage.setItem(KPW_STORAGE, project);
 			if (ganti) this.tertutup = new Set(JSON.parse(localStorage.getItem(`${KPW_TERTUTUP}.${project}`) || "[]"));
 		} catch (e) {
 			// abaikan
@@ -109,7 +183,7 @@ class HalamanWBS {
 	render() {
 		const d = this.data;
 		const p = d.project;
-		this.page.clear_primary_action();
+		this.atur_toolbar("proyek");
 		if (d.bisa_buat && d.items.length) {
 			this.page.set_primary_action(__("Item Level 1"), () => this.dialog_item({}), "add");
 		}
@@ -270,6 +344,15 @@ class HalamanWBS {
 		// Klik tombol / menu Aksi di baris induk: jangan ikut membuka-tutup baris.
 		if (jenis === "toggle" && $(e.target).closest(".kpt-aksi-dropdown").length) return;
 		switch (jenis) {
+			case "buka":
+				return frappe.set_route("work-breakdown-structure", $el.attr("data-project"));
+			case "buat-proyek":
+				return frappe
+					.xcall(KPW_API + "buat_wbs", { project: $el.attr("data-project") })
+					.then((n) => {
+						frappe.show_alert({ message: __("{0} item WBS dibuat dari RAB", [n]), indicator: "green" });
+						this.daftar();
+					});
 			case "toggle":
 				this.tertutup.has(name) ? this.tertutup.delete(name) : this.tertutup.add(name);
 				this.simpan_tertutup();

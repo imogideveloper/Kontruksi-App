@@ -3112,3 +3112,56 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	color: var(--konstruksi-active-fg);
 	font-weight: 700;
 }
+
+/* WBS, daftar proyek (tanpa ID proyek di route). */
+.kpw-kartu-baris.kpw-kartu-baris-4 {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 991px) {
+	.kpw-kartu-baris.kpw-kartu-baris-4 {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.kpw-tabel-daftar {
+	min-width: 980px;
+}
+
+.kpw-baris-proyek {
+	cursor: pointer;
+}
+
+.kpw-proyek-nama {
+	font-weight: 600;
+	color: var(--text-color);
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.kpw-proyek-id {
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.kpw-belum {
+	color: var(--text-muted);
+}
+
+.kpw-belum .btn {
+	margin-left: 8px;
+}
+
+.kpw-buka {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	font-weight: 500;
+	color: var(--kpr-biru);
+}
+
+.kpw-buka .icon {
+	stroke: currentColor;
+}
