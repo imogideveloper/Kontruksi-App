@@ -41,6 +41,9 @@ class HalamanMilestone {
 	}
 
 	tampil() {
+		// Dibuka dari list / form Milestone Termin (+ Add): langsung buka dialog milestone baru.
+		this.buka_dialog_baru = !!frappe.route_options?.milestone_baru;
+		if (this.buka_dialog_baru) frappe.route_options = null;
 		// Halaman modul Konstruksi: selalu dengan sidebar Konstruksi (lihat sidebar_konstruksi.bundle.js).
 		const sidebar = frappe.app?.sidebar;
 		if (sidebar && sidebar.sidebar_title !== "Konstruksi" && frappe.boot.workspace_sidebar_item?.konstruksi) {
@@ -69,6 +72,10 @@ class HalamanMilestone {
 		this.data = null;
 		if (this.field_project.get_value()) this.field_project.set_value("");
 		this.atur_toolbar("daftar");
+		if (this.buka_dialog_baru) {
+			this.buka_dialog_baru = false;
+			frappe.show_alert({ message: __("Pilih proyek dulu, lalu klik Milestone / Termin Baru."), indicator: "blue" });
+		}
 		return frappe.xcall(KPM2_API + "get_daftar").then((rows) => {
 			const kepala = `<div class="kpw-head"><div class="kpw-sub">${__("Pilih proyek untuk mengatur milestone pekerjaan dan termin penagihannya.")}</div></div>`;
 			if (!rows.length) {
@@ -113,6 +120,10 @@ class HalamanMilestone {
 			this.data = data;
 			this.atur_toolbar("proyek");
 			this.render();
+			if (this.buka_dialog_baru && data.bisa_buat) {
+				this.buka_dialog_baru = false;
+				this.dialog_milestone({});
+			}
 		});
 	}
 
