@@ -1208,3 +1208,15 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 		color: var(--text-color) !important;
 	}
 }
+
+/* Kontrak Project, tab Jaminan: label panjang (mis. "Nomor Jaminan Pelaksanaan") satu baris; kolom label semua
+   field di tab ini dilebarkan sama supaya input tetap sejajar (simetris) antar baris dan kolom. */
+@media (min-width: 768px) {
+	body[data-route^="Form/Kontrak Project"] .frappe-control:is([data-fieldname="jaminan_pelaksanaan_nilai"], [data-fieldname="file_jaminan_pelaksanaan"], [data-fieldname="jaminan_pelaksanaan_nomor"], [data-fieldname="jaminan_pelaksanaan_penerbit"], [data-fieldname="jaminan_pelaksanaan_berlaku"], [data-fieldname="jaminan_uang_muka_nilai"]) > .form-group {
+		grid-template-columns: 230px minmax(0, 1fr);
+	}
+
+	body[data-route^="Form/Kontrak Project"] .frappe-control:is([data-fieldname="jaminan_pelaksanaan_nilai"], [data-fieldname="file_jaminan_pelaksanaan"], [data-fieldname="jaminan_pelaksanaan_nomor"], [data-fieldname="jaminan_pelaksanaan_penerbit"], [data-fieldname="jaminan_pelaksanaan_berlaku"], [data-fieldname="jaminan_uang_muka_nilai"]) > .form-group > .clearfix > .control-label {
+		white-space: nowrap !important;
+	}
+}
