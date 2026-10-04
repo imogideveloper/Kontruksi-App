@@ -93,6 +93,13 @@
 		onload(listview) {
 			bawaan.onload && bawaan.onload(listview);
 
+			// List Project = Project Master: tetap di sidebar Konstruksi walau dibuka dari luar sidebar itu.
+			const sidebar = frappe.app?.sidebar;
+			if (sidebar && sidebar.sidebar_title !== "Konstruksi" && frappe.boot.workspace_sidebar_item?.konstruksi) {
+				sidebar.setup("Konstruksi");
+				sidebar.set_active_workspace_item?.();
+			}
+
 			// Susun ulang kolom (lihat tender_list.js) dengan judul berbahasa Indonesia.
 			const setup_columns = listview.setup_columns.bind(listview);
 			listview.setup_columns = function () {

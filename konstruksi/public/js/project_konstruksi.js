@@ -18,6 +18,7 @@
 			frm.$wrapper.find(".kpm-dashboard").remove();
 			if (!frm.doc.kontrak_project) return;
 
+			pakai_sidebar_konstruksi();
 			FIELD_DARI_KONTRAK.forEach((fieldname) => frm.set_df_property(fieldname, "read_only", 1));
 			frm.add_custom_button(__("Kontrak Project"), () => frappe.set_route("Form", "Kontrak Project", frm.doc.kontrak_project), __("Buka"));
 			if (frm.doc.tender) {
@@ -26,6 +27,16 @@
 			if (!frm.is_new()) muat_dashboard(frm);
 		},
 	});
+
+	// Project milik modul Projects ERPNext, jadi bila dibuka dari luar sidebar Konstruksi (pencarian, link, notifikasi)
+	// Frappe memilih sidebar "Projects". Project yang punya kontrak selalu memakai sidebar Konstruksi.
+	function pakai_sidebar_konstruksi() {
+		const sidebar = frappe.app?.sidebar;
+		if (sidebar && sidebar.sidebar_title !== "Konstruksi" && frappe.boot.workspace_sidebar_item?.konstruksi) {
+			sidebar.setup("Konstruksi");
+			sidebar.set_active_workspace_item?.();
+		}
+	}
 
 	function muat_dashboard(frm) {
 		frappe.call("konstruksi.konstruksi.project_konstruksi.get_dashboard", { project: frm.doc.name }).then((r) => {
