@@ -1638,3 +1638,20 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 }
 
 
+
+/* Form Kontrak Project: tab aktif diberi blok warna (sama dengan menu sidebar aktif). Semua tab diberi padding
+   kiri-kanan supaya blok warnanya tidak menempel ke teks dan posisi tab tidak bergeser saat berpindah. */
+body[data-route^="Form/Kontrak Project"] .form-tabs-list .form-tabs .nav-item .nav-link {
+	margin: 0 2px;
+	padding: 10px 14px;
+	border-bottom: 2px solid transparent;
+}
+
+body[data-route^="Form/Kontrak Project"] .form-tabs-list .form-tabs .nav-item .nav-link.active {
+	padding-bottom: 10px;
+	border-bottom: 2px solid var(--konstruksi-active-accent);
+	border-radius: var(--konstruksi-block-radius);
+	background-color: var(--konstruksi-active-bg);
+	color: var(--konstruksi-active-fg);
+	font-weight: 600;
+}
