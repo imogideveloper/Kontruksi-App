@@ -2964,8 +2964,19 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	stroke: var(--kpr-biru);
 }
 
+/* Badge (jumlah sub-item / aktivitas) rata kanan di kolom Uraian, sejajar antar baris. */
+.kpw-badges {
+	display: inline-flex;
+	flex-shrink: 0;
+	gap: 4px;
+	margin-left: auto;
+	padding-left: 8px;
+}
+
 .kpw-badge {
 	flex-shrink: 0;
+	min-width: 52px;
+	text-align: center;
 	padding: 0 7px;
 	border-radius: 999px;
 	background: var(--subtle-fg, #f3f3f3);

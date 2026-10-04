@@ -191,8 +191,10 @@ class HalamanWBS {
 					<td class="kpw-kode">${kpw_esc(it.kode)}</td>
 					<td class="kpw-uraian"><div class="kpw-uraian-isi" style="padding-left:${(it.level - 1) * 20}px">
 						${toggle}<span class="kpw-uraian-teks" title="${kpw_esc(it.uraian)}">${kpw_esc(it.uraian)}</span>
-						${it.is_group ? `<span class="kpw-badge">${anak} item</span>` : ""}
-						${it.jumlah_task ? `<span class="kpw-badge kpw-badge-biru" title="${__("Aktivitas (Task) terhubung")}">${it.jumlah_task} ${__("aktivitas")}</span>` : ""}
+						<span class="kpw-badges">
+							${it.jumlah_task ? `<span class="kpw-badge kpw-badge-biru" title="${__("Aktivitas (Task) terhubung")}">${it.jumlah_task} ${__("aktivitas")}</span>` : ""}
+							${it.is_group ? `<span class="kpw-badge">${anak} item</span>` : ""}
+						</span>
 					</div></td>
 					<td class="kpw-spek" title="${kpw_esc(it.spesifikasi)}">${it.spesifikasi ? kpw_esc(it.spesifikasi) : '<span class="kpw-strip">—</span>'}</td>
 					<td>${it.is_group ? "" : kpw_esc(it.satuan || "")}</td>
