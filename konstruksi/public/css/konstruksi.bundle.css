@@ -1183,8 +1183,10 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 @media (min-width: 768px) {
 	body[data-route^="Form/Kontrak Project"] .frappe-control:is([data-fieldname="nomor_spmk"], [data-fieldname="tanggal_spmk"], [data-fieldname="masa_pelaksanaan"], [data-fieldname="tanggal_selesai"], [data-fieldname="masa_pemeliharaan"], [data-fieldname="akhir_pemeliharaan"]) .control-input-wrapper {
 		display: grid;
-		/* Kolom keterangan selebar teksnya (max-content) supaya tidak terpotong. */
-		grid-template-columns: minmax(0, 360px) max-content;
+		/* Kolom input lebar tetap supaya keterangan semua baris mulai di posisi yang sama (rata kiri);
+		   kolom keterangan selebar teksnya (max-content) supaya tidak terpotong. */
+		grid-template-columns: 360px max-content;
+		justify-content: start;
 		column-gap: 16px;
 		align-items: center;
 	}
@@ -1200,5 +1202,7 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 		margin: 0;
 		/* Satu baris utuh: tidak turun ke baris baru dan tidak dipotong. */
 		white-space: nowrap;
+		text-align: left;
+		justify-self: start;
 	}
 }
