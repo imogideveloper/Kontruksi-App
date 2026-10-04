@@ -51,10 +51,32 @@ TARIF_PPH_FINAL_DEFAULT = (
 TARIF_PPH_FINAL_BERLAKU = "2022-02-21"
 
 
+# Data awal Penerbit Jaminan (bank & asuransi penerbit jaminan konstruksi yang umum); tambah / nonaktifkan dari menu.
+PENERBIT_JAMINAN_DEFAULT = (
+	("PT Bank Mandiri (Persero) Tbk", "Bank"),
+	("PT Bank Rakyat Indonesia (Persero) Tbk", "Bank"),
+	("PT Bank Negara Indonesia (Persero) Tbk", "Bank"),
+	("PT Bank Tabungan Negara (Persero) Tbk", "Bank"),
+	("PT Bank Central Asia Tbk", "Bank"),
+	("PT Bank Pembangunan Daerah Jawa Barat dan Banten Tbk (bank bjb)", "Bank"),
+	("PT Jaminan Kredit Indonesia (Jamkrindo)", "Asuransi"),
+	("PT Asuransi Kredit Indonesia (Askrindo)", "Asuransi"),
+)
+
+
 def after_install():
 	buat_jenis_project_default()
 	buat_template_dokumen_default()
 	buat_tarif_pph_final_default()
+	buat_penerbit_jaminan_default()
+
+
+def buat_penerbit_jaminan_default():
+	"""Isi master Penerbit Jaminan bila masih kosong."""
+	if frappe.db.count("Penerbit Jaminan"):
+		return
+	for nama, jenis in PENERBIT_JAMINAN_DEFAULT:
+		frappe.get_doc({"doctype": "Penerbit Jaminan", "nama_penerbit": nama, "jenis": jenis}).insert(ignore_permissions=True)
 
 
 def buat_tarif_pph_final_default():

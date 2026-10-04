@@ -17,3 +17,4 @@ konstruksi.patches.v1_0.isi_tanggal_pengajuan_hasil_tender
 konstruksi.patches.v1_0.batal_jadi_batal_mundur
 konstruksi.patches.v1_0.buat_tarif_pph_final
 konstruksi.patches.v1_0.isi_jenis_jasa_kontrak
+konstruksi.patches.v1_0.buat_penerbit_jaminan

@@ -487,10 +487,12 @@
   },
   {
    "fieldname": "jaminan_pelaksanaan_penerbit",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Penerbit (Bank / Asuransi)",
    "depends_on": "eval:doc.jaminan_pelaksanaan_wajib",
-   "mandatory_depends_on": "eval:doc.jaminan_pelaksanaan_wajib && doc.jaminan_pelaksanaan_diserahkan"
+   "mandatory_depends_on": "eval:doc.jaminan_pelaksanaan_wajib && doc.jaminan_pelaksanaan_diserahkan",
+   "options": "Penerbit Jaminan",
+   "description": "Pilih dari daftar; penerbit baru bisa ditambahkan langsung dari pilihan ini."
   },
   {
    "fieldname": "jaminan_pelaksanaan_berlaku",
@@ -574,7 +576,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-05 16:00:00.000000",
+ "modified": "2026-10-05 17:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kontrak Project",
