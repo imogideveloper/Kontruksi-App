@@ -17,7 +17,7 @@
    "label": "Jabatan Kerja / Subklasifikasi",
    "reqd": 1,
    "in_list_view": 1,
-   "columns": 3,
+   "columns": 4,
    "description": "Sesuai sertifikat, mis. Ahli Manajemen Proyek, Ahli K3 Konstruksi."
   },
   {
@@ -31,7 +31,7 @@
   {
    "fieldname": "nomor",
    "fieldtype": "Data",
-   "label": "Nomor Sertifikat",
+   "label": "No. Sertifikat",
    "in_list_view": 1,
    "columns": 2
   },
@@ -45,13 +45,13 @@
   {
    "fieldname": "file_skk",
    "fieldtype": "Attach",
-   "label": "Scan SKK",
+   "label": "Scan",
    "in_list_view": 1,
-   "columns": 2
+   "columns": 1
   }
  ],
  "links": [],
- "modified": "2026-10-07 10:00:00.000000",
+ "modified": "2026-10-07 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "SKK Personel",

@@ -2141,3 +2141,10 @@ body.konstruksi-tanpa-sidebar[data-route^="Form"] .layout-main-section-wrapper {
 .kpt-aksi {
 	white-space: nowrap;
 }
+
+/* Data Personel (Employee), tabel SKK: judul kolom tampil utuh (tidak dipotong "..."). */
+body[data-route^="Form/Employee"] .frappe-control[data-fieldname="skk"] .grid-heading-row .static-area {
+	overflow: visible;
+	text-overflow: clip;
+	white-space: nowrap;
+}
