@@ -207,6 +207,19 @@
 			fields: [
 				{ fieldname: "employee", fieldtype: "Link", options: "Employee", label: __("Personel"), reqd: 1, ignore_user_permissions: 1,
 					get_query: () => ({ query: `${TIM_METHOD}.cari_personel` }),
+					// Jabatan diisi dari designation personel, kecuali sudah ditentukan (mis. dari tombol Tugaskan kebutuhan).
+					onchange() {
+						const employee = d.get_value("employee");
+						if (!employee) return;
+						frappe.db.get_value("Employee", employee, "designation").then((r) => {
+							const designation = r.message?.designation;
+							const sekarang = d.get_value("jabatan");
+							if (designation && (!sekarang || sekarang === d.__jabatan_otomatis)) {
+								d.__jabatan_otomatis = designation;
+								d.set_value("jabatan", designation);
+							}
+						});
+					},
 					description: __("Belum ada di daftar? Tambahkan dulu di Data Personel.") },
 				{ fieldname: "jabatan", fieldtype: "Link", options: "Designation", label: __("Jabatan di Proyek"), reqd: 1, default: jabatan },
 				{ fieldname: "kolom", fieldtype: "Column Break" },

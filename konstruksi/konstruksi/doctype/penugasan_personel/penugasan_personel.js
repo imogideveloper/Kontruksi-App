@@ -23,6 +23,18 @@ frappe.ui.form.on("Penugasan Personel", {
 		}
 	},
 
+	employee(frm) {
+		// Jabatan diisi dari designation personel, kecuali sudah dipilih manual.
+		if (!frm.doc.employee) return;
+		frappe.db.get_value("Employee", frm.doc.employee, "designation").then((r) => {
+			const jabatan = r.message?.designation;
+			if (jabatan && (!frm.doc.jabatan || frm.doc.jabatan === frm.__jabatan_otomatis)) {
+				frm.__jabatan_otomatis = jabatan;
+				frm.set_value("jabatan", jabatan);
+			}
+		});
+	},
+
 	project(frm) {
 		// Periode tugas bawaan = periode proyek.
 		if (!frm.doc.project) return;
