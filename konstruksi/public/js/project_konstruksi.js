@@ -206,6 +206,7 @@
 			title: __("Tugaskan Personel"),
 			fields: [
 				{ fieldname: "employee", fieldtype: "Link", options: "Employee", label: __("Personel"), reqd: 1, ignore_user_permissions: 1,
+					get_query: () => ({ query: `${TIM_METHOD}.cari_personel` }),
 					description: __("Belum ada di daftar? Tambahkan dulu di Data Personel.") },
 				{ fieldname: "jabatan", fieldtype: "Link", options: "Designation", label: __("Jabatan di Proyek"), reqd: 1, default: jabatan },
 				{ fieldname: "kolom", fieldtype: "Column Break" },

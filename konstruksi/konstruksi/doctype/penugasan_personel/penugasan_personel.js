@@ -4,6 +4,8 @@
 frappe.ui.form.on("Penugasan Personel", {
 	setup(frm) {
 		frm.set_query("project", () => ({ filters: { kontrak_project: ["is", "set"] } }));
+		// Pilihan personel menampilkan jabatan & department.
+		frm.set_query("employee", () => ({ query: "konstruksi.konstruksi.tim_proyek.cari_personel" }));
 	},
 
 	refresh(frm) {
