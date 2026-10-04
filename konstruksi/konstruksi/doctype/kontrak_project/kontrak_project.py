@@ -9,6 +9,7 @@ from frappe.model.document import Document
 from frappe.utils import add_days, cint, flt, fmt_money, getdate, now
 
 from konstruksi.api import beri_tahu_form
+from konstruksi.konstruksi.doctype.addendum.addendum import addendum_disetujui
 
 from konstruksi.konstruksi.doctype.tarif_pph_final.tarif_pph_final import cek_kualifikasi, get_tarif
 from konstruksi.konstruksi.doctype.tender.tender import BATAS_HARGA_WAJAR
@@ -61,6 +62,7 @@ class KontrakProject(Document):
 
 	def onload(self):
 		self.set_onload("kelengkapan", self.get_kelengkapan())
+		self.set_onload("addendum", addendum_disetujui(self.name) if not self.is_new() else [])
 
 	def set_jumlah_kelengkapan(self, kelengkapan):
 		self.kelengkapan_total = len(kelengkapan)
@@ -128,17 +130,25 @@ class KontrakProject(Document):
 		self.hitung_jaminan()
 		self.set_jumlah_kelengkapan(self.get_kelengkapan())
 
+	def get_addendum(self):
+		return addendum_disetujui(self.name) if self.name and not self.is_new() else []
+
 	def hitung_nilai(self):
 		if self.status_ppn != "PPN":
 			self.tarif_ppn = 0
+		addendum = self.get_addendum()
+		self.jumlah_addendum = len(addendum)
+		self.nilai_kontrak_terkini = flt(self.nilai_kontrak) + sum(flt(a.selisih_nilai) for a in addendum)
 		nilai = flt(self.nilai_kontrak)
 		self.nilai_sebelum_ppn = flt(nilai / (1 + flt(self.tarif_ppn) / 100), 2)
 		self.nilai_ppn = flt(nilai - self.nilai_sebelum_ppn, 2)
 		self.nilai_uang_muka = flt(nilai * flt(self.uang_muka_persen) / 100, 2)
 
 	def hitung_waktu(self):
-		# Hari ke-1 = tanggal SPMK, jadi tanggal selesai = SPMK + (masa - 1) hari.
-		mulai, masa = self.tanggal_spmk, cint(self.masa_pelaksanaan)
+		# Hari ke-1 = tanggal SPMK, jadi tanggal selesai = SPMK + (masa - 1) hari; masa termasuk perpanjangan addendum.
+		self.tambahan_waktu = sum(cint(a.tambah_hari) for a in self.get_addendum())
+		self.masa_pelaksanaan_terkini = cint(self.masa_pelaksanaan) + cint(self.tambahan_waktu)
+		mulai, masa = self.tanggal_spmk, cint(self.masa_pelaksanaan_terkini)
 		self.tanggal_selesai = add_days(mulai, masa - 1) if mulai and masa else None
 		pemeliharaan = cint(self.masa_pemeliharaan)
 		self.akhir_pemeliharaan = (
@@ -146,7 +156,8 @@ class KontrakProject(Document):
 		)
 
 	def hitung_jaminan(self):
-		nilai, hps = flt(self.nilai_kontrak), flt(frappe.db.get_value("Tender", self.tender, "hps"))
+		# Jaminan pelaksanaan dari nilai kontrak terkini (addendum tambah = jaminan ikut bertambah).
+		nilai, hps = flt(self.nilai_kontrak_terkini or self.nilai_kontrak), flt(frappe.db.get_value("Tender", self.tender, "hps"))
 		dasar = hps if hps and nilai and nilai / hps * 100 < BATAS_HARGA_WAJAR else nilai
 		self.jaminan_pelaksanaan_nilai = (
 			flt(dasar * PERSEN_JAMINAN_PELAKSANAAN / 100, 2) if self.jaminan_pelaksanaan_wajib else 0
@@ -310,6 +321,9 @@ def cari_tender_menang(doctype, txt, searchfield, start, page_len, filters):
 
 # Field hasil hitungan yang dikirim balik ke form sebelum disimpan (lihat get_kelengkapan_live).
 FIELD_HITUNGAN = (
+	"nilai_kontrak_terkini",
+	"tambahan_waktu",
+	"masa_pelaksanaan_terkini",
 	"nilai_sebelum_ppn",
 	"nilai_ppn",
 	"nilai_uang_muka",

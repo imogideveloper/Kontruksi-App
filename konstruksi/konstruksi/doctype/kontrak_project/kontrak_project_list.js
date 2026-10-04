@@ -3,7 +3,7 @@ const KOLOM_KONTRAK = [
 	"nama_project",
 	"pemberi_kerja",
 	"nomor_kontrak",
-	"nilai_kontrak",
+	"nilai_kontrak_terkini",
 	"tanggal_spmk",
 	"tanggal_selesai",
 	"kelengkapan_terisi",

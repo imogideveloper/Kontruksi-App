@@ -1,0 +1,285 @@
+{
+ "actions": [],
+ "autoname": "ADD-.YYYY.-.###",
+ "creation": "2026-10-06 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "kontrak_section",
+  "kontrak_project",
+  "nama_project",
+  "tender",
+  "urutan",
+  "kontrak_column",
+  "nomor_addendum",
+  "tanggal_addendum",
+  "jenis",
+  "alasan_section",
+  "alasan",
+  "nilai_section",
+  "nilai_sebelumnya",
+  "nilai_baru",
+  "nilai_column",
+  "selisih_nilai",
+  "persen_kumulatif",
+  "waktu_section",
+  "tambah_hari",
+  "masa_sebelumnya",
+  "masa_baru",
+  "waktu_column",
+  "tanggal_selesai_sebelumnya",
+  "tanggal_selesai_baru",
+  "dokumen_section",
+  "file_addendum",
+  "dokumen_column",
+  "catatan",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "kontrak_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "kontrak_project",
+   "fieldtype": "Link",
+   "label": "Kontrak Project",
+   "options": "Kontrak Project",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "in_list_view": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "nama_project",
+   "fieldtype": "Data",
+   "label": "Project",
+   "fetch_from": "kontrak_project.nama_project",
+   "read_only": 1,
+   "in_global_search": 1
+  },
+  {
+   "fieldname": "tender",
+   "fieldtype": "Link",
+   "label": "Tender",
+   "options": "Tender",
+   "fetch_from": "kontrak_project.tender",
+   "read_only": 1
+  },
+  {
+   "fieldname": "urutan",
+   "fieldtype": "Int",
+   "label": "Addendum Ke-",
+   "read_only": 1,
+   "in_list_view": 1,
+   "description": "Nomor urut addendum yang disetujui untuk kontrak ini."
+  },
+  {
+   "fieldname": "kontrak_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "nomor_addendum",
+   "fieldtype": "Data",
+   "label": "Nomor Addendum",
+   "in_global_search": 1
+  },
+  {
+   "fieldname": "tanggal_addendum",
+   "fieldtype": "Date",
+   "label": "Tanggal Addendum",
+   "reqd": 1,
+   "default": "Today",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "jenis",
+   "fieldtype": "Select",
+   "label": "Jenis Perubahan",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "options": "\nPekerjaan Tambah / Kurang\nPerpanjangan Waktu\nPekerjaan Tambah / Kurang + Perpanjangan Waktu\nAdministratif"
+  },
+  {
+   "fieldname": "alasan_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "alasan",
+   "fieldtype": "Small Text",
+   "label": "Alasan Perubahan",
+   "reqd": 1,
+   "description": "Mis. volume galian bertambah, hujan ekstrem, permintaan pemberi kerja."
+  },
+  {
+   "fieldname": "nilai_section",
+   "fieldtype": "Section Break",
+   "label": "Perubahan Nilai",
+   "depends_on": "eval:doc.jenis && doc.jenis.includes('Tambah / Kurang')"
+  },
+  {
+   "fieldname": "nilai_sebelumnya",
+   "fieldtype": "Currency",
+   "label": "Nilai Kontrak Sebelumnya",
+   "options": "IDR",
+   "read_only": 1,
+   "description": "Termasuk PPN; nilai kontrak terkini sebelum addendum ini."
+  },
+  {
+   "fieldname": "nilai_baru",
+   "fieldtype": "Currency",
+   "label": "Nilai Kontrak Baru",
+   "options": "IDR",
+   "mandatory_depends_on": "eval:doc.jenis && doc.jenis.includes('Tambah / Kurang')",
+   "description": "Termasuk PPN, sesuai addendum."
+  },
+  {
+   "fieldname": "nilai_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "selisih_nilai",
+   "fieldtype": "Currency",
+   "label": "Perubahan Nilai",
+   "options": "IDR",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "persen_kumulatif",
+   "fieldtype": "Percent",
+   "label": "Perubahan Kumulatif dari Nilai Awal",
+   "read_only": 1,
+   "description": "Total perubahan semua addendum (termasuk ini) terhadap nilai kontrak awal. Kontrak pemerintah: tambahan maksimal 10%."
+  },
+  {
+   "fieldname": "waktu_section",
+   "fieldtype": "Section Break",
+   "label": "Perubahan Waktu",
+   "depends_on": "eval:doc.jenis && doc.jenis.includes('Perpanjangan Waktu')"
+  },
+  {
+   "fieldname": "tambah_hari",
+   "fieldtype": "Int",
+   "label": "Tambah Waktu (hari)",
+   "mandatory_depends_on": "eval:doc.jenis && doc.jenis.includes('Perpanjangan Waktu')"
+  },
+  {
+   "fieldname": "masa_sebelumnya",
+   "fieldtype": "Int",
+   "label": "Masa Pelaksanaan Sebelumnya (hari)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "masa_baru",
+   "fieldtype": "Int",
+   "label": "Masa Pelaksanaan Baru (hari)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "waktu_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tanggal_selesai_sebelumnya",
+   "fieldtype": "Date",
+   "label": "Tanggal Selesai Sebelumnya",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tanggal_selesai_baru",
+   "fieldtype": "Date",
+   "label": "Tanggal Selesai Baru",
+   "read_only": 1
+  },
+  {
+   "fieldname": "dokumen_section",
+   "fieldtype": "Section Break",
+   "label": "Dokumen"
+  },
+  {
+   "fieldname": "file_addendum",
+   "fieldtype": "Attach",
+   "label": "Scan Addendum Bertanda Tangan"
+  },
+  {
+   "fieldname": "dokumen_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "catatan",
+   "fieldtype": "Small Text",
+   "label": "Catatan"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Addendum",
+   "read_only": 1,
+   "no_copy": 1,
+   "print_hide": 1,
+   "hidden": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-10-06 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Konstruksi",
+ "name": "Addendum",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "export": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Projects Manager",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "export": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Projects User",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "export": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "nama_project,nomor_addendum",
+ "show_title_field_in_link": 1,
+ "sort_field": "tanggal_addendum",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "nama_project",
+ "track_changes": 1
+}

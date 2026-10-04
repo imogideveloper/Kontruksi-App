@@ -34,10 +34,14 @@
   "tarif_ppn",
   "nilai_sebelum_ppn",
   "nilai_ppn",
+  "nilai_kontrak_terkini",
+  "jumlah_addendum",
   "waktu_section",
   "nomor_spmk",
   "tanggal_spmk",
   "masa_pelaksanaan",
+  "tambahan_waktu",
+  "masa_pelaksanaan_terkini",
   "tanggal_selesai",
   "masa_pemeliharaan",
   "akhir_pemeliharaan",
@@ -280,6 +284,23 @@
    "hidden": 1
   },
   {
+   "fieldname": "nilai_kontrak_terkini",
+   "fieldtype": "Currency",
+   "label": "Nilai Kontrak Terkini",
+   "options": "IDR",
+   "read_only": 1,
+   "hidden": 1,
+   "in_list_view": 1,
+   "description": "Nilai kontrak awal + semua addendum yang disetujui (termasuk PPN)."
+  },
+  {
+   "fieldname": "jumlah_addendum",
+   "fieldtype": "Int",
+   "label": "Jumlah Addendum",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
    "fieldname": "waktu_section",
    "fieldtype": "Section Break",
    "label": "Waktu Pelaksanaan"
@@ -300,10 +321,26 @@
   {
    "fieldname": "masa_pelaksanaan",
    "fieldtype": "Int",
-   "label": "Masa Pelaksanaan (hari)",
+   "label": "Masa Pelaksanaan Awal (hari)",
    "fetch_from": "tender.masa_pelaksanaan",
    "read_only": 1,
    "description": "Mengikuti Tender; ubah di Tender."
+  },
+  {
+   "fieldname": "tambahan_waktu",
+   "fieldtype": "Int",
+   "label": "Tambahan Waktu Addendum (hari)",
+   "read_only": 1,
+   "depends_on": "eval:doc.tambahan_waktu",
+   "description": "Total perpanjangan dari addendum yang disetujui."
+  },
+  {
+   "fieldname": "masa_pelaksanaan_terkini",
+   "fieldtype": "Int",
+   "label": "Masa Pelaksanaan Terkini (hari)",
+   "read_only": 1,
+   "depends_on": "eval:doc.tambahan_waktu",
+   "description": "Masa awal + tambahan waktu addendum."
   },
   {
    "fieldname": "tanggal_selesai",
@@ -311,7 +348,7 @@
    "label": "Tanggal Selesai",
    "read_only": 1,
    "in_list_view": 1,
-   "description": "Dihitung dari Tanggal SPMK + masa pelaksanaan."
+   "description": "Dihitung dari Tanggal SPMK + masa pelaksanaan (termasuk addendum)."
   },
   {
    "fieldname": "masa_pemeliharaan",
@@ -578,8 +615,14 @@
   }
  ],
  "index_web_pages_for_search": 0,
- "links": [],
- "modified": "2026-10-05 21:00:00.000000",
+ "links": [
+  {
+   "group": "Perubahan",
+   "link_doctype": "Addendum",
+   "link_fieldname": "kontrak_project"
+  }
+ ],
+ "modified": "2026-10-06 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kontrak Project",

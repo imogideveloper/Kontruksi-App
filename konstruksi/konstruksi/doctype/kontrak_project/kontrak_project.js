@@ -78,6 +78,7 @@ const kontrak_events = {
 		if (!frm.is_new()) {
 			frm.add_custom_button(__("Tender"), () => frappe.set_route("Form", "Tender", frm.doc.tender), __("Buka"));
 			frm.add_custom_button(__("Hasil Tender"), () => frappe.set_route("Form", "Hasil Tender", frm.doc.tender), __("Buka"));
+			frm.add_custom_button(__("Buat Addendum"), () => frappe.new_doc("Addendum", { kontrak_project: frm.doc.name }));
 		}
 		set_pilihan_kualifikasi(frm);
 		const [label, warna] = kontrak_status(frm.doc);
@@ -220,7 +221,8 @@ function pasang_aksi_ringkasan(frm, $w) {
 
 // Tanggal-tanggal kontrak dihitung ulang di sini juga, karena server baru menghitungnya saat simpan.
 function jadwal_kontrak(doc) {
-	const masa = cint(doc.masa_pelaksanaan);
+	// Masa termasuk perpanjangan dari addendum yang disetujui.
+	const masa = cint(doc.masa_pelaksanaan_terkini) || cint(doc.masa_pelaksanaan);
 	const pemeliharaan = cint(doc.masa_pemeliharaan);
 	const mulai = doc.tanggal_spmk || null;
 	const selesai = mulai && masa ? frappe.datetime.add_days(mulai, masa - 1) : null;
@@ -320,7 +322,9 @@ function html_perlu_tindakan(frm) {
 function html_kartu_kontrak(frm) {
 	const doc = frm.doc;
 	const { masa, mulai, selesai, akhir } = jadwal_kontrak(doc);
-	const nilai = flt(doc.nilai_kontrak);
+	// Nilai terkini = awal + addendum yang disetujui.
+	const nilai = flt(doc.nilai_kontrak_terkini) || flt(doc.nilai_kontrak);
+	const perubahan = nilai - flt(doc.nilai_kontrak);
 	const tarif = doc.status_ppn === "PPN" ? flt(doc.tarif_ppn) : 0;
 	const sebelum_ppn = nilai / (1 + tarif / 100);
 	const hari_ini = frappe.datetime.get_today();
@@ -368,7 +372,18 @@ function html_kartu_kontrak(frm) {
 			"biru",
 			__("Nilai Kontrak"),
 			nilai ? rupiah(nilai) : "—",
-			nilai ? (tarif ? __("{0} sebelum PPN {1}%", [rupiah(sebelum_ppn), format_number(tarif, null, 0)]) : __("Tidak kena PPN")) : __("Belum ada nilai")
+			!nilai
+				? __("Belum ada nilai")
+				: cint(doc.jumlah_addendum)
+				? __("Awal {0} · {1} addendum ({2}{3})", [
+						rupiah(doc.nilai_kontrak),
+						cint(doc.jumlah_addendum),
+						perubahan >= 0 ? "+" : "−",
+						rupiah(Math.abs(perubahan)),
+				  ])
+				: tarif
+				? __("{0} sebelum PPN {1}%", [rupiah(sebelum_ppn), format_number(tarif, null, 0)])
+				: __("Tidak kena PPN")
 		)}
 		${kartu("calendar", "ungu", __("Sisa Waktu"), waktu_nilai, waktu_sub)}
 		${kartu(
@@ -494,6 +509,20 @@ function render_tabel_nilai(frm) {
 	const sebelum_ppn = nilai / (1 + tarif / 100);
 	const kosong = `<span class="text-muted">—</span>`;
 	const isi = (value) => (nilai ? rupiah(value) : kosong);
+	// Satu baris per kondisi nilai: kontrak awal, lalu tiap addendum yang disetujui (nilai kumulatif).
+	const addendum = frm.doc.__onload?.addendum || [];
+	let kumulatif = nilai;
+	const baris_nilai = (uraian, sub, nilai_baris) => {
+		const sebelum = nilai_baris / (1 + tarif / 100);
+		return `<tr>
+			<td><b>${uraian}</b>${sub ? `<div class="kp-tabel-sub text-muted">${sub}</div>` : ""}</td>
+			<td class="text-right">${isi(sebelum)}</td>
+			<td>${doc.status_ppn ? esc(__(doc.status_ppn)) : kosong}</td>
+			<td class="text-right">${kena_ppn ? `${format_number(tarif, null, 0)}%` : kosong}</td>
+			<td class="text-right">${tarif ? isi(nilai_baris - sebelum) : kosong}</td>
+			<td class="text-right"><b>${isi(nilai_baris)}</b></td>
+		</tr>`;
+	};
 
 	const sumber = doc.tender
 		? `<div class="kp-tabel-sumber text-muted">
@@ -525,14 +554,24 @@ function render_tabel_nilai(frm) {
 				</tr>
 			</thead>
 			<tbody>
-				<tr>
-					<td><b>${__("Kontrak awal")}</b></td>
-					<td class="text-right">${isi(sebelum_ppn)}</td>
-					<td>${doc.status_ppn ? esc(__(doc.status_ppn)) : kosong}</td>
-					<td class="text-right">${kena_ppn ? `${format_number(tarif, null, 0)}%` : kosong}</td>
-					<td class="text-right">${tarif ? isi(nilai - sebelum_ppn) : kosong}</td>
-					<td class="text-right"><b>${isi(nilai)}</b></td>
-				</tr>
+				${baris_nilai(__("Kontrak awal"), "", nilai)}
+				${addendum
+					.map((a) => {
+						kumulatif += flt(a.selisih_nilai);
+						const ket = [
+							flt(a.selisih_nilai) ? `${flt(a.selisih_nilai) > 0 ? "+" : "−"}${rupiah(Math.abs(flt(a.selisih_nilai)))}` : "",
+							cint(a.tambah_hari) ? __("+{0} hari", [cint(a.tambah_hari)]) : "",
+							a.nomor_addendum ? esc(a.nomor_addendum) : "",
+						]
+							.filter(Boolean)
+							.join(" · ");
+						return baris_nilai(
+							`<a href="/app/addendum/${encodeURIComponent(a.name)}">${__("Addendum {0}", [cint(a.urutan) || ""])}</a>`,
+							`${tanggal_kontrak(a.tanggal_addendum)}${ket ? ` · ${ket}` : ""}`,
+							kumulatif
+						);
+					})
+					.join("")}
 			</tbody>
 		</table>
 	</div>${sumber}`);

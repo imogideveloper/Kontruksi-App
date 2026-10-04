@@ -1119,7 +1119,7 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 
 /* Kontrak Project, section Waktu Pelaksanaan: satu kolom, keterangan tiap field di sebelah kanan input-nya. */
 @media (min-width: 768px) {
-	body[data-route^="Form/Kontrak Project"] .frappe-control:is([data-fieldname="nomor_spmk"], [data-fieldname="tanggal_spmk"], [data-fieldname="masa_pelaksanaan"], [data-fieldname="tanggal_selesai"], [data-fieldname="masa_pemeliharaan"], [data-fieldname="akhir_pemeliharaan"]) .control-input-wrapper {
+	body[data-route^="Form/Kontrak Project"] .frappe-control:is([data-fieldname="nomor_spmk"], [data-fieldname="tanggal_spmk"], [data-fieldname="masa_pelaksanaan"], [data-fieldname="tambahan_waktu"], [data-fieldname="masa_pelaksanaan_terkini"], [data-fieldname="tanggal_selesai"], [data-fieldname="masa_pemeliharaan"], [data-fieldname="akhir_pemeliharaan"]) .control-input-wrapper {
 		display: grid;
 		/* Kolom input lebar tetap supaya keterangan semua baris mulai di posisi yang sama (rata kiri);
 		   kolom keterangan selebar teksnya (max-content) supaya tidak terpotong. */
@@ -1129,12 +1129,12 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 		align-items: center;
 	}
 
-	body[data-route^="Form/Kontrak Project"] .frappe-control:is([data-fieldname="nomor_spmk"], [data-fieldname="tanggal_spmk"], [data-fieldname="masa_pelaksanaan"], [data-fieldname="tanggal_selesai"], [data-fieldname="masa_pemeliharaan"], [data-fieldname="akhir_pemeliharaan"]) .control-input-wrapper > :is(.control-input, .control-value) {
+	body[data-route^="Form/Kontrak Project"] .frappe-control:is([data-fieldname="nomor_spmk"], [data-fieldname="tanggal_spmk"], [data-fieldname="masa_pelaksanaan"], [data-fieldname="tambahan_waktu"], [data-fieldname="masa_pelaksanaan_terkini"], [data-fieldname="tanggal_selesai"], [data-fieldname="masa_pemeliharaan"], [data-fieldname="akhir_pemeliharaan"]) .control-input-wrapper > :is(.control-input, .control-value) {
 		grid-column: 1;
 		grid-row: 1;
 	}
 
-	body[data-route^="Form/Kontrak Project"] .frappe-control:is([data-fieldname="nomor_spmk"], [data-fieldname="tanggal_spmk"], [data-fieldname="masa_pelaksanaan"], [data-fieldname="tanggal_selesai"], [data-fieldname="masa_pemeliharaan"], [data-fieldname="akhir_pemeliharaan"]) .control-input-wrapper > .help-box {
+	body[data-route^="Form/Kontrak Project"] .frappe-control:is([data-fieldname="nomor_spmk"], [data-fieldname="tanggal_spmk"], [data-fieldname="masa_pelaksanaan"], [data-fieldname="tambahan_waktu"], [data-fieldname="masa_pelaksanaan_terkini"], [data-fieldname="tanggal_selesai"], [data-fieldname="masa_pemeliharaan"], [data-fieldname="akhir_pemeliharaan"]) .control-input-wrapper > .help-box {
 		grid-column: 2;
 		grid-row: 1;
 		margin: 0;
