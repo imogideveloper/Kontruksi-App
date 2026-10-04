@@ -54,11 +54,10 @@
   "retensi_persen",
   "pph_section",
   "jenis_jasa",
-  "pph_column",
   "kualifikasi_usaha",
-  "pph_column_2",
   "pph_final_persen",
   "tarif_pph_final",
+  "pph_column",
   "konfirmasi_bayar_section",
   "syarat_bayar_dikonfirmasi",
   "jaminan_tab",
@@ -398,19 +397,11 @@
    "options": "Pekerjaan Konstruksi\nPekerjaan Konstruksi Terintegrasi\nKonsultansi Konstruksi"
   },
   {
-   "fieldname": "pph_column",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "kualifikasi_usaha",
    "fieldtype": "Select",
    "label": "Kualifikasi Usaha",
    "options": "\nKecil / Perseorangan\nMenengah / Besar\nBersertifikat\nTidak Memiliki Sertifikat",
    "description": "Sesuai SBU perusahaan untuk kontrak ini."
-  },
-  {
-   "fieldname": "pph_column_2",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "pph_final_persen",
@@ -425,6 +416,10 @@
    "label": "Sumber Tarif",
    "options": "Tarif PPh Final",
    "read_only": 1
+  },
+  {
+   "fieldname": "pph_column",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "konfirmasi_bayar_section",
@@ -576,7 +571,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-05 17:00:00.000000",
+ "modified": "2026-10-05 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kontrak Project",
