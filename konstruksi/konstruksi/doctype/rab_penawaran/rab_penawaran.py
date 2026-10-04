@@ -7,7 +7,7 @@ from frappe.model.document import Document
 from frappe.model.naming import make_autoname
 from frappe.utils import cstr, flt, getdate
 from frappe.utils.number_format import NumberFormat
-from frappe.utils.xlsxutils import build_xlsx_response, read_xlsx_file_from_attached_file
+from frappe.utils.xlsxutils import read_xlsx_file_from_attached_file
 
 # Kolom template Excel: (judul kolom, fieldname item).
 KOLOM_EXCEL = (
@@ -99,16 +99,108 @@ def get_saran_uraian():
 	)
 
 
+def lihat_biaya():
+	"""User boleh melihat kolom biaya (permission level 1 di RAB Penawaran)."""
+	return 1 in frappe.get_meta("RAB Penawaran").get_permlevel_access("read")
+
+
+def kolom_excel():
+	return [k for k in KOLOM_EXCEL if k[1] != "harga_satuan_pokok" or lihat_biaya()]
+
+
+def kirim_xlsx(nama_file, baris_item, catatan=None):
+	"""File Excel RAB rapi: header berwarna, lebar & format angka, baris kelompok tebal, sheet Petunjuk."""
+	from io import BytesIO
+
+	from openpyxl import Workbook
+	from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+
+	kolom = kolom_excel()
+	wb = Workbook()
+	ws = wb.active
+	ws.title = "RAB"
+	garis = Border(bottom=Side(style="thin", color="D0D5DD"))
+	lebar = {"kode_wbs": 11, "uraian_pekerjaan": 44, "spesifikasi": 34, "satuan": 9, "volume": 11,
+		"harga_satuan": 19, "harga_satuan_pokok": 22}
+
+	ws.append([judul for judul, _ in kolom])
+	for c, (_, fieldname) in enumerate(kolom, start=1):
+		sel = ws.cell(row=1, column=c)
+		sel.font = Font(bold=True, color="2F5792")
+		sel.fill = PatternFill("solid", fgColor="E3EFFF" if fieldname != "harga_satuan_pokok" else "FFF3D6")
+		sel.alignment = Alignment(vertical="center", horizontal="center", wrap_text=True)
+		ws.column_dimensions[sel.column_letter].width = lebar.get(fieldname, 15)
+	ws.row_dimensions[1].height = 30
+	ws.freeze_panes = "A2"
+
+	for item in baris_item:
+		ws.append([item.get(fieldname) for _, fieldname in kolom])
+		r = ws.max_row
+		kelompok = cstr(item.get("kode_wbs")).strip() and "." not in cstr(item.get("kode_wbs"))
+		for c, (_, fieldname) in enumerate(kolom, start=1):
+			sel = ws.cell(row=r, column=c)
+			sel.border = garis
+			if fieldname in ("volume",):
+				sel.number_format = "#,##0.##"
+			elif fieldname in ("harga_satuan", "harga_satuan_pokok"):
+				sel.number_format = "#,##0"
+			if fieldname == "kode_wbs":
+				sel.alignment = Alignment(horizontal="left")
+			if kelompok:
+				sel.font = Font(bold=True)
+				sel.fill = PatternFill("solid", fgColor="F3F4F6")
+
+	petunjuk = wb.create_sheet("Petunjuk")
+	isi = [
+		"Cara mengisi RAB Penawaran",
+		"",
+		"1. Isi sheet RAB mulai baris 2; jangan ubah judul kolom di baris 1.",
+		"2. Kode WBS tanpa titik (1, 2, 3) = judul kelompok; kosongkan Satuan, Volume, dan Harga.",
+		"3. Kode WBS bertitik (1.1, 1.2, 2.1) = item di bawah kelompoknya.",
+		"4. Volume & harga diisi angka saja, tanpa 'Rp' (mis. 1250000 atau 12,5).",
+	]
+	if lihat_biaya():
+		isi += [
+			"5. Harga Satuan Pokok = biaya per satuan (material, upah, alat, subkon) tanpa keuntungan & PPN. Kolom ini internal.",
+			"6. Upload: Excel > Upload Excel di form RAB. Pilih 'Perbarui Harga Pokok saja' untuk mengisi biaya",
+			"   pada RAB yang sudah ada (dicocokkan lewat Kode WBS), juga setelah penawaran diajukan.",
+		]
+	else:
+		isi.append("5. Upload: Excel > Upload Excel di form RAB.")
+	if catatan:
+		isi += ["", catatan]
+	for baris in isi:
+		petunjuk.append([baris])
+	petunjuk["A1"].font = Font(bold=True, size=13)
+	petunjuk.column_dimensions["A"].width = 110
+
+	buffer = BytesIO()
+	wb.save(buffer)
+	frappe.response["filename"] = f"{nama_file}.xlsx"
+	frappe.response["filecontent"] = buffer.getvalue()
+	frappe.response["type"] = "binary"
+
+
 @frappe.whitelist()
 def download_template():
 	frappe.has_permission("RAB Penawaran", "read", throw=True)
-	data = [
-		[judul for judul, _ in KOLOM_EXCEL],
-		["1", "Pekerjaan Persiapan", "", "ls", 1, 0, 0],
-		["1.1", "Pembersihan lokasi", "Termasuk buang puing", "m2", 250, 15000, 11000],
-		["2", "Pekerjaan Beton", "Beton K-250", "m3", 12.5, 1250000, 1050000],
+	contoh = [
+		{"kode_wbs": "1", "uraian_pekerjaan": "Pekerjaan Persiapan"},
+		{"kode_wbs": "1.1", "uraian_pekerjaan": "Pembersihan lokasi", "spesifikasi": "Termasuk buang puing", "satuan": "m2",
+			"volume": 250, "harga_satuan": 15000, "harga_satuan_pokok": 11000},
+		{"kode_wbs": "2", "uraian_pekerjaan": "Pekerjaan Beton"},
+		{"kode_wbs": "2.1", "uraian_pekerjaan": "Beton K-250", "spesifikasi": "Ready mix", "satuan": "m3",
+			"volume": 12.5, "harga_satuan": 1250000, "harga_satuan_pokok": 1050000},
 	]
-	build_xlsx_response(data, "Template RAB Penawaran")
+	kirim_xlsx("Template RAB Penawaran", contoh, catatan="Baris contoh di sheet RAB boleh dihapus / ditimpa.")
+
+
+@frappe.whitelist()
+def download_isi(name):
+	"""Isi RAB yang sudah ada dalam format template, untuk diedit lalu diupload ulang."""
+	doc = frappe.get_doc("RAB Penawaran", name)
+	doc.check_permission("read")
+	kirim_xlsx(f"{doc.name} - {doc.nama_project or ''}".strip(" -"), [item.as_dict() for item in doc.items])
 
 
 @frappe.whitelist()

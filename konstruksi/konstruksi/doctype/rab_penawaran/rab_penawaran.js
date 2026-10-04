@@ -14,10 +14,19 @@ frappe.ui.form.on("RAB Penawaran", {
 
 	refresh(frm) {
 		const terkunci = harga_terkunci(frm);
+		const hak = hak_rab(frm);
 		frm.add_custom_button(__("Download Template"), () => {
 			window.open(`/api/method/${RAB_METHOD}.download_template`);
 		}, __("Excel"));
-		if (!terkunci) frm.add_custom_button(__("Upload Excel"), () => upload_excel(frm), __("Excel"));
+		if (!frm.is_new()) {
+			frm.add_custom_button(__("Download Isi RAB"), () => {
+				window.open(`/api/method/${RAB_METHOD}.download_isi?name=${encodeURIComponent(frm.doc.name)}`);
+			}, __("Excel"));
+		}
+		// Setelah penawaran diajukan, upload hanya untuk memperbarui Harga Pokok (bila boleh mengubah biaya).
+		if (hak.ubah_harga || (hak.ubah_biaya && !frm.is_new())) {
+			frm.add_custom_button(__("Upload Excel"), () => upload_excel(frm), __("Excel"));
+		}
 
 		// Penawaran sudah diajukan: item & harga dikunci di tabel item, Harga Satuan Pokok (biaya) tetap bisa diisi.
 		if (terkunci) {
@@ -99,13 +108,22 @@ function hitung_total(frm) {
 }
 
 function upload_excel(frm) {
+	const hak = hak_rab(frm);
+	const MODE_GANTI = __("Ganti semua item");
+	const MODE_TAMBAH = __("Tambahkan di bawah item yang ada");
+	const MODE_POKOK = __("Perbarui Harga Pokok saja (cocokkan Kode WBS)");
+	const mode = [
+		...(hak.ubah_harga ? [MODE_GANTI, MODE_TAMBAH] : []),
+		...(hak.ubah_biaya && (frm.doc.items || []).length ? [MODE_POKOK] : []),
+	];
+
 	const dialog = new frappe.ui.Dialog({
 		title: __("Upload Excel RAB"),
 		fields: [
 			{
 				fieldtype: "HTML",
 				options: `<p class="text-muted small">${__(
-					"Gunakan format dari tombol Excel → Download Template."
+					"Gunakan format dari Excel → Download Template, atau Download Isi RAB untuk mengedit item yang sudah ada."
 				)}</p>`,
 			},
 			{
@@ -118,10 +136,9 @@ function upload_excel(frm) {
 			{
 				fieldname: "mode",
 				fieldtype: "Select",
-				label: __("Item yang sudah ada"),
-				options: [__("Ganti semua item"), __("Tambahkan di bawah item yang ada")].join("\n"),
-				default: __("Ganti semua item"),
-				depends_on: () => (frm.doc.items || []).length,
+				label: __("Cara import"),
+				options: mode.join("\n"),
+				default: mode[0],
 			},
 		],
 		primary_action_label: __("Import"),
@@ -134,17 +151,38 @@ function upload_excel(frm) {
 					freeze_message: __("Membaca file Excel..."),
 				})
 				.then((r) => {
-					if (values.mode === __("Ganti semua item")) {
-						frm.clear_table("items");
+					const baris = r.message || [];
+					let pesan;
+					if (values.mode === MODE_POKOK) {
+						// Hanya Harga Satuan Pokok yang diisi; item & harga penawaran tidak disentuh.
+						const by_kode = {};
+						(frm.doc.items || []).forEach((item) => {
+							if ((item.kode_wbs || "").trim()) by_kode[item.kode_wbs.trim()] = item;
+						});
+						let cocok = 0;
+						const tidak = [];
+						baris.forEach((row) => {
+							const item = by_kode[String(row.kode_wbs || "").trim()];
+							if (!item) {
+								if (flt(row.harga_satuan_pokok)) tidak.push(row.kode_wbs || row.uraian_pekerjaan);
+								return;
+							}
+							if (row.harga_satuan_pokok !== undefined) {
+								item.harga_satuan_pokok = flt(row.harga_satuan_pokok);
+								cocok++;
+							}
+						});
+						pesan = __("Harga Pokok diperbarui untuk {0} item.", [cocok]);
+						if (tidak.length) pesan += " " + __("{0} baris tidak cocok dengan Kode WBS mana pun: {1}", [tidak.length, tidak.slice(0, 5).join(", ")]);
+					} else {
+						if (values.mode === MODE_GANTI) frm.clear_table("items");
+						baris.forEach((row) => frm.add_child("items", row));
+						pesan = __("{0} item diimport dari Excel.", [baris.length]);
 					}
-					(r.message || []).forEach((row) => frm.add_child("items", row));
 					hitung_total(frm);
 					frm.dirty();
 					dialog.hide();
-					frappe.show_alert({
-						message: __("{0} item diimport dari Excel. Jangan lupa Save.", [r.message.length]),
-						indicator: "green",
-					});
+					frappe.show_alert({ message: `${pesan} ${__("Jangan lupa Save.")}`, indicator: "green" }, 7);
 				});
 		},
 	});
