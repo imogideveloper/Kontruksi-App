@@ -52,7 +52,13 @@
   "nilai_uang_muka",
   "pembayaran_column",
   "retensi_persen",
+  "pph_section",
+  "jenis_jasa",
+  "pph_column",
+  "kualifikasi_usaha",
+  "pph_column_2",
   "pph_final_persen",
+  "tarif_pph_final",
   "konfirmasi_bayar_section",
   "syarat_bayar_dikonfirmasi",
   "jaminan_tab",
@@ -379,10 +385,45 @@
    "description": "Ditahan dari tiap pembayaran, dibayar setelah masa pemeliharaan."
   },
   {
+   "fieldname": "pph_section",
+   "fieldtype": "Section Break",
+   "label": "PPh Final"
+  },
+  {
+   "fieldname": "jenis_jasa",
+   "fieldtype": "Select",
+   "label": "Jenis Jasa",
+   "default": "Pekerjaan Konstruksi",
+   "options": "Pekerjaan Konstruksi\nPekerjaan Konstruksi Terintegrasi\nKonsultansi Konstruksi"
+  },
+  {
+   "fieldname": "pph_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "kualifikasi_usaha",
+   "fieldtype": "Select",
+   "label": "Kualifikasi Usaha",
+   "options": "\nKecil / Perseorangan\nMenengah / Besar\nBersertifikat\nTidak Memiliki Sertifikat",
+   "description": "Sesuai SBU perusahaan untuk kontrak ini."
+  },
+  {
+   "fieldname": "pph_column_2",
+   "fieldtype": "Column Break"
+  },
+  {
    "fieldname": "pph_final_persen",
    "fieldtype": "Percent",
    "label": "PPh Final (%)",
-   "description": "Sesuai kualifikasi usaha (SBU)."
+   "description": "Otomatis dari master Tarif PPh Final sesuai jenis jasa, kualifikasi, dan tanggal kontrak.",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tarif_pph_final",
+   "fieldtype": "Link",
+   "label": "Sumber Tarif",
+   "options": "Tarif PPh Final",
+   "read_only": 1
   },
   {
    "fieldname": "konfirmasi_bayar_section",
@@ -521,7 +562,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-05 13:00:00.000000",
+ "modified": "2026-10-05 14:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kontrak Project",

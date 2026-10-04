@@ -38,9 +38,40 @@ TEMPLATE_DOKUMEN_DEFAULT = (
 )
 
 
+# Tarif PPh Final jasa konstruksi (PP 9/2022, berlaku 21 Feb 2022): (jenis jasa, kualifikasi, tarif %).
+TARIF_PPH_FINAL_DEFAULT = (
+	("Pekerjaan Konstruksi", "Kecil / Perseorangan", 1.75),
+	("Pekerjaan Konstruksi", "Menengah / Besar", 2.65),
+	("Pekerjaan Konstruksi", "Tidak Memiliki Sertifikat", 4),
+	("Pekerjaan Konstruksi Terintegrasi", "Bersertifikat", 2.65),
+	("Pekerjaan Konstruksi Terintegrasi", "Tidak Memiliki Sertifikat", 4),
+	("Konsultansi Konstruksi", "Bersertifikat", 3.5),
+	("Konsultansi Konstruksi", "Tidak Memiliki Sertifikat", 6),
+)
+TARIF_PPH_FINAL_BERLAKU = "2022-02-21"
+
+
 def after_install():
 	buat_jenis_project_default()
 	buat_template_dokumen_default()
+	buat_tarif_pph_final_default()
+
+
+def buat_tarif_pph_final_default():
+	"""Isi master Tarif PPh Final bila masih kosong."""
+	if frappe.db.count("Tarif PPh Final"):
+		return
+	for jenis_jasa, kualifikasi, tarif in TARIF_PPH_FINAL_DEFAULT:
+		frappe.get_doc(
+			{
+				"doctype": "Tarif PPh Final",
+				"jenis_jasa": jenis_jasa,
+				"kualifikasi": kualifikasi,
+				"tarif": tarif,
+				"berlaku_mulai": TARIF_PPH_FINAL_BERLAKU,
+				"dasar_hukum": "PP 9 Tahun 2022",
+			}
+		).insert(ignore_permissions=True)
 
 
 def buat_jenis_project_default():

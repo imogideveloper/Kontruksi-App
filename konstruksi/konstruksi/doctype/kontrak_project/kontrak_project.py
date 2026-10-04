@@ -10,6 +10,7 @@ from frappe.utils import add_days, cint, flt, fmt_money, getdate, now
 
 from konstruksi.api import beri_tahu_form
 
+from konstruksi.konstruksi.doctype.tarif_pph_final.tarif_pph_final import cek_kualifikasi, get_tarif
 from konstruksi.konstruksi.doctype.tender.tender import BATAS_HARGA_WAJAR
 
 # Field Kontrak Project yang selalu mengikuti Tender (read-only di kontrak, diubah dari Tender): field kontrak -> Tender.
@@ -37,10 +38,11 @@ class KontrakProject(Document):
 		self.hitung_nilai()
 		self.hitung_waktu()
 		self.hitung_jaminan()
+		self.ambil_tarif_pph()
 
 		if self.tanggal_kontrak and self.tanggal_spmk and getdate(self.tanggal_spmk) < getdate(self.tanggal_kontrak):
 			frappe.throw(_("Tanggal SPMK tidak boleh sebelum Tanggal Kontrak."))
-		for fieldname in ("uang_muka_persen", "retensi_persen", "pph_final_persen", "tarif_ppn"):
+		for fieldname in ("uang_muka_persen", "retensi_persen", "tarif_ppn"):
 			if not 0 <= flt(self.get(fieldname)) <= 100:
 				frappe.throw(_("{0} harus antara 0 dan 100.").format(_(self.meta.get_label(fieldname))))
 
@@ -61,6 +63,24 @@ class KontrakProject(Document):
 		# Project Manager diisi di kontrak; awalnya Penanggung Jawab tender.
 		if not self.project_manager:
 			self.project_manager = frappe.db.get_value("Tender", self.tender, "penanggung_jawab")
+
+	def ambil_tarif_pph(self):
+		"""PPh Final dari master Tarif PPh Final (berlaku pada tanggal kontrak), bukan diisi manual."""
+		self.pph_final_persen = 0
+		self.tarif_pph_final = None
+		if not (self.jenis_jasa and self.kualifikasi_usaha):
+			return
+		cek_kualifikasi(self.jenis_jasa, self.kualifikasi_usaha)
+		tarif = get_tarif(self.jenis_jasa, self.kualifikasi_usaha, self.tanggal_kontrak)
+		if not tarif:
+			frappe.throw(
+				_("Belum ada Tarif PPh Final aktif untuk {0} · {1} yang berlaku pada {2}. Tambahkan di menu Tarif PPh Final.").format(
+					self.jenis_jasa, self.kualifikasi_usaha, frappe.format(self.tanggal_kontrak or getdate(), "Date")
+				),
+				title=_("Tarif PPh Final belum ada"),
+			)
+		self.pph_final_persen = tarif.tarif
+		self.tarif_pph_final = tarif.name
 
 	def hitung_semua(self):
 		self.hitung_nilai()
@@ -126,7 +146,7 @@ class KontrakProject(Document):
 				"ok": bool(self.syarat_bayar_dikonfirmasi),
 				"ket": _("Sudah dicocokkan dengan kontrak.")
 				if self.syarat_bayar_dikonfirmasi
-				else _("Isi uang muka, retensi, PPh, lalu centang konfirmasi."),
+				else _("Isi uang muka, retensi, kualifikasi PPh, lalu centang konfirmasi."),
 				"field": "syarat_bayar_dikonfirmasi",
 			},
 		]

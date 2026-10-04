@@ -1,0 +1,111 @@
+{
+ "actions": [],
+ "autoname": "PPH-.###",
+ "creation": "2026-10-05 14:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "field_order": [
+  "jenis_jasa",
+  "kualifikasi",
+  "tarif_column",
+  "tarif",
+  "berlaku_mulai",
+  "dasar_hukum",
+  "disabled"
+ ],
+ "fields": [
+  {
+   "fieldname": "jenis_jasa",
+   "fieldtype": "Select",
+   "label": "Jenis Jasa",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "options": "Pekerjaan Konstruksi\nPekerjaan Konstruksi Terintegrasi\nKonsultansi Konstruksi"
+  },
+  {
+   "fieldname": "kualifikasi",
+   "fieldtype": "Select",
+   "label": "Kualifikasi Usaha",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "options": "Kecil / Perseorangan\nMenengah / Besar\nBersertifikat\nTidak Memiliki Sertifikat",
+   "description": "Pekerjaan Konstruksi: Kecil / Perseorangan, Menengah / Besar, atau Tidak Memiliki Sertifikat. Terintegrasi & Konsultansi: Bersertifikat atau Tidak Memiliki Sertifikat."
+  },
+  {
+   "fieldname": "tarif_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tarif",
+   "fieldtype": "Percent",
+   "label": "Tarif (%)",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "berlaku_mulai",
+   "fieldtype": "Date",
+   "label": "Berlaku Mulai",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "Kontrak memakai tarif yang berlaku pada tanggal kontraknya. Aturan baru = tambah baris baru, jangan ubah yang lama."
+  },
+  {
+   "fieldname": "dasar_hukum",
+   "fieldtype": "Data",
+   "label": "Dasar Hukum"
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Nonaktif"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-05 14:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Konstruksi",
+ "name": "Tarif PPh Final",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "role": "Projects Manager",
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "role": "Projects User",
+   "read": 1,
+   "report": 1
+  }
+ ],
+ "sort_field": "berlaku_mulai",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

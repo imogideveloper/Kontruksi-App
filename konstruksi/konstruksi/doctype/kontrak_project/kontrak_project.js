@@ -23,7 +23,20 @@ const FIELD_KELENGKAPAN = [
 // Field yang memengaruhi kartu ringkasan.
 const FIELD_RINGKASAN = ["nilai_kontrak", "tarif_ppn", "status_ppn", "tanggal_spmk", "masa_pelaksanaan", "masa_pemeliharaan"];
 
+// Sama dengan KUALIFIKASI_PER_JASA di tarif_pph_final.py.
+const KUALIFIKASI_PER_JASA = {
+	"Pekerjaan Konstruksi": ["Kecil / Perseorangan", "Menengah / Besar", "Tidak Memiliki Sertifikat"],
+	"Pekerjaan Konstruksi Terintegrasi": ["Bersertifikat", "Tidak Memiliki Sertifikat"],
+	"Konsultansi Konstruksi": ["Bersertifikat", "Tidak Memiliki Sertifikat"],
+};
+
 const kontrak_events = {
+	jenis_jasa(frm) {
+		set_pilihan_kualifikasi(frm);
+		muat_tarif_pph(frm);
+	},
+	kualifikasi_usaha: (frm) => muat_tarif_pph(frm),
+
 	setup(frm) {
 		// Hanya tender yang menang dan belum punya kontrak.
 		frm.set_query("tender", () => ({ query: `${KONTRAK_METHOD}.cari_tender_menang` }));
@@ -43,6 +56,7 @@ const kontrak_events = {
 			frm.add_custom_button(__("Tender"), () => frappe.set_route("Form", "Tender", frm.doc.tender), __("Buka"));
 			frm.add_custom_button(__("Hasil Tender"), () => frappe.set_route("Form", "Hasil Tender", frm.doc.tender), __("Buka"));
 		}
+		set_pilihan_kualifikasi(frm);
 		const [label, warna] = kontrak_status(frm.doc);
 		if (!frm.is_new()) frm.page.set_indicator(label, warna);
 		// Setelah simpan / reload, checklist dari server sudah sesuai data tersimpan.
@@ -57,6 +71,8 @@ const kontrak_events = {
 // Ringkasan & checklist ikut berubah sebelum disimpan supaya isian langsung terlihat hasilnya.
 [...new Set([...FIELD_RINGKASAN, ...FIELD_KELENGKAPAN])].forEach((fieldname) => {
 	kontrak_events[fieldname] = (frm) => {
+		// Tarif PPh mengikuti yang berlaku pada tanggal kontrak.
+		if (fieldname === "tanggal_kontrak") muat_tarif_pph(frm);
 		if (FIELD_RINGKASAN.includes(fieldname)) {
 			render_ringkasan_kontrak(frm);
 			render_tabel_nilai(frm);
@@ -66,6 +82,32 @@ const kontrak_events = {
 });
 
 frappe.ui.form.on("Kontrak Project", kontrak_events);
+
+function set_pilihan_kualifikasi(frm) {
+	const pilihan = KUALIFIKASI_PER_JASA[frm.doc.jenis_jasa] || [];
+	frm.set_df_property("kualifikasi_usaha", "options", ["", ...pilihan].join("\n"));
+	if (frm.doc.kualifikasi_usaha && !pilihan.includes(frm.doc.kualifikasi_usaha)) frm.set_value("kualifikasi_usaha", "");
+}
+
+// Tarif PPh Final langsung tampil sebelum disimpan; saat simpan server mengambilnya lagi dari master.
+function muat_tarif_pph(frm) {
+	if (!frm.doc.jenis_jasa || !frm.doc.kualifikasi_usaha) {
+		frm.set_value({ pph_final_persen: 0, tarif_pph_final: "" });
+		return;
+	}
+	frappe
+		.call("konstruksi.konstruksi.doctype.tarif_pph_final.tarif_pph_final.get_tarif", {
+			jenis_jasa: frm.doc.jenis_jasa,
+			kualifikasi: frm.doc.kualifikasi_usaha,
+			tanggal: frm.doc.tanggal_kontrak,
+		})
+		.then((r) => {
+			if (!r.message) {
+				frappe.show_alert({ message: __("Tarif PPh Final untuk pilihan ini belum ada di master."), indicator: "orange" });
+			}
+			frm.set_value({ pph_final_persen: r.message?.tarif || 0, tarif_pph_final: r.message?.name || "" });
+		});
+}
 
 // Dihitung di server (logika sama dengan saat simpan); ditunda sedikit agar tidak memanggil server tiap ketikan.
 const muat_kelengkapan = frappe.utils.debounce((frm) => {
