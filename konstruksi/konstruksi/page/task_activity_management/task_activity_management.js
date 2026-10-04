@@ -205,6 +205,10 @@ class HalamanAktivitas {
 				<input type="search" class="form-control input-sm kpa-cari" placeholder="${__("Cari aktivitas / PJ...")}" value="${kpa_esc(this.filter.cari)}">
 				<select class="form-control input-sm kpa-filter-wbs"><option value="">${__("Semua WBS")}</option>${opsi_wbs}</select>
 				<select class="form-control input-sm kpa-filter-status"><option value="">${__("Semua status")}</option>${opsi_status}</select>
+				<div class="kpa-toolbar-kanan">
+					<button class="btn btn-default btn-sm" data-kpa="template" title="${__("Excel berisi aktivitas proyek ini (atau item WBS bila belum ada aktivitas)")}">${frappe.utils.icon("download", "xs")} ${__("Template Excel")}</button>
+					${d.bisa_buat ? `<button class="btn btn-default btn-sm" data-kpa="upload">${frappe.utils.icon("upload", "xs")} ${__("Upload Excel")}</button>` : ""}
+				</div>
 			</div>
 			<div class="kpw-tabel-wrap"><table class="kpw-tabel kpa-tabel">
 				<colgroup><col style="width:60px"><col><col style="width:150px"><col style="width:190px"><col style="width:70px">
@@ -377,6 +381,10 @@ class HalamanAktivitas {
 					__("Tolak Laporan"),
 					__("Tolak")
 				);
+			case "template":
+				return window.open(`/api/method/${KPA_API}download_template?project=${encodeURIComponent(this.project)}`);
+			case "upload":
+				return this.dialog_upload();
 			case "hapus-laporan":
 				return frappe.confirm(__("Hapus laporan {0}?", [kpa_esc(name)]), () => this.call("hapus_laporan", { name }, __("Laporan dihapus")));
 		}
@@ -569,6 +577,85 @@ class HalamanAktivitas {
 		render_tahap();
 		render_metode();
 		render_durasi();
+		dialog.show();
+	}
+
+	dialog_upload() {
+		const dialog = new frappe.ui.Dialog({
+			title: __("Upload Excel Aktivitas"),
+			fields: [
+				{ fieldtype: "HTML", options: `<p class="text-muted small">${__(
+					"Gunakan format dari Template Excel. Isi file akan dicek dulu dan ditampilkan sebelum diimpor; aktivitas dengan Nama & Kode WBS yang sama diperbarui, bukan dibuat dobel."
+				)}</p>` },
+				{ fieldname: "file_url", fieldtype: "Attach", label: __("File Excel (.xlsx)"), reqd: 1,
+					options: { restrictions: { allowed_file_types: [".xlsx"] } } },
+			],
+			primary_action_label: __("Periksa"),
+			primary_action: (v) =>
+				frappe
+					.call({ method: KPA_API + "baca_excel", args: { project: this.project, file_url: v.file_url }, freeze: true, freeze_message: __("Membaca file Excel...") })
+					.then((r) => {
+						dialog.hide();
+						this.dialog_pratinjau(r.message);
+					}),
+		});
+		dialog.show();
+	}
+
+	dialog_pratinjau({ rows, hasil }) {
+		const error = hasil.filter((b) => b.error.length).length;
+		const peringatan = hasil.filter((b) => b.peringatan.length).length;
+		const baru = hasil.filter((b) => !b.task).length;
+		const baris = hasil
+			.map((b) => {
+				const catatan = [
+					...b.error.map((x) => `<div class="kpa-merah">✕ ${kpa_esc(x)}</div>`),
+					...b.peringatan.map((x) => `<div class="kpa-oranye">! ${kpa_esc(x)}</div>`),
+				].join("");
+				const ukur = b.metode === "Tahapan"
+					? __("Tahapan ({0})", [b.tahapan.length])
+					: `${kpa_angka(b.target_volume)} ${kpa_esc(b.satuan || "")}`;
+				return `<tr class="${b.error.length ? "kpa-pratinjau-error" : ""}">
+					<td>${kpa_esc(b.no)}</td>
+					<td class="kpa-wrap"><b>${kpa_esc(b.subject)}</b><div class="kpa-sub">${kpa_esc(b.kode_wbs)} ${kpa_esc(b.uraian_wbs)}</div></td>
+					<td>${b.mulai ? `${kpa_tgl(b.mulai)} – ${kpa_tgl(b.selesai)}` : "—"}${b.durasi ? `<div class="kpa-sub">${b.durasi} hk${b.setelah.length ? ` · ${__("setelah No")} ${kpa_esc(b.setelah.join(", "))}` : ""}</div>` : ""}</td>
+					<td>${ukur}</td>
+					<td class="kpa-wrap">${kpa_esc(b.pj_nama || "—")}</td>
+					<td>${b.task ? `<span class="kpa-status kpa-status-biru">${__("Perbarui")}</span>` : `<span class="kpa-status kpa-status-hijau">${__("Baru")}</span>`}</td>
+					<td class="kpa-wrap kpa-pratinjau-catatan">${catatan || '<span class="kpa-ok">✓</span>'}</td>
+				</tr>`;
+			})
+			.join("");
+		const ringkas = error
+			? `<div class="kpa-pratinjau-ringkas kpa-merah">${__("{0} baris error — perbaiki file lalu upload ulang. Tidak ada yang diimpor sebelum semua baris benar.", [error])}</div>`
+			: `<div class="kpa-pratinjau-ringkas kpa-ok">${__("{0} aktivitas siap diimpor: {1} baru, {2} diperbarui.", [hasil.length, baru, hasil.length - baru])}${
+					peringatan ? ` <span class="kpa-oranye">${__("{0} baris dengan catatan (tetap bisa diimpor).", [peringatan])}</span>` : ""
+			  }</div>`;
+		const dialog = new frappe.ui.Dialog({
+			title: __("Pratinjau Upload Aktivitas"),
+			size: "extra-large",
+			fields: [{ fieldname: "isi", fieldtype: "HTML" }],
+			primary_action_label: error ? __("Tutup") : __("Impor {0} Aktivitas", [hasil.length]),
+			primary_action: () => {
+				if (error) return dialog.hide();
+				frappe
+					.call({ method: KPA_API + "impor_excel", args: { project: this.project, rows }, freeze: true, freeze_message: __("Mengimpor aktivitas...") })
+					.then((r) => {
+						dialog.hide();
+						const m = r.message || {};
+						frappe.show_alert({ message: __("{0} aktivitas dibuat, {1} diperbarui", [m.dibuat, m.diperbarui]), indicator: "green" });
+						this.muat();
+					});
+			},
+			secondary_action_label: error ? null : __("Batal"),
+			secondary_action: error ? null : () => dialog.hide(),
+		});
+		dialog.fields_dict.isi.$wrapper.html(`<div class="kpr kpw kpa">${ringkas}
+			<div class="kpw-tabel-wrap kpa-pratinjau"><table class="kpw-tabel kpa-tabel">
+				<colgroup><col style="width:44px"><col><col style="width:200px"><col style="width:120px"><col style="width:150px"><col style="width:90px"><col style="width:300px"></colgroup>
+				<thead><tr><th>${__("No")}</th><th>${__("Aktivitas")}</th><th>${__("Jadwal")}</th><th>${__("Target")}</th><th>${__("PJ")}</th><th></th><th>${__("Pemeriksaan")}</th></tr></thead>
+				<tbody>${baris}</tbody>
+			</table></div></div>`);
 		dialog.show();
 	}
 

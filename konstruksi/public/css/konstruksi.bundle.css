@@ -3472,3 +3472,48 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpa-tahap-total.kpa-oranye {
 	color: var(--kpr-oranye, #c2410c);
 }
+
+/* Task & Activity: tombol Excel di kanan toolbar & dialog pratinjau upload. */
+.kpa-toolbar-kanan {
+	display: flex;
+	gap: 8px;
+	margin-left: auto;
+}
+
+.kpa-toolbar-kanan .icon {
+	stroke: currentColor;
+}
+
+.kpa-pratinjau {
+	max-height: 60vh;
+	overflow: auto;
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+}
+
+.kpa-pratinjau .kpa-tabel {
+	min-width: 1000px;
+}
+
+.kpa-pratinjau thead th {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+}
+
+.kpa-pratinjau-ringkas {
+	margin-bottom: 12px;
+	font-weight: 500;
+}
+
+.kpa-ok {
+	color: var(--kpr-hijau, #15803d);
+}
+
+.kpa-pratinjau-error td {
+	background: rgba(220, 38, 38, 0.05);
+}
+
+.kpa-pratinjau-catatan {
+	font-size: var(--text-xs);
+}

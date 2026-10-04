@@ -431,3 +431,365 @@ def hapus_laporan(project, name):
 	if doc.owner != frappe.session.user and not bisa_setujui():
 		frappe.throw(_("Hanya pembuat laporan atau Projects Manager yang bisa menghapus laporan ini."))
 	frappe.delete_doc("Laporan Progres", name, ignore_permissions=True)
+
+
+# ---------- Excel: template & upload aktivitas ----------
+
+KOLOM_EXCEL = (
+	("No", "no"),
+	("Nama Aktivitas", "subject"),
+	("Kode WBS", "kode_wbs"),
+	("Prioritas", "prioritas"),
+	("Durasi (hari kerja)", "durasi"),
+	("Setelah No", "setelah"),
+	("Mulai", "mulai"),
+	("Selesai", "selesai"),
+	("Diukur dari", "metode"),
+	("Target Volume", "target_volume"),
+	("Satuan", "satuan"),
+	("Tahapan (nama:bobot; ...)", "tahapan"),
+	("Penanggung Jawab", "pj"),
+	("Catatan", "catatan"),
+)
+PRIORITAS_EXCEL = {"rendah": "Low", "sedang": "Medium", "tinggi": "High", "kritis": "Urgent",
+	"low": "Low", "medium": "Medium", "high": "High", "urgent": "Urgent"}
+PRIORITAS_TEKS = {"Low": "Rendah", "Medium": "Sedang", "High": "Tinggi", "Urgent": "Kritis"}
+
+
+def normal(teks):
+	return " ".join(str(teks or "").split()).strip().lower()
+
+
+def tambah_hari_kerja(mulai, durasi, libur):
+	"""Tanggal selesai: hari kerja ke-`durasi` sejak `mulai` (mulai dihitung bila hari kerja)."""
+	d, n = getdate(mulai), 0
+	while True:
+		if d not in libur:
+			n += 1
+			if n >= durasi:
+				return d
+		d += timedelta(days=1)
+
+
+def hari_kerja_berikut(tanggal, libur):
+	d = getdate(tanggal) + timedelta(days=1)
+	while d in libur:
+		d += timedelta(days=1)
+	return d
+
+
+def parse_tanggal(value):
+	from datetime import date, datetime
+
+	if not value:
+		return None
+	if isinstance(value, datetime):
+		return value.date()
+	if isinstance(value, date):
+		return value
+	teks = str(value).strip()
+	for fmt in ("%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y", "%d.%m.%Y", "%d/%m/%y", "%Y-%m-%d %H:%M:%S"):
+		try:
+			return datetime.strptime(teks, fmt).date()
+		except ValueError:
+			continue
+	raise ValueError(teks)
+
+
+def parse_tahapan(teks):
+	"""'Pondasi:15; Struktur:30' -> [{nama_tahap, bobot}]."""
+	from konstruksi.konstruksi.doctype.rab_penawaran.rab_penawaran import parse_angka
+
+	hasil = []
+	for bagian in str(teks or "").replace("\n", ";").split(";"):
+		if not bagian.strip():
+			continue
+		nama, _sep, bobot = bagian.rpartition(":") if ":" in bagian else (bagian, "", "")
+		hasil.append({"nama_tahap": nama.strip(), "bobot": parse_angka(bobot.replace("%", "")) if bobot.strip() else 0})
+	return hasil
+
+
+def kirim_xlsx_aktivitas(nama_file, baris):
+	from io import BytesIO
+
+	from openpyxl import Workbook
+	from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+
+	wb = Workbook()
+	ws = wb.active
+	ws.title = "Aktivitas"
+	lebar = {"no": 5, "subject": 40, "kode_wbs": 10, "prioritas": 10, "durasi": 11, "setelah": 10, "mulai": 12, "selesai": 12,
+		"metode": 11, "target_volume": 11, "satuan": 8, "tahapan": 42, "pj": 24, "catatan": 36}
+	ws.append([judul for judul, _ in KOLOM_EXCEL])
+	for c, (_, f) in enumerate(KOLOM_EXCEL, start=1):
+		sel = ws.cell(row=1, column=c)
+		sel.font = Font(bold=True, color="FFFFFF")
+		sel.fill = PatternFill("solid", fgColor="1F3A5F")
+		sel.alignment = Alignment(vertical="center", horizontal="center", wrap_text=True)
+		ws.column_dimensions[sel.column_letter].width = lebar.get(f, 12)
+	ws.row_dimensions[1].height = 32
+	ws.freeze_panes = "C2"
+	garis = Border(bottom=Side(style="thin", color="D0D5DD"))
+	for b in baris:
+		ws.append([b.get(f) for _, f in KOLOM_EXCEL])
+		r = ws.max_row
+		for c, (_, f) in enumerate(KOLOM_EXCEL, start=1):
+			sel = ws.cell(row=r, column=c)
+			sel.border = garis
+			if f in ("mulai", "selesai"):
+				sel.number_format = "DD/MM/YYYY"
+			elif f == "target_volume":
+				sel.number_format = "#,##0.##"
+			elif f == "kode_wbs":
+				sel.alignment = Alignment(horizontal="left")
+
+	petunjuk = wb.create_sheet("Petunjuk")
+	for teks in [
+		"Cara mengisi Aktivitas (Task & Activity Management)",
+		"",
+		"1. Isi sheet Aktivitas mulai baris 2; jangan ubah judul kolom di baris 1. Satu baris = satu aktivitas.",
+		"2. No: nomor urut di file ini (dipakai kolom Setelah No). Kode WBS: kode item WBS proyek (mis. 2.1), bukan item induk.",
+		"3. Prioritas: Rendah / Sedang / Tinggi / Kritis.",
+		"4. Jadwal: isi Mulai & Selesai (DD/MM/YYYY), atau Mulai + Durasi (hari kerja; Selesai dihitung dari Project Calendar).",
+		"   Mulai boleh kosong bila Setelah No diisi: aktivitas mulai hari kerja berikutnya setelah predecessor selesai.",
+		"5. Setelah No: No aktivitas yang harus selesai lebih dulu; boleh lebih dari satu dipisah koma (mis. 3, 5).",
+		"6. Diukur dari: Volume (isi Target Volume & Satuan) atau Tahapan (isi kolom Tahapan).",
+		"7. Tahapan: nama:bobot dipisah titik koma, total bobot 100. Contoh: Pondasi:15; Struktur:30; Dinding:20; Atap:15; Finishing:20",
+		"8. Penanggung Jawab: nama personel atau jabatan di Tim Proyek (mis. Site Manager).",
+		"9. Aktivitas dengan Nama & Kode WBS yang sudah ada akan diperbarui, bukan dibuat dobel.",
+	]:
+		petunjuk.append([teks])
+	petunjuk["A1"].font = Font(bold=True, size=13)
+	petunjuk.column_dimensions["A"].width = 120
+
+	buffer = BytesIO()
+	wb.save(buffer)
+	frappe.response["filename"] = f"{nama_file}.xlsx"
+	frappe.response["filecontent"] = buffer.getvalue()
+	frappe.response["type"] = "binary"
+
+
+@frappe.whitelist()
+def download_template(project):
+	"""Template Excel aktivitas: berisi aktivitas proyek yang sudah ada; bila belum ada, satu baris per item WBS."""
+	frappe.get_doc("Project", project).check_permission("read")
+	d = get_aktivitas(project)
+	baris = []
+	if d["aktivitas"]:
+		no = {t.name: i for i, t in enumerate(d["aktivitas"], start=1)}
+		for i, t in enumerate(d["aktivitas"], start=1):
+			baris.append(
+				{
+					"no": i, "subject": t.subject, "kode_wbs": t.kode_wbs, "prioritas": PRIORITAS_TEKS.get(t.priority, ""),
+					"durasi": t.durasi_hk or None, "setelah": ", ".join(str(no[p["name"]]) for p in t.predecessor if p["name"] in no),
+					"mulai": getdate(t.exp_start_date) if t.exp_start_date else None,
+					"selesai": getdate(t.exp_end_date) if t.exp_end_date else None,
+					"metode": t.metode_progres or "Volume",
+					"target_volume": t.target_volume if t.metode_progres != "Tahapan" else None,
+					"satuan": t.satuan if t.metode_progres != "Tahapan" else None,
+					"tahapan": "; ".join(f"{x['nama_tahap']}:{flt(x['bobot']):g}" for x in t.tahapan) if t.metode_progres == "Tahapan" else None,
+					"pj": t.pj_nama, "catatan": frappe.utils.strip_html(t.description or "") or None,
+				}
+			)
+	else:
+		for i, w in enumerate([w for w in d["wbs"] if not w["is_group"]], start=1):
+			baris.append({"no": i, "subject": w["uraian"], "kode_wbs": w["kode"], "prioritas": "Sedang", "metode": "Volume",
+				"target_volume": w["volume"], "satuan": w["satuan"]})
+	kirim_xlsx_aktivitas(f"Aktivitas {project} - {d['project']['project_name']}", baris)
+
+
+def baca_baris_excel(file_url):
+	from frappe.utils.xlsxutils import read_xlsx_file_from_attached_file
+
+	rows = read_xlsx_file_from_attached_file(file_url=file_url)
+	file = frappe.db.get_value("File", {"file_url": file_url})
+	if file:
+		frappe.delete_doc("File", file, ignore_permissions=True)
+	if not rows:
+		frappe.throw(_("File Excel kosong."))
+	judul = [normal(h) for h in rows[0]]
+	posisi = {f: judul.index(normal(nama)) for nama, f in KOLOM_EXCEL if normal(nama) in judul}
+	# Judul kolom Tahapan / Durasi boleh tanpa keterangan dalam kurung.
+	for f, awalan in (("tahapan", "tahapan"), ("durasi", "durasi")):
+		if f not in posisi:
+			cocok = [i for i, j in enumerate(judul) if j.startswith(awalan)]
+			if cocok:
+				posisi[f] = cocok[0]
+	if "subject" not in posisi or "kode_wbs" not in posisi:
+		frappe.throw(_("Kolom 'Nama Aktivitas' dan 'Kode WBS' wajib ada. Gunakan Download Template."))
+	hasil = []
+	for baris in rows[1:]:
+		item = {f: (baris[i] if i < len(baris) else None) for f, i in posisi.items()}
+		if not str(item.get("subject") or "").strip():
+			continue
+		for f in ("mulai", "selesai"):
+			v = item.get(f)
+			if v is not None and not isinstance(v, str):
+				item[f] = str(getattr(v, "date", lambda: v)())
+		hasil.append({k: (v if v is None or isinstance(v, int | float) else str(v).strip()) for k, v in item.items()})
+	if not hasil:
+		frappe.throw(_("Tidak ada baris aktivitas yang terisi di file Excel."))
+	return hasil
+
+
+def siapkan_baris(project, rows):
+	"""Validasi & lengkapi baris Excel: WBS, jadwal (hari kerja), predecessor, metode, PJ. Mengembalikan baris + error."""
+	from konstruksi.konstruksi.doctype.rab_penawaran.rab_penawaran import parse_angka
+
+	proj = frappe.db.get_value("Project", project, ["expected_start_date", "expected_end_date"], as_dict=True)
+	libur = tanggal_libur(project)
+	wbs = {w.kode: w for w in frappe.get_all("WBS Item", filters={"project": project}, fields=["name", "kode", "uraian", "is_group"])}
+	tim = frappe.get_all("Penugasan Personel", filters={"project": project}, fields=["employee", "nama_personel", "jabatan"])
+	ada = {(normal(t.subject), t.wbs_item): t.name for t in frappe.get_all("Task", filters={"project": project}, fields=["name", "subject", "wbs_item"])}
+
+	hasil, per_no = [], {}
+	for i, r in enumerate(rows, start=1):
+		b = frappe._dict(
+			no=str(r.get("no") or i).replace(".0", "").strip(), subject=str(r.get("subject") or "").strip(),
+			kode_wbs=str(r.get("kode_wbs") or "").strip().rstrip("."), error=[], peringatan=[],
+		)
+		if b.kode_wbs.endswith(".0") and b.kode_wbs[:-2] in wbs and b.kode_wbs not in wbs:
+			b.kode_wbs = b.kode_wbs[:-2]
+		w = wbs.get(b.kode_wbs)
+		if not w:
+			b.error.append(_("Kode WBS {0} tidak ada di WBS proyek").format(b.kode_wbs or "(kosong)"))
+		elif w.is_group:
+			b.error.append(_("Kode WBS {0} adalah item induk; pakai sub-itemnya").format(b.kode_wbs))
+		b.wbs_item = w.name if w else None
+		b.uraian_wbs = w.uraian if w else ""
+
+		prio = normal(r.get("prioritas"))
+		b.priority = PRIORITAS_EXCEL.get(prio, "Medium")
+		if prio and prio not in PRIORITAS_EXCEL:
+			b.peringatan.append(_("Prioritas '{0}' tidak dikenal, dipakai Sedang").format(r.get("prioritas")))
+
+		b.setelah = [s.strip().replace(".0", "") for s in str(r.get("setelah") or "").replace(";", ",").split(",") if s.strip()]
+		try:
+			b.mulai = parse_tanggal(r.get("mulai"))
+			b.selesai = parse_tanggal(r.get("selesai"))
+		except ValueError as e:
+			b.error.append(_("Tanggal '{0}' tidak dikenali (pakai DD/MM/YYYY)").format(e))
+			b.mulai = b.selesai = None
+		b.durasi = cint(parse_angka(r.get("durasi"))) if r.get("durasi") not in (None, "") else 0
+
+		metode = normal(r.get("metode"))
+		b.tahapan = parse_tahapan(r.get("tahapan"))
+		b.metode = "Tahapan" if metode.startswith("tahap") or (not metode and b.tahapan) else "Volume"
+		if b.metode == "Tahapan":
+			total = sum(flt(t["bobot"]) for t in b.tahapan)
+			if not b.tahapan:
+				b.error.append(_("Metode Tahapan tapi kolom Tahapan kosong"))
+			elif abs(total - 100) > 0.01:
+				b.error.append(_("Total bobot tahapan {0}% (harus 100%)").format(flt(total, 2)))
+		else:
+			b.target_volume = parse_angka(r.get("target_volume"))
+			b.satuan = str(r.get("satuan") or "").strip()
+			if not b.target_volume:
+				b.error.append(_("Target Volume kosong"))
+
+		b.pj = None
+		pj = normal(r.get("pj"))
+		if pj:
+			cocok = [t for t in tim if normal(t.nama_personel) == pj] or [t for t in tim if normal(t.jabatan) == pj]
+			if cocok:
+				b.pj, b.pj_nama = cocok[0].employee, cocok[0].nama_personel
+				if len({c.employee for c in cocok}) > 1:
+					b.peringatan.append(_("{0} orang dengan jabatan {1}; dipilih {2}").format(len(cocok), r.get("pj"), cocok[0].nama_personel))
+			else:
+				b.peringatan.append(_("PJ '{0}' tidak ada di Tim Proyek; dikosongkan").format(r.get("pj")))
+		b.catatan = r.get("catatan")
+		b.task = ada.get((normal(b.subject), b.wbs_item))
+		if b.no in per_no:
+			b.error.append(_("No {0} dipakai lebih dari sekali").format(b.no))
+		per_no[b.no] = b
+		hasil.append(b)
+
+	# Jadwal: urutan topologis menurut Setelah No (predecessor dihitung lebih dulu).
+	selesai_hitung, sedang = set(), set()
+
+	def hitung_jadwal(b):
+		if b.no in selesai_hitung:
+			return
+		if b.no in sedang:
+			b.error.append(_("Setelah No membentuk lingkaran"))
+			return
+		sedang.add(b.no)
+		for s in b.setelah:
+			p = per_no.get(s)
+			if not p:
+				b.error.append(_("Setelah No {0} tidak ada di file").format(s))
+			elif p is b:
+				b.error.append(_("Setelah No tidak boleh dirinya sendiri"))
+			else:
+				hitung_jadwal(p)
+		if not b.mulai and b.setelah:
+			akhir = [per_no[s].selesai for s in b.setelah if s in per_no and per_no[s].selesai]
+			if akhir:
+				b.mulai = hari_kerja_berikut(max(akhir), libur)
+		if b.mulai and not b.selesai and b.durasi:
+			b.selesai = tambah_hari_kerja(b.mulai, b.durasi, libur)
+		if not (b.mulai and b.selesai):
+			b.error.append(_("Jadwal belum lengkap (isi Mulai & Selesai, atau Mulai + Durasi)"))
+		elif b.selesai < b.mulai:
+			b.error.append(_("Selesai sebelum Mulai"))
+		else:
+			hk = hari_kerja(b.mulai, b.selesai, libur)
+			if b.durasi and hk != b.durasi:
+				b.peringatan.append(_("Durasi {0} hk berbeda dengan tanggal ({1} hk); dipakai tanggal").format(b.durasi, hk))
+			b.durasi = hk
+			if proj.expected_start_date and b.mulai < getdate(proj.expected_start_date):
+				b.error.append(_("Mulai sebelum tanggal mulai proyek ({0})").format(frappe.format(proj.expected_start_date, "Date")))
+			if proj.expected_end_date and b.selesai > getdate(proj.expected_end_date):
+				b.error.append(_("Selesai setelah tanggal selesai proyek ({0})").format(frappe.format(proj.expected_end_date, "Date")))
+			for s in b.setelah:
+				p = per_no.get(s)
+				if p and p.selesai and b.mulai <= p.selesai:
+					b.peringatan.append(_("Mulai sebelum No {0} selesai").format(s))
+		sedang.discard(b.no)
+		selesai_hitung.add(b.no)
+
+	for b in hasil:
+		hitung_jadwal(b)
+	for b in hasil:
+		b.mulai = str(b.mulai) if b.mulai else None
+		b.selesai = str(b.selesai) if b.selesai else None
+	return hasil
+
+
+@frappe.whitelist()
+def baca_excel(project, file_url):
+	frappe.get_doc("Project", project).check_permission("read")
+	frappe.has_permission("Task", "create", throw=True)
+	rows = baca_baris_excel(file_url)
+	return {"rows": rows, "hasil": siapkan_baris(project, rows)}
+
+
+@frappe.whitelist()
+def impor_excel(project, rows):
+	"""Buat / perbarui aktivitas dari baris Excel (sudah dipratinjau). Semua atau tidak sama sekali."""
+	frappe.has_permission("Task", "create", throw=True)
+	rows = json.loads(rows) if isinstance(rows, str) else rows
+	hasil = siapkan_baris(project, rows)
+	salah = [b for b in hasil if b.error]
+	if salah:
+		frappe.throw(_("{0} baris masih error; perbaiki file lalu upload ulang.").format(len(salah)))
+	per_no, nama_task, dibuat, diperbarui = {b.no: b for b in hasil}, {}, 0, 0
+
+	def simpan(b):
+		if b.no in nama_task:
+			return
+		for s in b.setelah:
+			simpan(per_no[s])
+		nama_task[b.no] = simpan_aktivitas(
+			project, b.subject, b.wbs_item, b.mulai, b.selesai, name=b.task, pj=b.pj, priority=b.priority,
+			predecessor=[nama_task[s] for s in b.setelah], metode_progres=b.metode,
+			target_volume=b.get("target_volume") or 0, satuan=b.get("satuan"), tahapan=b.tahapan, description=b.catatan,
+		)
+
+	for b in hasil:
+		simpan(b)
+		if b.task:
+			diperbarui += 1
+		else:
+			dibuat += 1
+	return {"dibuat": dibuat, "diperbarui": diperbarui}
