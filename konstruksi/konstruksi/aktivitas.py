@@ -555,6 +555,7 @@ def kirim_xlsx_aktivitas(nama_file, baris):
 		"5. Setelah No: No aktivitas yang harus selesai lebih dulu; boleh lebih dari satu dipisah koma (mis. 3, 5).",
 		"6. Diukur dari: Volume (isi Target Volume & Satuan) atau Tahapan (isi kolom Tahapan).",
 		"7. Tahapan: nama:bobot dipisah titik koma, total bobot 100. Contoh: Pondasi:15; Struktur:30; Dinding:20; Atap:15; Finishing:20",
+		"   Kolom yang tidak sesuai metode diabaikan (Tahapan untuk Volume, Target Volume untuk Tahapan).",
 		"8. Penanggung Jawab: nama personel atau jabatan di Tim Proyek (mis. Site Manager).",
 		"9. Aktivitas dengan Nama & Kode WBS yang sudah ada akan diperbarui, bukan dibuat dobel.",
 	]:
@@ -675,6 +676,7 @@ def siapkan_baris(project, rows):
 		metode = normal(r.get("metode"))
 		b.tahapan = parse_tahapan(r.get("tahapan"))
 		b.metode = "Tahapan" if metode.startswith("tahap") or (not metode and b.tahapan) else "Volume"
+		b.target_volume, b.satuan = parse_angka(r.get("target_volume")), str(r.get("satuan") or "").strip()
 		if b.metode == "Tahapan":
 			total = sum(flt(t["bobot"]) for t in b.tahapan)
 			if not b.tahapan:
@@ -682,8 +684,6 @@ def siapkan_baris(project, rows):
 			elif abs(total - 100) > 0.01:
 				b.error.append(_("Total bobot tahapan {0}% (harus 100%)").format(flt(total, 2)))
 		else:
-			b.target_volume = parse_angka(r.get("target_volume"))
-			b.satuan = str(r.get("satuan") or "").strip()
 			if not b.target_volume:
 				b.error.append(_("Target Volume kosong"))
 
@@ -783,7 +783,10 @@ def impor_excel(project, rows):
 		nama_task[b.no] = simpan_aktivitas(
 			project, b.subject, b.wbs_item, b.mulai, b.selesai, name=b.task, pj=b.pj, priority=b.priority,
 			predecessor=[nama_task[s] for s in b.setelah], metode_progres=b.metode,
-			target_volume=b.get("target_volume") or 0, satuan=b.get("satuan"), tahapan=b.tahapan, description=b.catatan,
+			# Kolom yang tidak sesuai metode diabaikan (Tahapan untuk metode Volume, Target untuk metode Tahapan).
+			target_volume=(b.get("target_volume") or 0) if b.metode == "Volume" else 0,
+			satuan=b.get("satuan") if b.metode == "Volume" else None,
+			tahapan=b.tahapan if b.metode == "Tahapan" else [], description=b.catatan,
 		)
 
 	for b in hasil:
