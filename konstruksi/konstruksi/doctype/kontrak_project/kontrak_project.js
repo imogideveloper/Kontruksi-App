@@ -53,6 +53,7 @@ const kontrak_events = {
 		// Setelah simpan / reload, checklist dari server sudah sesuai data tersimpan.
 		if (!frm.is_dirty()) frm.__kelengkapan = frm.doc.__onload?.kelengkapan || frm.__kelengkapan;
 		render_ringkasan_kontrak(frm);
+		render_tabel_nilai(frm);
 		render_kelengkapan_kontrak(frm);
 		if (frm.is_new() && frm.doc.tender && !frm.__kelengkapan) muat_kelengkapan(frm);
 	},
@@ -61,7 +62,10 @@ const kontrak_events = {
 // Ringkasan & checklist ikut berubah sebelum disimpan supaya isian langsung terlihat hasilnya.
 [...new Set([...FIELD_RINGKASAN, ...FIELD_KELENGKAPAN])].forEach((fieldname) => {
 	kontrak_events[fieldname] = (frm) => {
-		if (FIELD_RINGKASAN.includes(fieldname)) render_ringkasan_kontrak(frm);
+		if (FIELD_RINGKASAN.includes(fieldname)) {
+			render_ringkasan_kontrak(frm);
+			render_tabel_nilai(frm);
+		}
 		if (FIELD_KELENGKAPAN.includes(fieldname)) muat_kelengkapan(frm);
 	};
 });
@@ -163,6 +167,38 @@ function render_ringkasan_kontrak(frm) {
 				}</div>
 			</div>
 		</div>
+	</div>`);
+}
+
+// Rincian nilai kontrak dalam satu baris tabel (nilai sebelum PPN & PPN dihitung dari nilai kontrak).
+function render_tabel_nilai(frm) {
+	const field = frm.fields_dict.nilai_tabel;
+	if (!field) return;
+	const doc = frm.doc;
+	const nilai = flt(doc.nilai_kontrak);
+	const tarif = doc.status_ppn === "PPN" ? flt(doc.tarif_ppn) : 0;
+	const sebelum_ppn = nilai / (1 + tarif / 100);
+	const isi = (value) => (nilai ? rupiah(value) : `<span class="text-muted">—</span>`);
+
+	field.$wrapper.html(`<div class="kp-tabel-wrap">
+		<table class="kp-tabel">
+			<thead>
+				<tr>
+					<th>${__("Uraian")}</th>
+					<th class="text-right">${__("Nilai Sebelum PPN")}</th>
+					<th class="text-right">${tarif ? __("PPN {0}%", [format_number(tarif, null, 0)]) : __("PPN")}</th>
+					<th class="text-right">${__("Nilai Kontrak")}<div class="kp-tabel-sub">${__("termasuk PPN")}</div></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td><b>${__("Kontrak awal")}</b></td>
+					<td class="text-right">${isi(sebelum_ppn)}</td>
+					<td class="text-right">${tarif ? isi(nilai - sebelum_ppn) : `<span class="text-muted">${__("Tidak kena PPN")}</span>`}</td>
+					<td class="text-right"><b>${isi(nilai)}</b></td>
+				</tr>
+			</tbody>
+		</table>
 	</div>`);
 }
 

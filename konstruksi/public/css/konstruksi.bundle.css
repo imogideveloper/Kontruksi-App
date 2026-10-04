@@ -1102,3 +1102,33 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 .kp-cek-catatan {
 	margin-top: 6px;
 }
+
+/* Kontrak Project: tabel rincian nilai kontrak (header sama dengan header list / grid). */
+.kp-tabel-wrap {
+	overflow-x: auto;
+	border: 1px solid var(--border-color);
+}
+
+.kp-tabel {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.kp-tabel th {
+	padding: 8px 12px;
+	background: var(--konstruksi-active-bg);
+	color: var(--konstruksi-header-fg);
+	font-weight: normal;
+	font-size: var(--text-sm);
+	white-space: nowrap;
+}
+
+.kp-tabel td {
+	padding: 10px 12px;
+	border-top: 1px solid var(--border-color);
+	white-space: nowrap;
+}
+
+.kp-tabel-sub {
+	font-size: var(--text-xs);
+}
