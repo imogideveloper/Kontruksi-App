@@ -31,6 +31,47 @@ class TarifPPhFinal(Document):
 		if dobel:
 			frappe.throw(_("Tarif untuk kombinasi dan tanggal berlaku ini sudah ada: {0}.").format(dobel))
 
+	def on_update(self):
+		hitung_penggantian(self.jenis_jasa, self.kualifikasi)
+		sebelum = self.get_doc_before_save()
+		if sebelum and (sebelum.jenis_jasa, sebelum.kualifikasi) != (self.jenis_jasa, self.kualifikasi):
+			hitung_penggantian(sebelum.jenis_jasa, sebelum.kualifikasi)
+
+	def on_trash(self):
+		# Link "Digantikan Oleh" di tarif lama dilepas dulu supaya penghapusan tidak terhalang; dihitung ulang setelahnya.
+		for name in frappe.get_all("Tarif PPh Final", filters={"digantikan_oleh": self.name}, pluck="name"):
+			frappe.db.set_value(
+				"Tarif PPh Final", name, {"digantikan_oleh": None, "digantikan_mulai": None}, update_modified=False
+			)
+
+	def after_delete(self):
+		hitung_penggantian(self.jenis_jasa, self.kualifikasi)
+
+
+def hitung_penggantian(jenis_jasa, kualifikasi):
+	"""Tandai tiap tarif aktif dengan tarif berikutnya (lebih baru) untuk kombinasi yang sama.
+
+	Status Berlaku / Digantikan / Belum Berlaku di list dihitung dari sini dan tanggal hari ini.
+	"""
+	rows = frappe.get_all(
+		"Tarif PPh Final",
+		filters={"jenis_jasa": jenis_jasa, "kualifikasi": kualifikasi},
+		fields=["name", "berlaku_mulai", "disabled", "digantikan_oleh", "digantikan_mulai"],
+		order_by="berlaku_mulai asc",
+	)
+	aktif = [row for row in rows if not row.disabled]
+	pengganti = {row.name: aktif[i + 1] for i, row in enumerate(aktif[:-1])}
+	for row in rows:
+		baru = pengganti.get(row.name)
+		nilai = (baru.name, baru.berlaku_mulai) if baru else (None, None)
+		if (row.digantikan_oleh, row.digantikan_mulai) != nilai:
+			frappe.db.set_value(
+				"Tarif PPh Final",
+				row.name,
+				{"digantikan_oleh": nilai[0], "digantikan_mulai": nilai[1]},
+				update_modified=False,
+			)
+
 
 def cek_kualifikasi(jenis_jasa, kualifikasi):
 	if kualifikasi not in KUALIFIKASI_PER_JASA.get(jenis_jasa, ()):

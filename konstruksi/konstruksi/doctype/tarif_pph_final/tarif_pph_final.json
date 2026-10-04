@@ -12,7 +12,11 @@
   "tarif",
   "berlaku_mulai",
   "dasar_hukum",
-  "disabled"
+  "disabled",
+  "penggantian_section",
+  "digantikan_oleh",
+  "penggantian_column",
+  "digantikan_mulai"
  ],
  "fields": [
   {
@@ -56,18 +60,43 @@
   {
    "fieldname": "dasar_hukum",
    "fieldtype": "Data",
-   "label": "Dasar Hukum"
+   "label": "Dasar Hukum",
+   "in_list_view": 1
   },
   {
    "default": "0",
    "fieldname": "disabled",
    "fieldtype": "Check",
    "label": "Nonaktif"
+  },
+  {
+   "fieldname": "penggantian_section",
+   "fieldtype": "Section Break",
+   "label": "Penggantian",
+   "depends_on": "eval:doc.digantikan_oleh"
+  },
+  {
+   "fieldname": "digantikan_oleh",
+   "fieldtype": "Link",
+   "label": "Digantikan Oleh",
+   "options": "Tarif PPh Final",
+   "read_only": 1,
+   "description": "Diisi otomatis: tarif yang lebih baru untuk jenis jasa & kualifikasi yang sama."
+  },
+  {
+   "fieldname": "penggantian_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "digantikan_mulai",
+   "fieldtype": "Date",
+   "label": "Digantikan Mulai",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-05 14:00:00.000000",
+ "modified": "2026-10-05 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Tarif PPh Final",
@@ -104,8 +133,8 @@
    "report": 1
   }
  ],
- "sort_field": "berlaku_mulai",
- "sort_order": "DESC",
+ "sort_field": "jenis_jasa",
+ "sort_order": "ASC",
  "states": [],
  "track_changes": 1
 }
