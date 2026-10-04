@@ -34,3 +34,4 @@ konstruksi.patches.v1_0.buat_biaya_personel #biaya-bulanan
 konstruksi.patches.v1_0.buat_biaya_personel #expense-claim-project
 konstruksi.patches.v1_0.buat_kalender_project
 konstruksi.patches.v1_0.buat_wbs
+konstruksi.patches.v1_0.buat_wbs #aktivitas

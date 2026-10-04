@@ -1,0 +1,59 @@
+{
+ "actions": [],
+ "creation": "2026-10-08 18:00:00.000000",
+ "modified": "2026-10-08 18:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "module": "Konstruksi",
+ "links": [],
+ "states": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "name": "Tahapan Aktivitas",
+ "istable": 1,
+ "editable_grid": 1,
+ "permissions": [],
+ "fields": [
+  {
+   "fieldname": "nama_tahap",
+   "fieldtype": "Data",
+   "label": "Tahap",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 5
+  },
+  {
+   "fieldname": "selesai",
+   "fieldtype": "Check",
+   "label": "Selesai",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "tanggal_selesai",
+   "fieldtype": "Date",
+   "label": "Tanggal Selesai",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "laporan",
+   "fieldtype": "Link",
+   "label": "Laporan",
+   "options": "Laporan Progres",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 2
+  }
+ ],
+ "field_order": [
+  "nama_tahap",
+  "selesai",
+  "tanggal_selesai",
+  "laporan"
+ ]
+}

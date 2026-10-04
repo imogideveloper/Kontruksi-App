@@ -194,6 +194,7 @@ doc_events = {
 	},
 	# Progres item WBS mengikuti Task yang terhubung.
 	"Task": {
+		"validate": "konstruksi.konstruksi.aktivitas.hitung_task",
 		"on_update": "konstruksi.konstruksi.wbs.hitung_ulang_dari_task",
 		"after_delete": "konstruksi.konstruksi.wbs.hitung_ulang_dari_task",
 	},

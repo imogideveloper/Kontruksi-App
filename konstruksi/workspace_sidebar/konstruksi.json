@@ -129,6 +129,18 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "list-checks",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Task & Activity Management",
+   "link_to": "task-activity-management",
+   "link_type": "Page",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
    "label": "Konfigurasi",
@@ -203,6 +215,30 @@
    "keep_closed": 0,
    "label": "WBS Item",
    "link_to": "WBS Item",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "square-check",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Task",
+   "link_to": "Task",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "clipboard-check",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Laporan Progres",
+   "link_to": "Laporan Progres",
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
@@ -316,7 +352,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-08 16:00:00.000000",
+ "modified": "2026-10-08 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Konstruksi",

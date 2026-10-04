@@ -79,6 +79,7 @@
 			if (!frm.is_new()) {
 				frm.add_custom_button(__("Project Calendar"), () => frappe.set_route("project-calendar", frm.doc.name), __("Buka"));
 				frm.add_custom_button(__("Work Breakdown Structure"), () => frappe.set_route("work-breakdown-structure", frm.doc.name), __("Buka"));
+				frm.add_custom_button(__("Task & Activity Management"), () => frappe.set_route("task-activity-management", frm.doc.name), __("Buka"));
 				muat_dashboard(frm);
 				muat_tim(frm);
 			}

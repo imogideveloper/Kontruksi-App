@@ -1,0 +1,234 @@
+{
+ "actions": [],
+ "creation": "2026-10-08 18:00:00.000000",
+ "modified": "2026-10-08 18:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "module": "Konstruksi",
+ "links": [],
+ "states": [],
+ "sort_field": "tanggal",
+ "sort_order": "DESC",
+ "name": "Laporan Progres",
+ "autoname": "LPR-.YYYY.-.#####",
+ "naming_rule": "Expression (old style)",
+ "title_field": "aktivitas",
+ "show_title_field_in_link": 0,
+ "search_fields": "aktivitas,project",
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "export": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1
+  },
+  {
+   "role": "Projects Manager",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "export": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1
+  },
+  {
+   "role": "Projects User",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "create": 1,
+   "write": 1,
+   "if_owner": 0
+  }
+ ],
+ "fields": [
+  {
+   "fieldname": "task",
+   "fieldtype": "Link",
+   "label": "Aktivitas (Task)",
+   "options": "Task",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "aktivitas",
+   "fieldtype": "Data",
+   "label": "Nama Aktivitas",
+   "fetch_from": "task.subject",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project",
+   "fetch_from": "task.project",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "wbs_item",
+   "fieldtype": "Link",
+   "label": "Item WBS",
+   "options": "WBS Item",
+   "fetch_from": "task.wbs_item",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_lapor",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tanggal",
+   "fieldtype": "Date",
+   "label": "Tanggal",
+   "reqd": 1,
+   "default": "Today",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "pelapor",
+   "fieldtype": "Link",
+   "label": "Pelapor",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "nama_pelapor",
+   "fieldtype": "Data",
+   "label": "Nama Pelapor",
+   "fetch_from": "pelapor.employee_name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Menunggu\nDisetujui\nDitolak",
+   "default": "Menunggu",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "section_isian",
+   "fieldtype": "Section Break",
+   "label": "Progres Hari Ini"
+  },
+  {
+   "fieldname": "metode",
+   "fieldtype": "Data",
+   "label": "Metode Progres",
+   "fetch_from": "task.metode_progres",
+   "read_only": 1
+  },
+  {
+   "fieldname": "volume",
+   "fieldtype": "Float",
+   "label": "Volume Dikerjakan",
+   "depends_on": "eval:doc.metode!='Tahapan'"
+  },
+  {
+   "fieldname": "satuan",
+   "fieldtype": "Data",
+   "label": "Satuan",
+   "fetch_from": "task.satuan",
+   "read_only": 1,
+   "depends_on": "eval:doc.metode!='Tahapan'"
+  },
+  {
+   "fieldname": "tahap",
+   "fieldtype": "Table",
+   "label": "Tahap Selesai",
+   "options": "Laporan Progres Tahap",
+   "depends_on": "eval:doc.metode=='Tahapan'"
+  },
+  {
+   "fieldname": "column_break_isian",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "catatan",
+   "fieldtype": "Small Text",
+   "label": "Catatan Pekerjaan"
+  },
+  {
+   "fieldname": "kendala",
+   "fieldtype": "Small Text",
+   "label": "Kendala"
+  },
+  {
+   "fieldname": "foto",
+   "fieldtype": "Attach Image",
+   "label": "Foto"
+  },
+  {
+   "fieldname": "section_persetujuan",
+   "fieldtype": "Section Break",
+   "label": "Persetujuan"
+  },
+  {
+   "fieldname": "disetujui_oleh",
+   "fieldtype": "Link",
+   "label": "Diputuskan Oleh",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "disetujui_pada",
+   "fieldtype": "Datetime",
+   "label": "Diputuskan Pada",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_setuju",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "alasan_tolak",
+   "fieldtype": "Small Text",
+   "label": "Alasan Ditolak",
+   "read_only": 1,
+   "depends_on": "eval:doc.status=='Ditolak'"
+  }
+ ],
+ "field_order": [
+  "task",
+  "aktivitas",
+  "project",
+  "wbs_item",
+  "column_break_lapor",
+  "tanggal",
+  "pelapor",
+  "nama_pelapor",
+  "status",
+  "section_isian",
+  "metode",
+  "volume",
+  "satuan",
+  "tahap",
+  "column_break_isian",
+  "catatan",
+  "kendala",
+  "foto",
+  "section_persetujuan",
+  "disetujui_oleh",
+  "disetujui_pada",
+  "column_break_setuju",
+  "alasan_tolak"
+ ]
+}

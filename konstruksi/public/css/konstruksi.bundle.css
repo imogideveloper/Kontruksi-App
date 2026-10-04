@@ -3165,3 +3165,176 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpw-buka .icon {
 	stroke: currentColor;
 }
+
+/* Task & Activity Management (page/task_activity_management). Memakai .kpw-* (kartu, tabel) & .kpr-*. */
+.kpa-tabs {
+	display: flex;
+	gap: 4px;
+	margin: 20px 0 12px;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.kpa-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: -1px;
+	padding: 8px 14px;
+	border-bottom: 2px solid transparent;
+	color: var(--text-muted) !important;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.kpa-tab:hover {
+	color: var(--text-color) !important;
+	text-decoration: none;
+}
+
+.kpa-tab.kpa-tab-aktif {
+	border-bottom-color: var(--kpr-biru);
+	color: var(--kpr-biru) !important;
+}
+
+.kpa-tab-badge {
+	padding: 0 7px;
+	border-radius: 999px;
+	background: var(--kpr-oranye-bg);
+	color: var(--kpr-oranye);
+	font-size: 11px;
+	line-height: 18px;
+}
+
+.kpa-toolbar .form-control {
+	width: auto;
+	min-width: 180px;
+	max-width: 320px;
+	height: 30px;
+}
+
+.kpa-toolbar .kpa-cari {
+	min-width: 240px;
+}
+
+.kpa-tabel {
+	min-width: 1180px;
+}
+
+.kpa-tabel td {
+	vertical-align: top;
+}
+
+.kpa-tabel td.kpa-wrap {
+	white-space: normal;
+}
+
+.kpa-judul {
+	font-weight: 600;
+	color: var(--text-color) !important;
+	cursor: pointer;
+}
+
+.kpa-judul:hover {
+	color: var(--kpr-biru) !important;
+}
+
+.kpa-sub {
+	margin-top: 2px;
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+	white-space: normal;
+}
+
+.kpa-oranye,
+.kpa-sub.kpa-oranye {
+	color: var(--kpr-oranye);
+}
+
+.kpa-merah,
+.kpa-sub.kpa-merah {
+	color: var(--kpr-merah, #dc2626);
+}
+
+.kpa-kosong {
+	padding: 32px 12px !important;
+	text-align: center;
+	color: var(--text-muted);
+	white-space: normal !important;
+}
+
+.kpa-prio,
+.kpa-status {
+	display: inline-block;
+	padding: 1px 9px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 18px;
+	white-space: nowrap;
+}
+
+.kpa-prio-Low { background: var(--subtle-fg, #f3f4f6); color: var(--text-muted); }
+.kpa-prio-Medium { background: var(--kpr-biru-bg); color: var(--kpr-biru); }
+.kpa-prio-High { background: var(--kpr-oranye-bg); color: var(--kpr-oranye); }
+.kpa-prio-Urgent { background: #fdecec; color: #dc2626; }
+
+.kpa-status-abu { background: var(--subtle-fg, #f3f4f6); color: var(--text-muted); }
+.kpa-status-biru { background: var(--kpr-biru-bg); color: var(--kpr-biru); }
+.kpa-status-hijau { background: var(--kpr-hijau-bg); color: var(--kpr-hijau); }
+.kpa-status-oranye { background: var(--kpr-oranye-bg); color: var(--kpr-oranye); }
+.kpa-status-merah { background: #fdecec; color: #dc2626; }
+
+[data-theme="dark"] .kpa-prio-Urgent,
+[data-theme="dark"] .kpa-status-merah {
+	background: rgba(220, 38, 38, 0.2);
+	color: #f28b8b;
+}
+
+.kpa-tabel td.kpt-aksi {
+	display: table-cell;
+}
+
+.kpa-tabel td.kpt-aksi .kpt-aksi-dropdown {
+	display: inline-block;
+	margin-left: 4px;
+}
+
+.kpa-lapor {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.kpa-lapor .icon,
+.kpa-ikon-btn .icon {
+	stroke: currentColor;
+}
+
+.kpa-tombol {
+	white-space: nowrap;
+}
+
+/* Dialog aktivitas: kotak durasi hari kerja */
+.kpa-durasi {
+	padding: 8px 12px;
+	border-radius: 8px;
+	background: var(--konstruksi-active-bg);
+}
+
+.kpa-durasi-label {
+	font-size: var(--text-xs);
+	font-weight: 600;
+	color: var(--text-muted);
+}
+
+.kpa-durasi-nilai {
+	font-size: var(--text-lg);
+	font-weight: 700;
+	color: var(--konstruksi-active-fg);
+}
+
+.kpa-lapor-info {
+	padding: 10px 12px;
+	border-radius: 8px;
+	background: var(--subtle-fg, #f8f9fa);
+}
