@@ -399,14 +399,12 @@
    "fieldname": "kualifikasi_usaha",
    "fieldtype": "Select",
    "label": "Kualifikasi Usaha",
-   "options": "\nKecil / Perseorangan\nMenengah / Besar\nBersertifikat\nTidak Memiliki Sertifikat",
-   "description": "Sesuai SBU perusahaan untuk kontrak ini."
+   "options": "\nKecil / Perseorangan\nMenengah / Besar\nBersertifikat\nTidak Memiliki Sertifikat"
   },
   {
    "fieldname": "pph_final_persen",
    "fieldtype": "Percent",
    "label": "PPh Final (%)",
-   "description": "Otomatis dari master Tarif PPh Final sesuai jenis jasa, kualifikasi, dan tanggal kontrak.",
    "read_only": 1
   },
   {
@@ -566,7 +564,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-05 18:15:00.000000",
+ "modified": "2026-10-05 18:30:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kontrak Project",
