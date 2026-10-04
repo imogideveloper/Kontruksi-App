@@ -2,11 +2,12 @@
 // status proyek konstruksi. Dimuat setelah project_list.js ERPNext (hooks.doctype_list_js) dan menimpanya.
 (() => {
 	const BULAN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-	const KOLOM = ["project_name", "customer", "jenis_project", "nilai_kontrak", "expected_start_date", "project_manager"];
+	const KOLOM = ["project_name", "customer", "lokasi", "jenis_project", "nilai_kontrak", "expected_start_date", "project_manager"];
 	// Judul kolom (label bawaan ERPNext berbahasa Inggris).
 	const JUDUL = {
 		project_name: __("Nama Proyek"),
 		customer: __("Klien"),
+		lokasi: __("Lokasi"),
 		jenis_project: __("Jenis"),
 		nilai_kontrak: __("Nilai Kontrak"),
 		expected_start_date: __("Periode"),
@@ -42,7 +43,6 @@
 			...(bawaan.add_fields || []),
 			...KOLOM,
 			"kontrak_project",
-			"lokasi",
 			"nilai_sebelum_ppn",
 			"tarif_ppn",
 			"expected_end_date",
@@ -60,11 +60,11 @@
 		},
 
 		formatters: {
-			project_name(value, df, doc) {
-				return `<div class="kpm-dua-baris">
-					<div class="kpm-utama ellipsis" title="${esc(value)}">${esc(value)}</div>
-					${doc.lokasi ? `<div class="kpm-sub ellipsis">${esc(doc.lokasi)}</div>` : ""}
-				</div>`;
+			project_name(value) {
+				return `<span class="kpm-utama ellipsis" title="${esc(value)}">${esc(value)}</span>`;
+			},
+			lokasi(value) {
+				return value ? `<span class="ellipsis" title="${esc(value)}">${esc(value)}</span>` : kosong;
 			},
 			customer(value) {
 				return value ? `<span class="ellipsis" title="${esc(value)}">${esc(value)}</span>` : kosong;

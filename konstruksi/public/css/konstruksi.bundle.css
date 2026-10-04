@@ -1774,6 +1774,6 @@ body[data-route^="List/Project"] .frappe-list .list-row-col[data-fieldname="nila
 	flex-shrink: 0 !important;
 }
 
-body[data-route^="List/Project"] .frappe-list .list-row-col:is([data-fieldname="jenis_project"], [data-fieldname="project_manager"]) {
+body[data-route^="List/Project"] .frappe-list .list-row-col:is([data-fieldname="lokasi"], [data-fieldname="jenis_project"], [data-fieldname="project_manager"]) {
 	max-width: 160px;
 }
