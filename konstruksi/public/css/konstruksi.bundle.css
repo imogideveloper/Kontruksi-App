@@ -1777,3 +1777,15 @@ body[data-route^="List/Project"] .frappe-list .list-row-col[data-fieldname="nila
 body[data-route^="List/Project"] .frappe-list .list-row-col:is([data-fieldname="lokasi"], [data-fieldname="jenis_project"], [data-fieldname="project_manager"]) {
 	max-width: 160px;
 }
+
+/* Form Project, tab Costing, section "Costing and Billing": label bawaan ERPNext panjang (mis. "Total Consumed
+   Material Cost (via Stock Entry)") satu baris; kolom label semua field di section ini dilebarkan sama. */
+@media (min-width: 768px) {
+	body[data-route^="Form/Project"] .frappe-control:is([data-fieldname="estimated_costing"], [data-fieldname="total_costing_amount"], [data-fieldname="total_expense_claim"], [data-fieldname="total_purchase_cost"], [data-fieldname="company"], [data-fieldname="total_sales_amount"], [data-fieldname="total_billable_amount"], [data-fieldname="total_billed_amount"], [data-fieldname="total_consumed_material_cost"], [data-fieldname="cost_center"]) > .form-group {
+		grid-template-columns: 320px minmax(0, 1fr);
+	}
+
+	body[data-route^="Form/Project"] .frappe-control:is([data-fieldname="estimated_costing"], [data-fieldname="total_costing_amount"], [data-fieldname="total_expense_claim"], [data-fieldname="total_purchase_cost"], [data-fieldname="company"], [data-fieldname="total_sales_amount"], [data-fieldname="total_billable_amount"], [data-fieldname="total_billed_amount"], [data-fieldname="total_consumed_material_cost"], [data-fieldname="cost_center"]) > .form-group > .clearfix > .control-label {
+		white-space: nowrap !important;
+	}
+}
