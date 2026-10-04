@@ -163,6 +163,10 @@ def buat_tim_proyek_default():
 	from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 	create_custom_fields(CUSTOM_FIELD_TIM, update=True)
+	# Data Personel: keterangan bawaan "Provide Email Address registered in company" di Company Email tidak ditampilkan.
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	make_property_setter("Employee", "company_email", "description", "", "Small Text", validate_fields_for_doctype=False)
 	for nama, wajib_skk, tugas in JABATAN_KONSTRUKSI:
 		if frappe.db.exists("Designation", nama):
 			if not frappe.db.get_value("Designation", nama, "description"):

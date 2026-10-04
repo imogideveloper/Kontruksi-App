@@ -25,3 +25,4 @@ konstruksi.patches.v1_0.buat_tim_proyek
 konstruksi.patches.v1_0.buat_tim_proyek #role-profile
 konstruksi.patches.v1_0.buat_tim_proyek #skk-setelah-branch
 konstruksi.patches.v1_0.buat_tim_proyek #skk-setelah-grade
+konstruksi.patches.v1_0.buat_tim_proyek #hapus-keterangan-company-email
