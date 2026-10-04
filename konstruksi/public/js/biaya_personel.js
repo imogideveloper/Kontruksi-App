@@ -18,6 +18,47 @@
 	events.customer = (frm) => setTimeout(() => filter_proyek(frm), 0);
 
 	frappe.ui.form.on("Timesheet", events);
+	// Expense Claim, section Totals: kotak nilai total tepat di bawah kolom Sanctioned Amount tabel Expenses
+	// (posisi & lebar diukur dari header kolom; CSS .kec-rata-total di konstruksi.bundle.css).
+	const TOTAL_EXPENSE = [
+		"total_sanctioned_amount", "total_advance_amount", "grand_total", "total_claimed_amount",
+		"total_taxes_and_charges", "total_amount_reimbursed", "base_total_sanctioned_amount",
+		"base_total_advance_amount", "base_grand_total", "base_total_claimed_amount", "base_total_taxes_and_charges",
+	];
+
+	function rata_total_expense(frm) {
+		const grid = frm.fields_dict.expenses?.grid;
+		const kol = grid?.wrapper.find('.grid-heading-row [data-fieldname="sanctioned_amount"]')[0];
+		const k = kol?.getBoundingClientRect();
+		if (!k?.width) return;
+		TOTAL_EXPENSE.forEach((fieldname) => {
+			const el = frm.fields_dict[fieldname]?.$wrapper?.[0];
+			if (!el || !el.offsetParent) return;
+			const c = el.getBoundingClientRect();
+			const kiri = k.left - c.left;
+			const pas = window.innerWidth >= 768 && kiri >= 120 && k.right <= c.right + 1;
+			el.classList.toggle("kec-rata-total", pas);
+			el.style.setProperty("--kec-kiri", `${kiri}px`);
+			el.style.setProperty("--kec-lebar", `${k.width}px`);
+		});
+	}
+
+	function pasang_rata_total(frm) {
+		const jalankan = () => requestAnimationFrame(() => rata_total_expense(frm));
+		jalankan();
+		const grid_el = frm.fields_dict.expenses?.grid?.wrapper?.[0];
+		// Ukuran grid berubah saat tab dibuka / layar di-resize / sidebar dibuka-tutup.
+		if (grid_el && frm._kec_rata_el !== grid_el) {
+			frm._kec_ro?.disconnect();
+			frm._kec_ro = new ResizeObserver(jalankan);
+			frm._kec_ro.observe(grid_el);
+			frm._kec_ro.observe(frm.layout.wrapper[0]);
+			frm._kec_rata_el = grid_el;
+		}
+	}
+
+	frappe.ui.form.on("Expense Claim", { refresh: pasang_rata_total, after_save: pasang_rata_total });
+
 	// Expense Claim: Expense Approver terisi otomatis dari Data Personel / Department saat Employee dipilih;
 	// pilihannya tetap dari HRMS, ditambah nama & jabatan.
 	frappe.ui.form.on("Expense Claim", {

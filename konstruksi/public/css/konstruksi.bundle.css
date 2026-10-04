@@ -2307,3 +2307,23 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	display: inline-block;
 	white-space: nowrap;
 }
+
+/* Expense Claim, section Totals: kotak nilai total sejajar & selebar kolom Sanctioned Amount tabel Expenses.
+   Posisi diukur di biaya_personel.js (--kec-kiri = jarak ke kolom, --kec-lebar = lebar kolom). */
+@media (min-width: 768px) {
+	body[data-route^="Form/Expense Claim"] .frappe-control.kec-rata-total > .form-group {
+		grid-template-columns: var(--kec-kiri) var(--kec-lebar) !important;
+		column-gap: 0 !important;
+	}
+
+	body[data-route^="Form/Expense Claim"] .frappe-control.kec-rata-total > .form-group > .clearfix > .control-label {
+		padding-right: 12px !important;
+		white-space: nowrap !important;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	body[data-route^="Form/Expense Claim"] .frappe-control.kec-rata-total :is(.control-value, input) {
+		text-align: right;
+	}
+}
