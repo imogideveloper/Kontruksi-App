@@ -187,7 +187,7 @@
 								<th>${__("Periode Tugas")}</th><th class="text-right">${__("Alokasi")}</th>
 								<th class="text-right" title="${__("Dari Timesheet yang sudah submit")}">${__("Jam Kerja")}</th>
 								<th class="text-right" title="${__("Dari Timesheet yang sudah submit")}">${__("Biaya Timesheet")}</th>
-								<th class="text-right" title="${__("Dari Expense Claim yang sudah submit")}">${__("Klaim Biaya")}</th><th></th></tr></thead>
+								<th class="text-right" title="${__("Dari Expense Claim yang sudah submit")}">${__("Expense Claim")}</th><th></th></tr></thead>
 							<tbody>${baris}</tbody></table></div>`
 						: `<div class="kpr-muted">${__("Belum ada personel. Klik Tugaskan Personel atau tombol Tugaskan di kebutuhan.")}</div>`
 				}
@@ -206,7 +206,7 @@
 			frappe.model.can_create("Timesheet") &&
 				item("kpt-catat-jam", "clock", __("Catat Jam Kerja"), `data-employee="${esc(p.employee)}" data-activity="${esc(p.activity_type || "")}"`),
 			frappe.model.can_create("Expense Claim") &&
-				item("kpt-klaim", "wallet", __("Ajukan Klaim Biaya"), `data-employee="${esc(p.employee)}"`),
+				item("kpt-klaim", "wallet", __("Ajukan Expense Claim"), `data-employee="${esc(p.employee)}"`),
 		].filter(Boolean);
 		const penugasan = bisa
 			? [

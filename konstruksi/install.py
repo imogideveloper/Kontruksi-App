@@ -329,7 +329,7 @@ def buat_biaya_personel_default():
 
 
 def atur_expense_claim():
-	"""Klaim Biaya: Project dipindah ke tab utama (di bawah Department) supaya tidak terlewat — bawaannya di tab
+	"""Expense Claim: Project dipindah ke tab utama (di bawah Department) supaya tidak terlewat — bawaannya di tab
 	Accounting; filter Project & Approval Status di atas list."""
 	import json
 

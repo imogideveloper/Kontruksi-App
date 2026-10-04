@@ -1,4 +1,4 @@
-// List Klaim Biaya (Expense Claim HRMS): ID, personel, proyek, tanggal, diajukan vs disetujui, status berwarna.
+// List Expense Claim (Expense Claim HRMS): ID, personel, proyek, tanggal, diajukan vs disetujui, status berwarna.
 // Pengaturan bawaan HRMS (add_fields company) tetap dipakai.
 (() => {
 	const bawaan = frappe.listview_settings["Expense Claim"] || {};
