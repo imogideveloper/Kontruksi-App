@@ -1,6 +1,6 @@
 // List Tarif PPh Final: dikelompokkan per Jenis Jasa → Kualifikasi, tarif tampil sebagai angka, status dihitung
 // dari tanggal berlaku & penggantian (digantikan_oleh diisi server, lihat hitung_penggantian di tarif_pph_final.py).
-const KOLOM_TARIF_PPH = ["kualifikasi", "tarif", "berlaku_mulai", "dasar_hukum"];
+const KOLOM_TARIF_PPH = ["jenis_jasa", "kualifikasi", "tarif", "berlaku_mulai", "dasar_hukum"];
 const TABEL_TARIF_PPH = "`tabTarif PPh Final`";
 
 function status_tarif_pph(doc) {
@@ -11,19 +11,22 @@ function status_tarif_pph(doc) {
 	return [__("Berlaku"), "green", "disabled,=,0"];
 }
 
+function teks_penuh(value) {
+	const esc = frappe.utils.escape_html(value || "");
+	return `<span class="ellipsis" title="${esc}">${esc}</span>`;
+}
+
 frappe.listview_settings["Tarif PPh Final"] = {
 	// Kolom di luar in_list_view hanya terisi bila field-nya ikut diambil.
-	add_fields: ["jenis_jasa", ...KOLOM_TARIF_PPH, "disabled", "digantikan_oleh", "digantikan_mulai"],
+	add_fields: [...KOLOM_TARIF_PPH, "disabled", "digantikan_oleh", "digantikan_mulai"],
 	hide_name_column: true,
 
 	get_indicator: status_tarif_pph,
 
 	formatters: {
 		// Field Select bawaan tampil sebagai pill dengan lebar maks 150px (teks panjang terpotong); pakai teks biasa.
-		kualifikasi(value) {
-			const esc = frappe.utils.escape_html(value || "");
-			return `<span class="ellipsis" title="${esc}">${esc}</span>`;
-		},
+		jenis_jasa: teks_penuh,
+		kualifikasi: teks_penuh,
 		// Frappe merender Percent di list sebagai progress bar; tarif perlu angka yang terbaca.
 		tarif(value) {
 			return `<b>${format_number(flt(value), null, 2).replace(/[.,]?0+$/, "")}%</b>`;
@@ -37,13 +40,13 @@ frappe.listview_settings["Tarif PPh Final"] = {
 	},
 
 	onload(listview) {
-		// Kolom pertama Jenis Jasa (bukan kode PPH-xxx); susun ulang seperti tender_list.js.
+		// Kolom pertama ID (PPH-xxx, dirujuk Sumber Tarif di Kontrak Project); susun ulang seperti tender_list.js.
 		const setup_columns = listview.setup_columns.bind(listview);
 		listview.setup_columns = function () {
 			setup_columns();
 			const get_df = (fieldname) => frappe.meta.get_docfield("Tarif PPh Final", fieldname);
 			this.columns = [
-				{ type: "Subject", df: get_df("jenis_jasa") },
+				{ type: "Subject", df: { label: __("ID"), fieldname: "name" } },
 				{ type: "Tag" },
 				...KOLOM_TARIF_PPH.map((fieldname) => ({ type: "Field", df: get_df(fieldname) })),
 				{ type: "Status" },
