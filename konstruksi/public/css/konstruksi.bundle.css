@@ -2148,3 +2148,35 @@ body[data-route^="Form/Employee"] .frappe-control[data-fieldname="skk"] .grid-he
 	text-overflow: clip;
 	white-space: nowrap;
 }
+
+/* Data Personel (Employee), tab Address & Contacts, section kontak: kolom Mobile (1 field) dipersempit, kolom
+   Preferred Contact Email dilebarkan; label satu baris & seragam. !important: aturan form global ber-specificity tinggi. */
+@media (min-width: 992px) {
+	body[data-route^="Form/Employee"] .form-section:has(.frappe-control[data-fieldname="cell_number"]) > .section-body {
+		display: flex;
+		flex-wrap: nowrap;
+	}
+
+	body[data-route^="Form/Employee"] .form-section:has(.frappe-control[data-fieldname="cell_number"]) > .section-body > .form-column:nth-child(1) {
+		flex: 0 0 26%;
+		max-width: 26%;
+	}
+
+	body[data-route^="Form/Employee"] .form-section:has(.frappe-control[data-fieldname="cell_number"]) > .section-body > .form-column:nth-child(2) {
+		flex: 0 0 34%;
+		max-width: 34%;
+	}
+
+	body[data-route^="Form/Employee"] .form-section:has(.frappe-control[data-fieldname="cell_number"]) > .section-body > .form-column:nth-child(3) {
+		flex: 0 0 40%;
+		max-width: 40%;
+	}
+
+	body[data-route^="Form/Employee"] .form-section:has(.frappe-control[data-fieldname="cell_number"]) .frappe-control > .form-group {
+		grid-template-columns: 180px minmax(0, 1fr) !important;
+	}
+
+	body[data-route^="Form/Employee"] .form-section:has(.frappe-control[data-fieldname="cell_number"]) .control-label {
+		white-space: nowrap !important;
+	}
+}
