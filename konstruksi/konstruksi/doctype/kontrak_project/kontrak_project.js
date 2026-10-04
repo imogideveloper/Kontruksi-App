@@ -2,11 +2,45 @@
 // For license information, please see license.txt
 
 const BULAN_KONTRAK = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+const KONTRAK_METHOD = "konstruksi.konstruksi.doctype.kontrak_project.kontrak_project";
 
-frappe.ui.form.on("Kontrak Project", {
+// Field yang memengaruhi checklist kelengkapan: tiap perubahan menghitung ulang checklist sebelum disimpan.
+const FIELD_KELENGKAPAN = [
+	"nomor_kontrak",
+	"tanggal_kontrak",
+	"nomor_spmk",
+	"tanggal_spmk",
+	"file_kontrak",
+	"syarat_bayar_dikonfirmasi",
+	"uang_muka_persen",
+	"jaminan_pelaksanaan_wajib",
+	"jaminan_pelaksanaan_diserahkan",
+	"jaminan_uang_muka_diserahkan",
+	"nilai_kontrak",
+	"status_ppn",
+	"tarif_ppn",
+];
+// Field yang memengaruhi kartu ringkasan.
+const FIELD_RINGKASAN = ["nilai_kontrak", "tarif_ppn", "status_ppn", "tanggal_spmk", "masa_pelaksanaan", "masa_pemeliharaan"];
+
+const kontrak_events = {
 	setup(frm) {
 		// Hanya tender yang menang dan belum punya kontrak.
-		frm.set_query("tender", () => ({ filters: { status: "Menang" } }));
+		frm.set_query("tender", () => ({ query: `${KONTRAK_METHOD}.cari_tender_menang` }));
+	},
+
+	onload(frm) {
+		frm.__kelengkapan = frm.doc.__onload?.kelengkapan || null;
+	},
+
+	tender(frm) {
+		// Dibuat dari list: nilai kontrak awal diambil dari Harga Pemenang / Kontrak di Hasil Tender.
+		if (!frm.doc.tender) return;
+		frappe.db.get_value("Hasil Tender", { tender: frm.doc.tender }, "harga_pemenang").then((r) => {
+			const harga = flt(r.message?.harga_pemenang);
+			if (harga && !flt(frm.doc.nilai_kontrak)) frm.set_value("nilai_kontrak", harga);
+			muat_kelengkapan(frm);
+		});
 	},
 
 	refresh(frm) {
@@ -16,18 +50,35 @@ frappe.ui.form.on("Kontrak Project", {
 		}
 		const [label, warna] = kontrak_status(frm.doc);
 		if (!frm.is_new()) frm.page.set_indicator(label, warna);
+		// Setelah simpan / reload, checklist dari server sudah sesuai data tersimpan.
+		if (!frm.is_dirty()) frm.__kelengkapan = frm.doc.__onload?.kelengkapan || frm.__kelengkapan;
 		render_ringkasan_kontrak(frm);
 		render_kelengkapan_kontrak(frm);
+		if (frm.is_new() && frm.doc.tender && !frm.__kelengkapan) muat_kelengkapan(frm);
 	},
+};
 
-	// Ringkasan ikut berubah sebelum disimpan supaya angka yang diketik langsung terlihat.
-	nilai_kontrak: render_ringkasan_kontrak,
-	tarif_ppn: render_ringkasan_kontrak,
-	status_ppn: render_ringkasan_kontrak,
-	tanggal_spmk: render_ringkasan_kontrak,
-	masa_pelaksanaan: render_ringkasan_kontrak,
-	masa_pemeliharaan: render_ringkasan_kontrak,
+// Ringkasan & checklist ikut berubah sebelum disimpan supaya isian langsung terlihat hasilnya.
+[...new Set([...FIELD_RINGKASAN, ...FIELD_KELENGKAPAN])].forEach((fieldname) => {
+	kontrak_events[fieldname] = (frm) => {
+		if (FIELD_RINGKASAN.includes(fieldname)) render_ringkasan_kontrak(frm);
+		if (FIELD_KELENGKAPAN.includes(fieldname)) muat_kelengkapan(frm);
+	};
 });
+
+frappe.ui.form.on("Kontrak Project", kontrak_events);
+
+// Dihitung di server (logika sama dengan saat simpan); ditunda sedikit agar tidak memanggil server tiap ketikan.
+const muat_kelengkapan = frappe.utils.debounce((frm) => {
+	if (!frm.doc.tender) return;
+	frappe
+		.call({ method: `${KONTRAK_METHOD}.get_kelengkapan_live`, args: { doc: frm.doc }, type: "POST" })
+		.then((r) => {
+			frm.__kelengkapan = r.message || [];
+			render_ringkasan_kontrak(frm);
+			render_kelengkapan_kontrak(frm);
+		});
+}, 400);
 
 function tanggal_kontrak(value) {
 	if (!value) return "";
@@ -74,8 +125,9 @@ function render_ringkasan_kontrak(frm) {
 	const pemeliharaan = cint(doc.masa_pemeliharaan);
 	const akhir = selesai && pemeliharaan ? frappe.datetime.add_days(selesai, pemeliharaan) : null;
 
-	const terisi = cint(doc.kelengkapan_terisi);
-	const total = cint(doc.kelengkapan_total);
+	const items = frm.__kelengkapan || [];
+	const total = items.length;
+	const terisi = items.filter((item) => item.ok).length;
 	const persen = total ? Math.round((terisi / total) * 100) : 0;
 	const lengkap = total && terisi === total;
 
@@ -100,11 +152,11 @@ function render_ringkasan_kontrak(frm) {
 			</div>
 			<div class="dok-tile ${lengkap ? "dok-tile-ok" : ""}">
 				<div class="dok-tile-label">${__("Kelengkapan kontrak")}</div>
-				<div class="dok-tile-nilai">${frm.is_new() ? "—" : `${terisi} <span>/ ${total}</span>`}</div>
+				<div class="dok-tile-nilai">${total ? `${terisi} <span>/ ${total}</span>` : "—"}</div>
 				<div class="dok-progress"><div style="width: ${persen}%"></div></div>
 				<div class="dok-tile-sub">${
-					frm.is_new()
-						? __("Dihitung setelah disimpan")
+					!total
+						? __("Pilih Asal Tender dulu")
 						: lengkap
 						? __("Semua lengkap")
 						: __("{0} item belum lengkap", [total - terisi])
@@ -118,12 +170,10 @@ function render_kelengkapan_kontrak(frm) {
 	const field = frm.fields_dict.kelengkapan_html;
 	if (!field) return;
 	const esc = frappe.utils.escape_html;
-	const items = frm.doc.__onload?.kelengkapan || [];
+	const items = frm.__kelengkapan || [];
 
-	if (frm.is_new() || !items.length) {
-		field.$wrapper.html(
-			`<div class="text-muted small">${__("Checklist muncul setelah kontrak disimpan.")}</div>`
-		);
+	if (!items.length) {
+		field.$wrapper.html(`<div class="text-muted small">${__("Checklist muncul setelah Asal Tender dipilih.")}</div>`);
 		return;
 	}
 
@@ -152,7 +202,12 @@ function render_kelengkapan_kontrak(frm) {
 		})
 		.join("");
 
-	field.$wrapper.html(`<div class="dok-tender kp-kelengkapan">${rows}</div>`);
+	const catatan = frm.is_dirty()
+		? `<div class="kp-cek-catatan text-muted small">${frappe.utils.icon("info", "xs")} ${__(
+				"Checklist sudah mengikuti isian terbaru. Jangan lupa simpan."
+		  )}</div>`
+		: "";
+	field.$wrapper.html(`<div class="dok-tender kp-kelengkapan">${rows}</div>${catatan}`);
 	field.$wrapper.find(".kp-isi").on("click", function () {
 		const fieldname = $(this).attr("data-field");
 		frm.scroll_to_field(fieldname);

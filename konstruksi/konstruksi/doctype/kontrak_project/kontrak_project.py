@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Imogi Indonesia and contributors
 # For license information, please see license.txt
 
+import json
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -25,12 +27,14 @@ class KontrakProject(Document):
 			if not 0 <= flt(self.get(fieldname)) <= 100:
 				frappe.throw(_("{0} harus antara 0 dan 100.").format(_(self.meta.get_label(fieldname))))
 
-		kelengkapan = self.get_kelengkapan()
-		self.kelengkapan_total = len(kelengkapan)
-		self.kelengkapan_terisi = sum(1 for item in kelengkapan if item["ok"])
+		self.set_jumlah_kelengkapan(self.get_kelengkapan())
 
 	def onload(self):
 		self.set_onload("kelengkapan", self.get_kelengkapan())
+
+	def set_jumlah_kelengkapan(self, kelengkapan):
+		self.kelengkapan_total = len(kelengkapan)
+		self.kelengkapan_terisi = sum(1 for item in kelengkapan if item["ok"])
 
 	def hitung_nilai(self):
 		if self.status_ppn != "PPN":
@@ -192,3 +196,46 @@ def sinkron_dari_tender(tender, method=None):
 			},
 			update_modified=False,
 		)
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def cari_tender_menang(doctype, txt, searchfield, start, page_len, filters):
+	"""Pilihan Asal Tender: tender yang menang dan belum punya Kontrak Project."""
+	sudah = frappe.get_all("Kontrak Project", pluck="tender")
+	return frappe.get_all(
+		"Tender",
+		filters={"status": "Menang", "name": ("not in", sudah or [""])},
+		or_filters={"name": ("like", f"%{txt}%"), "nama_paket": ("like", f"%{txt}%")},
+		fields=["name", "nama_paket"],
+		order_by="modified desc",
+		limit_start=start,
+		limit_page_length=page_len,
+		as_list=True,
+	)
+
+
+@frappe.whitelist()
+def get_kelengkapan_live(doc):
+	"""Checklist kelengkapan untuk isian form yang belum disimpan (supaya checklist langsung ikut berubah)."""
+	doc = frappe.get_doc(json.loads(doc) if isinstance(doc, str) else doc)
+	doc.check_permission("read")
+	if not doc.tender:
+		return []
+	doc.hitung_nilai()
+	doc.hitung_waktu()
+	doc.hitung_jaminan()
+	return doc.get_kelengkapan()
+
+
+def hitung_ulang_dari_rab(rab, method=None):
+	"""RAB Penawaran diubah / dihapus: jumlah kelengkapan kontrak (cek RAB = nilai kontrak) dihitung ulang."""
+	name = get_kontrak(rab.tender) if rab.tender else None
+	if not name:
+		return
+	doc = frappe.get_doc("Kontrak Project", name)
+	doc.set_jumlah_kelengkapan(doc.get_kelengkapan())
+	doc.db_set(
+		{"kelengkapan_terisi": doc.kelengkapan_terisi, "kelengkapan_total": doc.kelengkapan_total},
+		update_modified=False,
+	)

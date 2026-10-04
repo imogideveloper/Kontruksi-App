@@ -163,6 +163,10 @@ doc_events = {
 	"File": {
 		"on_trash": "konstruksi.konstruksi.doctype.dokumen_tender.dokumen_tender.hapus_baris_file",
 	},
+	"RAB Penawaran": {
+		"on_update": "konstruksi.konstruksi.doctype.kontrak_project.kontrak_project.hitung_ulang_dari_rab",
+		"after_delete": "konstruksi.konstruksi.doctype.kontrak_project.kontrak_project.hitung_ulang_dari_rab",
+	},
 }
 
 # Scheduled Tasks

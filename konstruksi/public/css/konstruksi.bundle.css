@@ -1098,3 +1098,7 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 .kp-cek-kurang .kp-cek-ket {
 	color: var(--dok-warn);
 }
+
+.kp-cek-catatan {
+	margin-top: 6px;
+}
