@@ -98,8 +98,9 @@ CUSTOM_FIELD_TIM = {
 	],
 	"Employee": [
 		{"fieldname": "skk_section", "fieldtype": "Section Break", "label": "SKK (Sertifikat Kompetensi Kerja)",
-			# Setelah Branch (field terakhir tab ini) supaya section hanya berisi tabel SKK, selebar form.
-			"insert_after": "branch", "collapsible": 0},
+			# Tab Overview, di bawah section Company Details: setelah Grade (field HRMS yang juga disisipkan setelah
+			# Branch); bila disisipkan setelah Branch, posisinya bentrok dengan Grade dan terlempar ke tab Address.
+			"insert_after": "grade" if frappe.get_meta("Employee").has_field("grade") else "branch", "collapsible": 0},
 		{"fieldname": "skk", "fieldtype": "Table", "label": "SKK", "options": "SKK Personel", "insert_after": "skk_section"},
 	],
 	"Designation": [
