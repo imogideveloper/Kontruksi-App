@@ -19,6 +19,11 @@ frappe.listview_settings["Tarif PPh Final"] = {
 	get_indicator: status_tarif_pph,
 
 	formatters: {
+		// Field Select bawaan tampil sebagai pill dengan lebar maks 150px (teks panjang terpotong); pakai teks biasa.
+		kualifikasi(value) {
+			const esc = frappe.utils.escape_html(value || "");
+			return `<span class="ellipsis" title="${esc}">${esc}</span>`;
+		},
 		// Frappe merender Percent di list sebagai progress bar; tarif perlu angka yang terbaca.
 		tarif(value) {
 			return `<b>${format_number(flt(value), null, 2).replace(/[.,]?0+$/, "")}%</b>`;
