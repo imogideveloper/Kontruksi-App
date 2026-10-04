@@ -1201,11 +1201,6 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 	stroke: currentColor !important;
 }
 
-.kpr-ikon-besar {
-	width: 48px;
-	height: 48px;
-	border-radius: 14px;
-}
 
 .kpr-ikon-biru { background: var(--kpr-biru-bg); color: var(--kpr-biru); }
 .kpr-ikon-ungu { background: var(--kpr-ungu-bg); color: var(--kpr-ungu); }
@@ -1222,26 +1217,20 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 	color: var(--text-muted);
 }
 
-/* Kepala kontrak */
+/* Kepala kontrak: dua baris (judul + status, lalu meta). */
 .kpr-kepala {
+	padding: 16px 20px;
+	border-left: 4px solid var(--kpr-biru);
+}
+
+.kpr-kepala-baris {
 	display: flex;
 	align-items: center;
-	gap: 16px;
-	background: linear-gradient(120deg, var(--konstruksi-active-bg) 0%, var(--fg-color, #fff) 55%);
-}
-
-.kpr-kepala-tengah {
-	flex: 1;
-	min-width: 0;
-}
-
-.kpr-kepala-kode {
-	font-size: var(--text-xs);
-	color: var(--text-muted);
+	justify-content: space-between;
+	gap: 12px;
 }
 
 .kpr-kepala-judul {
-	margin: 2px 0;
 	font-size: 22px;
 	font-weight: 700;
 	line-height: 1.3;
@@ -1249,26 +1238,90 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 }
 
 .kpr-kepala-sub {
+	margin-top: 4px;
 	font-size: var(--text-sm);
 	color: var(--text-muted);
 }
 
-.kpr-kepala-kanan {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-end;
-	gap: 6px;
-	text-align: right;
-}
-
-.kpr-kepala-nomor {
-	font-size: var(--text-sm);
+.kpr-kepala-sub b {
 	color: var(--text-color);
 }
 
-.kpr-kepala-tanggal {
-	font-size: var(--text-xs);
+/* Perlu Tindakan: kotak paling atas setelah kepala, hanya muncul bila ada. */
+.kpr-tindakan {
+	padding: 14px 20px;
+	border-color: #fed7aa;
+	background: #fffaf5;
+}
+
+.kpr-tindakan-merah {
+	border-color: #fecaca;
+	background: #fff7f7;
+}
+
+.kpr-tindakan-judul {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 8px;
+	font-weight: 600;
+	color: var(--kpr-oranye);
+}
+
+.kpr-tindakan-merah .kpr-tindakan-judul {
+	color: #b91c1c;
+}
+
+.kpr-tindakan-judul .icon {
+	stroke: currentColor !important;
+}
+
+.kpr-tindakan-baris {
+	display: grid;
+	grid-template-columns: 10px minmax(0, 1fr) auto;
+	gap: 12px;
+	align-items: center;
+	padding: 8px 0;
+	border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.kpr-tindakan-titik {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--kpr-oranye);
+}
+
+.kpr-tingkat-merah .kpr-tindakan-titik {
+	background: var(--kpr-merah);
+}
+
+.kpr-tindakan-info {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 4px 10px;
+	min-width: 0;
+}
+
+.kpr-tindakan-info b {
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.kpr-tindakan-info span {
+	font-size: var(--text-sm);
 	color: var(--text-muted);
+}
+
+.kpr-tingkat-merah .kpr-aksi-isi {
+	background: #fee2e2;
+	color: #b91c1c !important;
+}
+
+.kpr-badge-merah {
+	background: #fee2e2;
+	color: #b91c1c;
 }
 
 /* Kartu angka utama */
@@ -1335,6 +1388,10 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 
 .kpr-progress-ok > div {
 	background: var(--kpr-hijau);
+}
+
+.kpr-progress-biru > div {
+	background: var(--kpr-biru);
 }
 
 /* Judul panel + badge */
@@ -1569,15 +1626,4 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 	font-weight: normal;
 }
 
-.kpr-semua-lengkap {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding: 4px 8px;
-	font-weight: 500;
-	color: var(--kpr-hijau);
-}
 
-.kpr-semua-lengkap .icon {
-	stroke: currentColor !important;
-}

@@ -169,9 +169,15 @@ function kontrak_status(doc) {
 	return [__("Selesai"), "green"];
 }
 
-// Tab Ringkasan: kepala kontrak, kartu angka utama, timeline, lalu panel Kelengkapan & Data Kontrak berdampingan.
+// Tab Ringkasan = dashboard kontrak. Menjawab 3 hal secepat mungkin: tahap kontrak (kepala), apa yang harus
+// dikerjakan (Perlu Tindakan, hanya muncul bila ada), lalu uang & waktu (kartu + timeline). Detail ada di tab lain.
 // Semua dari frm.doc (ikut berubah sebelum disimpan); checklist dari server (frm.__kelengkapan).
-// Gaya khusus tab ini memakai kelas kpr-* (konstruksi.bundle.css), terpisah dari Dokumen Tender.
+// Gaya: kelas kpr-* di konstruksi.bundle.css, terpisah dari Dokumen Tender.
+
+// Peringatan tanggal: jaminan yang habis dalam sekian hari, dan sisa masa pelaksanaan.
+const HARI_PERINGATAN_JAMINAN = 30;
+const HARI_PERINGATAN_PELAKSANAAN = 14;
+
 function render_ringkasan_kontrak(frm) {
 	const field = frm.fields_dict.ringkasan;
 	if (!field) return;
@@ -189,15 +195,15 @@ function render_ringkasan_kontrak(frm) {
 		return;
 	}
 
-	// Ringkas: kepala, 3 kartu, timeline, lalu hanya item kelengkapan yang belum beres. Data detail ada di tab lain.
 	field.$wrapper.html(`<div class="kpr">
 		${html_kepala_kontrak(frm)}
+		${html_perlu_tindakan(frm)}
 		${html_kartu_kontrak(frm)}
+		${frm.__kelengkapan_semua ? html_checklist_kontrak(frm) : ""}
 		${html_timeline_kontrak(frm)}
-		${html_panel_kelengkapan(frm)}
 	</div>`);
 	pasang_aksi_ringkasan(frm, field.$wrapper);
-	field.$wrapper.find(".kpr-lihat-semua").on("click", (e) => {
+	field.$wrapper.find(".kpr-lihat-checklist").on("click", (e) => {
 		e.preventDefault();
 		frm.__kelengkapan_semua = !frm.__kelengkapan_semua;
 		render_ringkasan_kontrak(frm);
@@ -226,40 +232,102 @@ function html_kepala_kontrak(frm) {
 	const doc = frm.doc;
 	const esc = frappe.utils.escape_html;
 	const [status, warna] = kontrak_status(doc);
-	const sub = [doc.pemberi_kerja, doc.lokasi, doc.jenis_project].filter(Boolean).map(esc).join('<span class="kpr-titik">•</span>');
+	const titik = '<span class="kpr-titik">•</span>';
 	const nomor = doc.nomor_kontrak
-		? `<div class="kpr-kepala-nomor">${__("Kontrak No.")} <b>${esc(doc.nomor_kontrak)}</b></div>
-			<div class="kpr-kepala-tanggal">${doc.tanggal_kontrak ? tanggal_kontrak(doc.tanggal_kontrak) : ""}</div>`
-		: `<a href="#" class="kp-ke-field kpr-tautan-kurang" data-field="nomor_kontrak">${__("Nomor kontrak belum diisi")} →</a>`;
+		? `${__("Kontrak No.")} <b>${esc(doc.nomor_kontrak)}</b>${doc.tanggal_kontrak ? ` · ${tanggal_kontrak(doc.tanggal_kontrak)}` : ""}`
+		: `<a href="#" class="kp-ke-field kpr-tautan-kurang" data-field="nomor_kontrak">${__("Nomor kontrak belum diisi")}</a>`;
+	const meta = [
+		frm.is_new() ? __("Kontrak baru") : esc(doc.name),
+		`<a href="/app/tender/${encodeURIComponent(doc.tender)}">${esc(doc.tender)}</a>`,
+		...[doc.pemberi_kerja, doc.lokasi].filter(Boolean).map(esc),
+		nomor,
+	].join(titik);
 
 	return `<div class="kpr-card kpr-kepala">
-		<div class="kpr-ikon kpr-ikon-besar kpr-ikon-biru">${frappe.utils.icon("file-text", "md")}</div>
-		<div class="kpr-kepala-tengah">
-			<div class="kpr-kepala-kode">${frm.is_new() ? __("Kontrak baru") : esc(doc.name)}
-				<span class="kpr-titik">•</span>${__("Tender")}
-				<a href="/app/tender/${encodeURIComponent(doc.tender)}">${esc(doc.tender)}</a></div>
+		<div class="kpr-kepala-baris">
 			<div class="kpr-kepala-judul">${esc(doc.nama_project || "")}</div>
-			<div class="kpr-kepala-sub">${sub}</div>
-		</div>
-		<div class="kpr-kepala-kanan">
 			<span class="indicator-pill ${warna}">${status}</span>
-			${nomor}
 		</div>
+		<div class="kpr-kepala-sub">${meta}</div>
+	</div>`;
+}
+
+// Hal yang perlu ditindaklanjuti: peringatan tanggal (merah = sudah lewat, oranye = segera) lalu item checklist
+// yang belum lengkap. Kotak tidak tampil bila tidak ada apa-apa.
+function daftar_tindakan(frm) {
+	const doc = frm.doc;
+	const hari_ini = frappe.datetime.get_today();
+	const { selesai } = jadwal_kontrak(doc);
+	const tindakan = [];
+
+	// Jaminan hanya perlu berlaku selama pelaksanaan (sampai PHO); setelah itu habisnya tidak diperingatkan.
+	const cek_jaminan = (nama, berlaku, aktif, field) => {
+		if (!aktif || !berlaku || (selesai && hari_ini > selesai)) return;
+		const sisa = frappe.datetime.get_day_diff(berlaku, hari_ini);
+		if (sisa < 0) {
+			tindakan.push({ tingkat: "merah", judul: __("{0} sudah habis", [nama]), ket: __("Berakhir {0} · minta perpanjangan", [tanggal_kontrak(berlaku)]), field });
+		} else if (sisa <= HARI_PERINGATAN_JAMINAN) {
+			tindakan.push({ tingkat: "oranye", judul: __("{0} habis dalam {1} hari", [nama, sisa]), ket: __("Berlaku sampai {0}", [tanggal_kontrak(berlaku)]), field });
+		}
+	};
+	cek_jaminan(__("Jaminan pelaksanaan"), doc.jaminan_pelaksanaan_berlaku,
+		doc.jaminan_pelaksanaan_wajib && doc.jaminan_pelaksanaan_diserahkan, "jaminan_pelaksanaan_berlaku");
+	cek_jaminan(__("Jaminan uang muka"), doc.jaminan_uang_muka_berlaku,
+		flt(doc.uang_muka_persen) && doc.jaminan_uang_muka_diserahkan, "jaminan_uang_muka_berlaku");
+
+	if (selesai && doc.tanggal_spmk <= hari_ini && hari_ini <= selesai) {
+		const sisa = frappe.datetime.get_day_diff(selesai, hari_ini);
+		if (sisa <= HARI_PERINGATAN_PELAKSANAAN) {
+			tindakan.push({ tingkat: "oranye", judul: __("Masa pelaksanaan tinggal {0} hari", [sisa]), ket: __("Selesai (PHO) {0}", [tanggal_kontrak(selesai)]), field: "tanggal_spmk" });
+		}
+	}
+
+	(frm.__kelengkapan || [])
+		.filter((item) => !item.ok)
+		.forEach((item) => tindakan.push({ tingkat: "oranye", judul: item.label, ket: item.ket, field: item.field, rab: item.rab, tender: frm.doc.tender }));
+
+	return tindakan.sort((a, b) => (a.tingkat === "merah" ? 0 : 1) - (b.tingkat === "merah" ? 0 : 1));
+}
+
+function tombol_tindakan(item) {
+	if (item.field) return `<button class="btn btn-xs kpr-aksi-isi kp-ke-field" data-field="${item.field}">${__("Isi")} →</button>`;
+	if (item.rab) return `<a class="btn btn-xs kpr-aksi-isi" href="/app/rab-penawaran/${encodeURIComponent(item.rab)}">${__("Buka RAB")} →</a>`;
+	return `<a class="btn btn-xs kpr-aksi-isi" href="/app/rab-penawaran/new?tender=${encodeURIComponent(item.tender || "")}">${__("Buat RAB")} →</a>`;
+}
+
+function html_perlu_tindakan(frm) {
+	const esc = frappe.utils.escape_html;
+	const tindakan = daftar_tindakan(frm);
+	if (!tindakan.length) return "";
+	const ada_merah = tindakan.some((item) => item.tingkat === "merah");
+
+	return `<div class="kpr-card kpr-tindakan ${ada_merah ? "kpr-tindakan-merah" : ""}">
+		<div class="kpr-tindakan-judul">${frappe.utils.icon("circle-alert", "sm")} ${__("Perlu Tindakan")}
+			<span class="kpr-badge kpr-badge-${ada_merah ? "merah" : "kurang"}">${tindakan.length}</span></div>
+		${tindakan
+			.map(
+				(item) => `<div class="kpr-tindakan-baris kpr-tingkat-${item.tingkat}">
+					<span class="kpr-tindakan-titik"></span>
+					<div class="kpr-tindakan-info"><b>${esc(item.judul)}</b><span>${esc(item.ket || "")}</span></div>
+					${tombol_tindakan(item)}
+				</div>`
+			)
+			.join("")}
+		${frm.is_dirty() ? `<div class="kpr-catatan">${__("Sudah mengikuti isian terbaru. Jangan lupa simpan.")}</div>` : ""}
 	</div>`;
 }
 
 function html_kartu_kontrak(frm) {
 	const doc = frm.doc;
-	const { masa, mulai, selesai } = jadwal_kontrak(doc);
+	const { masa, mulai, selesai, akhir } = jadwal_kontrak(doc);
 	const nilai = flt(doc.nilai_kontrak);
 	const tarif = doc.status_ppn === "PPN" ? flt(doc.tarif_ppn) : 0;
 	const sebelum_ppn = nilai / (1 + tarif / 100);
-	const uang_muka = flt(doc.uang_muka_persen);
+	const hari_ini = frappe.datetime.get_today();
 
 	const items = frm.__kelengkapan || [];
 	const total = items.length;
 	const terisi = items.filter((item) => item.ok).length;
-	const persen = total ? Math.round((terisi / total) * 100) : 0;
 	const lengkap = total && terisi === total;
 
 	const kartu = (ikon, warna, label, nilai_html, sub_html) => `<div class="kpr-card kpr-kartu">
@@ -270,6 +338,29 @@ function html_kartu_kontrak(frm) {
 		<div class="kpr-kartu-nilai">${nilai_html}</div>
 		<div class="kpr-kartu-sub">${sub_html}</div>
 	</div>`;
+	const progress = (persen, kelas = "") =>
+		`<div class="kpr-progress ${kelas}"><div style="width: ${Math.min(Math.max(persen, 0), 100)}%"></div></div>`;
+
+	// Sisa waktu sesuai tahap kontrak.
+	let waktu_nilai = "—";
+	let waktu_sub = `<a href="#" class="kp-ke-field" data-field="tanggal_spmk">${__("Isi tanggal SPMK")} →</a>`;
+	if (selesai) {
+		const terpakai = frappe.datetime.get_day_diff(hari_ini, mulai) + 1;
+		if (hari_ini < mulai) {
+			waktu_nilai = `${-frappe.datetime.get_day_diff(hari_ini, mulai)} <span>${__("hari lagi")}</span>`;
+			waktu_sub = __("Mulai {0} · {1} hari kerja", [tanggal_kontrak(mulai), masa]);
+		} else if (hari_ini <= selesai) {
+			const persen = Math.round((terpakai / masa) * 100);
+			waktu_nilai = `${frappe.datetime.get_day_diff(selesai, hari_ini)} <span>${__("hari lagi")}</span>`;
+			waktu_sub = progress(persen, persen > 85 ? "" : "kpr-progress-biru") + __("{0}% waktu terpakai · selesai {1}", [persen, tanggal_kontrak(selesai)]);
+		} else if (akhir && hari_ini <= akhir) {
+			waktu_nilai = __("Pemeliharaan");
+			waktu_sub = __("Sisa {0} hari · sampai {1}", [frappe.datetime.get_day_diff(akhir, hari_ini), tanggal_kontrak(akhir)]);
+		} else {
+			waktu_nilai = __("Selesai");
+			waktu_sub = __("Berakhir {0}", [tanggal_kontrak(akhir || selesai)]);
+		}
+	}
 
 	return `<div class="kpr-kartu-baris kpr-kartu-3">
 		${kartu(
@@ -277,23 +368,46 @@ function html_kartu_kontrak(frm) {
 			"biru",
 			__("Nilai Kontrak"),
 			nilai ? rupiah(nilai) : "—",
-			nilai ? (tarif ? __("{0} + PPN {1}%", [rupiah(sebelum_ppn), format_number(tarif, null, 0)]) : __("Tidak kena PPN")) : __("Belum ada nilai")
+			nilai ? (tarif ? __("{0} sebelum PPN {1}%", [rupiah(sebelum_ppn), format_number(tarif, null, 0)]) : __("Tidak kena PPN")) : __("Belum ada nilai")
 		)}
-		${kartu(
-			"calendar",
-			"ungu",
-			__("Waktu Pelaksanaan"),
-			masa ? `${masa} <span>${__("hari")}</span>` : "—",
-			selesai ? `${tanggal_kontrak(mulai)} – ${tanggal_kontrak(selesai)}` : __("Menunggu tanggal SPMK")
-		)}
+		${kartu("calendar", "ungu", __("Sisa Waktu"), waktu_nilai, waktu_sub)}
 		${kartu(
 			"clipboard-check",
 			lengkap ? "hijau" : "oranye",
 			__("Kelengkapan"),
 			total ? `${terisi}<span>/${total}</span>` : "—",
-			`<div class="kpr-progress ${lengkap ? "kpr-progress-ok" : ""}"><div style="width: ${persen}%"></div></div>
-			${lengkap ? __("Semua lengkap") : __("{0} item belum lengkap", [total - terisi])}`
+			progress(total ? (terisi / total) * 100 : 0, lengkap ? "kpr-progress-ok" : "") +
+				`${lengkap ? __("Semua lengkap") : __("{0} belum beres", [total - terisi])} ·
+				<a href="#" class="kpr-lihat-checklist">${frm.__kelengkapan_semua ? __("Tutup checklist") : __("Lihat checklist")}</a>`
 		)}
+	</div>`;
+}
+
+// Checklist lengkap, hanya saat dibuka dari kartu Kelengkapan.
+function html_checklist_kontrak(frm) {
+	const esc = frappe.utils.escape_html;
+	const rows = (frm.__kelengkapan || [])
+		.map(
+			(item) => `<div class="kpr-cek ${item.ok ? "kpr-cek-ok" : "kpr-cek-kurang"}">
+				<span class="kpr-cek-ikon">${frappe.utils.icon(item.ok ? "check" : "circle-alert", "xs")}</span>
+				<div class="kpr-cek-info">
+					<div class="kpr-cek-label">${esc(item.label)}</div>
+					<div class="kpr-cek-ket">${esc(item.ket || "")}</div>
+				</div>
+				<div class="kpr-cek-aksi">${
+					item.ok
+						? item.field
+							? `<button class="kpr-aksi-ikon kp-ke-field" data-field="${item.field}" title="${__("Ubah")}">${frappe.utils.icon("edit", "xs")}</button>`
+							: ""
+						: tombol_tindakan({ ...item, tender: frm.doc.tender })
+				}</div>
+			</div>`
+		)
+		.join("");
+	return `<div class="kpr-card">
+		<div class="kpr-judul">${__("Checklist Kelengkapan")}
+			<a href="#" class="kpr-lihat-checklist kpr-lihat-semua">${__("Tutup")}</a></div>
+		<div class="kpr-cek-daftar">${rows}</div>
 	</div>`;
 }
 
@@ -366,69 +480,6 @@ function html_timeline_kontrak(frm) {
 	</div>`;
 }
 
-function html_panel_kelengkapan(frm) {
-	const esc = frappe.utils.escape_html;
-	const items = frm.__kelengkapan || [];
-	const terisi = items.filter((item) => item.ok).length;
-	const lengkap = items.length && terisi === items.length;
-
-	// Default hanya item yang belum lengkap; "Lihat semua" menampilkan seluruh checklist.
-	const tampil = frm.__kelengkapan_semua ? items : items.filter((item) => !item.ok);
-	const rows = tampil
-		.map((item) => {
-			// Item belum lengkap: tombol jelas. Item lengkap: ikon pensil kecil saja (muncul saat diarahkan kursor).
-			let aksi;
-			if (item.field) {
-				aksi = item.ok
-					? `<button class="kpr-aksi-ikon kp-ke-field" data-field="${item.field}" title="${__("Ubah")}">
-						${frappe.utils.icon("edit", "xs")}</button>`
-					: `<button class="btn btn-xs kpr-aksi-isi kp-ke-field" data-field="${item.field}">${__("Isi")} →</button>`;
-			} else if (item.rab) {
-				aksi = item.ok
-					? `<a class="kpr-aksi-ikon" href="/app/rab-penawaran/${encodeURIComponent(item.rab)}" title="${__("Buka RAB")}">
-						${frappe.utils.icon("right", "xs")}</a>`
-					: `<a class="btn btn-xs kpr-aksi-isi" href="/app/rab-penawaran/${encodeURIComponent(item.rab)}">${__("Buka RAB")} →</a>`;
-			} else {
-				aksi = `<a class="btn btn-xs kpr-aksi-isi" href="/app/rab-penawaran/new?tender=${encodeURIComponent(
-					frm.doc.tender
-				)}">${__("Buat RAB")} →</a>`;
-			}
-			return `<div class="kpr-cek ${item.ok ? "kpr-cek-ok" : "kpr-cek-kurang"}">
-				<span class="kpr-cek-ikon">${frappe.utils.icon(item.ok ? "check" : "circle-alert", "xs")}</span>
-				<div class="kpr-cek-info">
-					<div class="kpr-cek-label">${esc(item.label)}</div>
-					<div class="kpr-cek-ket">${esc(item.ket || "")}</div>
-				</div>
-				<div class="kpr-cek-aksi">${aksi}</div>
-			</div>`;
-		})
-		.join("");
-
-	const catatan = frm.is_dirty()
-		? `<div class="kpr-catatan">${frappe.utils.icon("info", "xs")} ${__("Checklist sudah mengikuti isian terbaru. Jangan lupa simpan.")}</div>`
-		: "";
-
-	let isi = rows;
-	if (!items.length) {
-		isi = `<div class="kpr-muted">${__("Memuat checklist…")}</div>`;
-	} else if (!rows) {
-		isi = `<div class="kpr-semua-lengkap">${frappe.utils.icon("check", "sm")} ${__("Semua kelengkapan kontrak sudah lengkap.")}</div>`;
-	}
-	const lihat = items.length
-		? `<a href="#" class="kpr-lihat-semua">${
-				frm.__kelengkapan_semua ? __("Hanya yang belum lengkap") : __("Lihat semua ({0})", [items.length])
-		  }</a>`
-		: "";
-
-	return `<div class="kpr-card">
-		<div class="kpr-judul">${lengkap ? __("Kelengkapan Kontrak") : __("Perlu Dilengkapi")}
-			${items.length ? `<span class="kpr-badge ${lengkap ? "kpr-badge-ok" : "kpr-badge-kurang"}">${terisi} / ${items.length}</span>` : ""}
-			${lihat}
-		</div>
-		<div class="kpr-cek-daftar">${isi}</div>
-		${catatan}
-	</div>`;
-}
 
 // Rincian nilai kontrak dalam satu baris tabel. Semua angka mengikuti Tender (tidak diedit di sini);
 // lebar kolom dikunci (colgroup + table-layout: fixed) supaya tidak bergeser mengikuti isi.
