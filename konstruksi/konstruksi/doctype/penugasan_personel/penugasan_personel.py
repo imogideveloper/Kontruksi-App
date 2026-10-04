@@ -6,7 +6,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, getdate
 
-from konstruksi.konstruksi.tim_proyek import get_akses, get_status_skk, sinkron_users_project
+from konstruksi.konstruksi.tim_proyek import get_akses, get_skk_berlaku_sampai, get_status_skk, sinkron_users_project
 
 
 class PenugasanPersonel(Document):
@@ -27,6 +27,7 @@ class PenugasanPersonel(Document):
 		self.akses_sistem = get_akses(self.user_id)
 		akhir = self.tanggal_selesai or frappe.db.get_value("Project", self.project, "expected_end_date")
 		self.status_skk = get_status_skk(self.employee, self.jabatan, akhir)
+		self.skk_berlaku_sampai = get_skk_berlaku_sampai(self.employee) if self.status_skk != "Tidak Wajib" else None
 		self.cek_beban()
 
 	def cek_beban(self):

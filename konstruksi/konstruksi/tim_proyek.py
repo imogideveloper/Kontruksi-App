@@ -14,17 +14,26 @@ from frappe.utils import flt, getdate, today
 from konstruksi.api import beri_tahu_form
 
 
+def get_skk_berlaku_sampai(employee):
+	"""Tanggal berlaku SKK terlama milik personel (None bila tidak ada SKK atau ada SKK tanpa batas waktu)."""
+	skk = frappe.get_all("SKK Personel", filters={"parent": employee, "parenttype": "Employee"}, pluck="berlaku_sampai")
+	if not skk or any(not b for b in skk):
+		return None
+	return max(getdate(b) for b in skk)
+
+
 def get_status_skk(employee, jabatan, tanggal=None):
-	"""Tidak Wajib / Berlaku / Belum Ada / Kedaluwarsa — SKK personel untuk jabatan yang mewajibkannya."""
+	"""Status SKK personel untuk jabatan yang mewajibkannya, dicek sampai `tanggal` (akhir tugas):
+	Tidak Wajib / Berlaku / Habis Saat Bertugas (masih berlaku hari ini, habis sebelum tugas selesai) /
+	Kedaluwarsa (sudah habis hari ini) / Belum Ada."""
 	if not frappe.db.get_value("Designation", jabatan, "wajib_skk"):
 		return "Tidak Wajib"
-	skk = frappe.get_all(
-		"SKK Personel", filters={"parent": employee, "parenttype": "Employee"}, pluck="berlaku_sampai"
-	)
-	if not skk:
+	if not frappe.db.exists("SKK Personel", {"parent": employee, "parenttype": "Employee"}):
 		return "Belum Ada"
-	acuan = getdate(tanggal or today())
-	return "Berlaku" if any(not b or getdate(b) >= acuan for b in skk) else "Kedaluwarsa"
+	sampai = get_skk_berlaku_sampai(employee)
+	if not sampai or sampai >= getdate(tanggal or today()):
+		return "Berlaku"
+	return "Habis Saat Bertugas" if sampai >= getdate(today()) else "Kedaluwarsa"
 
 
 def sinkron_users_project(project):

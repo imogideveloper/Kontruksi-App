@@ -86,7 +86,7 @@
 	// Tab Tim Proyek: ringkasan, kebutuhan personel (dari Template Kebutuhan Personel), daftar penugasan.
 
 	const TIM_METHOD = "konstruksi.konstruksi.tim_proyek";
-	const SKK_BERMASALAH = ["Belum Ada", "Kedaluwarsa"];
+	const SKK_BERMASALAH = ["Belum Ada", "Kedaluwarsa", "Habis Saat Bertugas"];
 
 	function muat_tim(frm) {
 		const field = frm.fields_dict.tim_html;

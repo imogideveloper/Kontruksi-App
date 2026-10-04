@@ -20,6 +20,7 @@
   "kontak_column",
   "email",
   "status_skk",
+  "skk_berlaku_sampai",
   "catatan_section",
   "catatan"
  ],
@@ -138,9 +139,16 @@
    "fieldname": "status_skk",
    "fieldtype": "Select",
    "label": "Status SKK",
-   "options": "\nTidak Wajib\nBerlaku\nBelum Ada\nKedaluwarsa",
+   "options": "\nTidak Wajib\nBerlaku\nHabis Saat Bertugas\nKedaluwarsa\nBelum Ada",
    "read_only": 1,
-   "description": "Dicek dari tabel SKK di data personel bila jabatan mewajibkan SKK."
+   "description": "Dicek terhadap akhir tugas, dari tabel SKK di data personel bila jabatan mewajibkan SKK."
+  },
+  {
+   "fieldname": "skk_berlaku_sampai",
+   "fieldtype": "Date",
+   "label": "SKK Berlaku Sampai",
+   "read_only": 1,
+   "depends_on": "eval:doc.skk_berlaku_sampai"
   },
   {
    "fieldname": "catatan_section",
@@ -153,7 +161,7 @@
   }
  ],
  "links": [],
- "modified": "2026-10-07 13:00:00.000000",
+ "modified": "2026-10-07 17:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Penugasan Personel",

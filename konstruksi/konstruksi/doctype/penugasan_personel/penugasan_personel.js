@@ -12,15 +12,13 @@ frappe.ui.form.on("Penugasan Personel", {
 		if (frm.doc.project) {
 			frm.add_custom_button(__("Project Master"), () => frappe.set_route("Form", "Project", frm.doc.project));
 		}
-		if (["Belum Ada", "Kedaluwarsa"].includes(frm.doc.status_skk)) {
-			frm.dashboard.set_headline(
-				__("Jabatan {0} mewajibkan SKK, dan SKK personel ini {1}. Lengkapi di Data Personel.", [
-					frm.doc.jabatan,
-					__(frm.doc.status_skk).toLowerCase(),
-				]),
-				"orange"
-			);
-		}
+		const sampai = frm.doc.skk_berlaku_sampai ? frappe.datetime.str_to_user(frm.doc.skk_berlaku_sampai) : "";
+		const pesan = {
+			"Habis Saat Bertugas": __("SKK personel ini berlaku sampai {0}, sebelum tugasnya selesai. Minta perpanjangan sebelum habis.", [sampai]),
+			Kedaluwarsa: __("SKK personel ini sudah habis sejak {0}. Jabatan {1} mewajibkan SKK yang berlaku.", [sampai, frm.doc.jabatan]),
+			"Belum Ada": __("Jabatan {0} mewajibkan SKK, tetapi personel ini belum punya SKK. Lengkapi di Data Personel.", [frm.doc.jabatan]),
+		}[frm.doc.status_skk];
+		if (pesan) frm.dashboard.set_headline(pesan, frm.doc.status_skk === "Habis Saat Bertugas" ? "orange" : "red");
 	},
 
 	employee(frm) {
