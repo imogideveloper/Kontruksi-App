@@ -259,7 +259,10 @@ function render_rab_tree(frm) {
 	const esc = frappe.utils.escape_html;
 	const cari = state.cari.toLowerCase();
 	const hak = hak_rab(frm);
-	const kolom = 9 + (hak.lihat_biaya ? 2 : 0);
+	// Kolom aksi (tambah/hapus) hanya ada bila item boleh diubah.
+	const ada_aksi = hak.ubah_harga;
+	const kolom = 8 + (hak.lihat_biaya ? 2 : 0) + (ada_aksi ? 1 : 0);
+	const sel_aksi = (isi) => (ada_aksi ? `<td class="rab-aksi-sel">${isi}</td>` : "");
 
 	// Sel input: bisa diketik bila boleh diubah; bila tidak, tampil sebagai teks.
 	const sel = (item, fieldname, kelas = "") => {
@@ -308,11 +311,11 @@ function render_rab_tree(frm) {
 			<td class="rab-angka">${total ? format_number((subtotal / total) * 100, null, 2) : 0}%</td>
 			${sel_biaya(`<td class="rab-angka rab-tebal rab-biaya">${subbiaya ? format_rupiah(subbiaya) : ""}</td>
 				<td class="rab-angka rab-biaya">${persen_margin(subtotal, subbiaya)}</td>`)}
-			<td class="rab-aksi-sel">${
-				hak.ubah_harga && grup.induk
+			${sel_aksi(
+				(grup.induk
 					? `<button class="rab-aksi rab-tambah-anak" data-grup="${esc(grup.key)}" title="${__("Tambah item di kelompok ini")}">${frappe.utils.icon("add", "xs")}</button>`
-					: ""
-			}${grup.induk ? aksi_hapus(grup.induk) : ""}</td>
+					: "") + (grup.induk ? aksi_hapus(grup.induk) : "")
+			)}
 		</tr>`;
 
 		if (!terbuka) return;
@@ -329,7 +332,7 @@ function render_rab_tree(frm) {
 				<td class="rab-angka">${flt(item.bobot) ? `${format_number(flt(item.bobot), null, 2)}%` : ""}</td>
 				${sel_biaya(`<td class="rab-biaya">${sel(item, "harga_satuan_pokok")}</td>
 					<td class="rab-angka rab-biaya">${persen_margin(item.jumlah_harga, item.jumlah_biaya)}</td>`)}
-				<td class="rab-aksi-sel">${aksi_hapus(item)}</td>
+				${sel_aksi(aksi_hapus(item))}
 			</tr>`;
 		});
 	});
@@ -346,11 +349,12 @@ function render_rab_tree(frm) {
 			<td class="rab-angka rab-tebal">${format_rupiah(total)}</td><td class="rab-angka">100%</td>
 			${sel_biaya(`<td class="rab-angka rab-tebal rab-biaya">${total_biaya ? format_rupiah(total_biaya) : ""}</td>
 				<td class="rab-angka rab-tebal rab-biaya">${persen_margin(total, total_biaya)}</td>`)}
-			<td></td>
+			${sel_aksi("")}
 		</tr></tfoot>`
 		: "";
 
-	const lebar = hak.lihat_biaya ? [6, 22, 13, 6, 7, 11, 12, 6, 11, 6] : [6, 27, 16, 6, 8, 13, 15, 9];
+	// Lebar kolom (%): Jumlah Harga & Harga Pokok cukup untuk subtotal kelompok (mis. Rp 412.000.000).
+	const lebar = hak.lihat_biaya ? [5, 20, 13, 6, 7, 11, 14, 6, 13, 5] : [5, 26, 16, 6, 8, 13, 17, 9];
 	const fokus = simpan_fokus(field.$wrapper);
 
 	field.$wrapper.html(`
@@ -374,7 +378,7 @@ function render_rab_tree(frm) {
 			</div>
 			<div class="rab-table-wrap">
 				<table class="rab-table">
-					<colgroup>${lebar.map((w) => `<col style="width: ${w}%">`).join("")}<col style="width: 64px"></colgroup>
+					<colgroup>${lebar.map((w) => `<col style="width: ${w}%">`).join("")}${ada_aksi ? '<col style="width: 56px">' : ""}</colgroup>
 					<thead><tr>
 						<th>${__("No")}</th>
 						<th>${__("Uraian Pekerjaan")}</th>
@@ -385,7 +389,7 @@ function render_rab_tree(frm) {
 						<th class="rab-angka">${__("Jumlah Harga")}</th>
 						<th class="rab-angka">${__("Bobot")}</th>
 						${sel_biaya(`<th class="rab-angka rab-biaya">${__("Harga Pokok")}</th><th class="rab-angka rab-biaya">${__("Margin")}</th>`)}
-						<th></th>
+						${ada_aksi ? "<th></th>" : ""}
 					</tr></thead>
 					<tbody>${rows}</tbody>
 					${kaki}
