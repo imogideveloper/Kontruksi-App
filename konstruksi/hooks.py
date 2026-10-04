@@ -52,6 +52,9 @@ doctype_js = {
 	"Timesheet": "public/js/biaya_personel.js",
 	"Expense Claim": "public/js/biaya_personel.js",
 }
+# Project: Gross Margin ikut memotong biaya personel (gaji); turunan dari override HRMS.
+override_doctype_class = {"Project": "konstruksi.overrides.project.KonstruksiProject"}
+
 doctype_list_js = {
 	"Project": "public/js/project_list_konstruksi.js",
 	"Expense Claim": "public/js/expense_claim_list_konstruksi.js",

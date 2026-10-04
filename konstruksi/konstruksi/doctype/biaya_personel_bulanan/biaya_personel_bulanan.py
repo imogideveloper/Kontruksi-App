@@ -85,8 +85,8 @@ class BiayaPersonelBulanan(Document):
 
 
 def perbarui_total_project(project):
-	total = frappe.db.get_value("Biaya Personel Bulanan", {"project": project, "docstatus": 1}, [{"SUM": "total_biaya"}])
-	frappe.db.set_value("Project", project, "total_biaya_personel", flt(total))
+	"""Total Biaya Personel & Gross Margin Project dihitung ulang (overrides/project.py)."""
+	frappe.get_doc("Project", project).update_project()
 
 
 def buat_bulan_lalu(periode=None):

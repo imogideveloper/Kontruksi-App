@@ -58,7 +58,7 @@
 				<tbody>${baris}</tbody>
 			</table></div>
 			<p class="text-muted kpm-info-catatan">${__(
-				"Gross Margin (section di bawahnya) = Total Billed Amount − total biaya (timesheet, expense claim, pembelian, material)."
+				"Gross Margin (section di bawahnya) = Total Billed Amount − total biaya (timesheet, biaya personel/gaji, expense claim, pembelian, material)."
 			)}</p>`);
 		d.show();
 	}
