@@ -1990,3 +1990,51 @@ body.konstruksi-tanpa-sidebar[data-route^="Form"] .layout-main-section-wrapper {
 		white-space: nowrap !important;
 	}
 }
+
+/* Form Project: ikon info di judul section Costing and Billing & tabel penjelasan field (project_konstruksi.js). */
+.kpm-info-btn {
+	display: inline-flex;
+	align-items: center;
+	margin-left: 6px;
+	vertical-align: middle;
+	color: var(--konstruksi-active-accent);
+	cursor: pointer;
+}
+
+.kpm-info-btn .icon {
+	stroke: var(--konstruksi-active-accent);
+}
+
+.kpm-info-wrap {
+	border: 1px solid var(--border-color);
+	overflow-x: auto;
+}
+
+.kpm-info-tabel {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.kpm-info-tabel th {
+	padding: 8px 12px;
+	background: var(--konstruksi-active-bg);
+	color: var(--konstruksi-header-fg);
+	font-size: var(--text-sm);
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.kpm-info-tabel td {
+	padding: 8px 12px;
+	border-top: 1px solid var(--border-color);
+	vertical-align: top;
+	font-size: var(--text-sm);
+}
+
+.kpm-info-tabel td:first-child {
+	white-space: nowrap;
+}
+
+.kpm-info-catatan {
+	margin-top: 10px;
+}

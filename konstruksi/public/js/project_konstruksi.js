@@ -13,9 +13,59 @@
 	};
 	const persen = (v) => `${format_number(flt(v), null, 1)}%`;
 
+	// Penjelasan field di section "Costing and Billing" (bawaan ERPNext): [label, fungsi, diisi dari].
+	const INFO_COSTING = [
+		["Estimated Cost", __("Perkiraan biaya pelaksanaan proyek (budget internal), bukan nilai kontrak."), __("Proyek dari kontrak: otomatis dari Total Biaya (RAP) di RAB Penawaran. Lainnya: diisi manual.")],
+		["Total Costing Amount", __("Biaya jam kerja orang yang dicatat untuk proyek ini."), __("Timesheet bertanda proyek ini")],
+		["Total Expense Claim", __("Klaim biaya karyawan (transport, makan, akomodasi) untuk proyek ini."), __("Expense Claim (HR)")],
+		["Total Purchase Cost", __("Pembelian material / jasa / subkon dari supplier."), __("Purchase Invoice bertanda proyek ini")],
+		["Company", __("Perusahaan pemilik proyek; menentukan akun & mata uang."), __("Diisi saat proyek dibuat")],
+		["Total Sales Amount", __("Nilai pesanan dari klien."), __("Sales Order bertanda proyek ini")],
+		["Total Billable Amount", __("Jam kerja yang boleh ditagihkan ke klien."), __("Timesheet (bagian billable)")],
+		["Total Billed Amount", __("Total yang sudah ditagihkan ke klien (termin)."), __("Sales Invoice bertanda proyek ini — nanti dari menu Penagihan")],
+		["Total Consumed Material Cost", __("Material dari gudang yang dipakai untuk proyek."), __("Stock Entry (Material Issue) bertanda proyek ini")],
+		["Default Cost Center", __("Pusat biaya bawaan untuk transaksi proyek ini di akuntansi."), __("Diisi manual / dari pengaturan perusahaan")],
+	];
+
+	function pasang_info_costing(frm) {
+		const $head = frm.layout.wrapper.find('.form-section[data-fieldname="project_details"] > .section-head');
+		if (!$head.length || $head.find(".kpm-info-btn").length) return;
+		$(`<button class="btn-reset kpm-info-btn" title="${__("Penjelasan field")}">${frappe.utils.icon("info", "sm")}</button>`)
+			.appendTo($head)
+			.on("click", (e) => {
+				e.stopPropagation();
+				tampil_info_costing();
+			});
+	}
+
+	function tampil_info_costing() {
+		const esc = frappe.utils.escape_html;
+		const baris = INFO_COSTING.map(
+			([label, fungsi, sumber]) => `<tr><td><b>${esc(__(label))}</b></td><td>${esc(fungsi)}</td><td class="text-muted">${esc(sumber)}</td></tr>`
+		).join("");
+		const d = new frappe.ui.Dialog({
+			title: __("Costing and Billing — fungsi tiap field"),
+			size: "large",
+			fields: [{ fieldname: "isi", fieldtype: "HTML" }],
+		});
+		d.fields_dict.isi.$wrapper.html(`
+			<p class="text-muted">${__(
+				"Semua field kecuali Estimated Cost, Company, dan Default Cost Center terisi otomatis dari transaksi ERPNext yang ditandai dengan proyek ini. Selama belum ada transaksi, nilainya Rp 0."
+			)}</p>
+			<div class="kpm-info-wrap"><table class="kpm-info-tabel">
+				<thead><tr><th>${__("Field")}</th><th>${__("Fungsi")}</th><th>${__("Diisi dari")}</th></tr></thead>
+				<tbody>${baris}</tbody>
+			</table></div>
+			<p class="text-muted kpm-info-catatan">${__(
+				"Gross Margin (section di bawahnya) = Total Billed Amount − total biaya (timesheet, expense claim, pembelian, material)."
+			)}</p>`);
+		d.show();
+	}
+
 	frappe.ui.form.on("Project", {
 		refresh(frm) {
 			frm.$wrapper.find(".kpm-dashboard").remove();
+			pasang_info_costing(frm);
 			if (!frm.doc.kontrak_project) return;
 
 			pakai_sidebar_konstruksi();
