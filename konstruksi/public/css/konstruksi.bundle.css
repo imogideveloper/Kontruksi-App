@@ -2038,3 +2038,106 @@ body.konstruksi-tanpa-sidebar[data-route^="Form"] .layout-main-section-wrapper {
 .kpm-info-catatan {
 	margin-top: 10px;
 }
+
+/* Project, tab Tim Proyek (project_konstruksi.js): kebutuhan personel & tabel penugasan. Kartu memakai kpr-*. */
+.kpt-atur,
+.kpt-tugaskan-utama {
+	margin-left: auto;
+}
+
+.kpt-keb-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 24px;
+}
+
+@media (max-width: 991px) {
+	.kpt-keb-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.kpt-keb-judul {
+	padding-bottom: 6px;
+	border-bottom: 1px solid var(--border-color);
+	font-size: var(--text-xs);
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--konstruksi-header-fg);
+}
+
+.kpt-keb-judul span {
+	margin-left: 6px;
+	color: var(--text-color);
+}
+
+.kpt-keb {
+	display: grid;
+	grid-template-columns: 18px minmax(0, 1fr) auto auto;
+	gap: 10px;
+	align-items: center;
+	padding: 8px 0;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.kpt-keb-info b {
+	display: block;
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.kpt-keb-info span {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
+.kpt-titik {
+	width: 8px;
+	height: 8px;
+	margin-left: 4px;
+	border-radius: 50%;
+	background: var(--gray-300, #d1d5db);
+}
+
+.kpt-titik-wajib {
+	background: var(--red-500, #ef4444);
+}
+
+.kpt-centang {
+	display: inline-flex;
+	color: var(--green-600, #16a34a);
+}
+
+.kpt-centang .icon,
+.kpt-skk .icon {
+	stroke: currentColor !important;
+}
+
+.kpt-skk {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	font-size: var(--text-xs);
+	font-weight: 600;
+	color: #c2410c;
+	white-space: nowrap;
+}
+
+.kpt-pill {
+	padding: 2px 10px;
+	border-radius: 99px;
+	background: var(--konstruksi-active-bg);
+	color: var(--konstruksi-active-fg);
+	font-size: var(--text-xs);
+	font-weight: 600;
+}
+
+.kpt-tabel td {
+	vertical-align: top;
+	white-space: normal;
+}
+
+.kpt-aksi {
+	white-space: nowrap;
+}

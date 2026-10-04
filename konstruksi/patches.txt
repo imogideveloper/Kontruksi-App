@@ -21,3 +21,4 @@ konstruksi.patches.v1_0.buat_penerbit_jaminan
 konstruksi.patches.v1_0.isi_nilai_terkini_kontrak
 konstruksi.patches.v1_0.buat_custom_field_project
 konstruksi.patches.v1_0.atur_list_project
+konstruksi.patches.v1_0.buat_tim_proyek

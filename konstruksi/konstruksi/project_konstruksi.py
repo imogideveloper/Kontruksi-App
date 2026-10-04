@@ -144,7 +144,7 @@ def get_dashboard(project):
 		# Rencana sementara = linier terhadap waktu; nanti diganti kurva S dari Baseline Schedule.
 		"progres_rencana": flt(waktu_terpakai, 1),
 		"waktu_terpakai": flt(waktu_terpakai, 1),
-		"tim": len(doc.users),
+		"tim": len(set(frappe.get_all("Penugasan Personel", filters={"project": project}, pluck="employee"))),
 		"aktivitas": frappe.db.count("Task", {"project": project}),
 		"aktivitas_selesai": frappe.db.count("Task", {"project": project, "status": "Completed"}),
 		"isu_terbuka": frappe.db.count("Issue", {"project": project, "status": ("not in", ("Resolved", "Closed"))}),

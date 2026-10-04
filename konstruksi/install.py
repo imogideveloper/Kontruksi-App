@@ -89,11 +89,78 @@ CUSTOM_FIELD_PROJECT = [
 ]
 
 
+# Tim Proyek: tab di Project, SKK di Employee (Data Personel), penanda Wajib SKK di Designation (Jabatan).
+CUSTOM_FIELD_TIM = {
+	"Project": [
+		{"fieldname": "tim_tab", "fieldtype": "Tab Break", "label": "Tim Proyek", "insert_after": "actual_end_date",
+			"depends_on": "eval:doc.kontrak_project"},
+		{"fieldname": "tim_html", "fieldtype": "HTML", "insert_after": "tim_tab"},
+	],
+	"Employee": [
+		{"fieldname": "skk_section", "fieldtype": "Section Break", "label": "SKK (Sertifikat Kompetensi Kerja)",
+			"insert_after": "designation", "collapsible": 0},
+		{"fieldname": "skk", "fieldtype": "Table", "label": "SKK", "options": "SKK Personel", "insert_after": "skk_section"},
+	],
+	"Designation": [
+		{"fieldname": "wajib_skk", "fieldtype": "Check", "label": "Wajib SKK", "insert_after": "designation_name",
+			"description": "Personel di jabatan ini harus punya SKK yang masih berlaku (diperingatkan di Tim Proyek)."},
+	],
+}
+
+# Jabatan proyek konstruksi: (nama, wajib SKK, uraian tugas). Jabatan yang sudah ada tidak diubah.
+JABATAN_KONSTRUKSI = (
+	("Project Manager", 1, "Memimpin proyek: jadwal, biaya, mutu, dan hubungan dengan pemberi kerja."),
+	("Site Manager", 1, "Memimpin pelaksanaan di lapangan dan mengatur mandor & subkon."),
+	("Site Engineer", 1, "Menyiapkan gambar kerja, metode, dan mengawasi teknis pekerjaan."),
+	("Quantity Surveyor", 1, "Menghitung volume, progres, opname, dan tagihan."),
+	("HSE Officer", 1, "Menerapkan K3 / SMKK di lapangan."),
+	("Project Admin", 0, "Administrasi proyek: surat, laporan, dokumentasi."),
+	("Logistik", 0, "Pengadaan & penerimaan material serta alat di lapangan."),
+	("Surveyor", 0, "Pengukuran, marking, dan as-built."),
+	("Quality Control", 0, "Pemeriksaan mutu material & pekerjaan, uji lab."),
+)
+
+# Template kebutuhan personel: (nama, jenis project, nilai minimal, [(jabatan, wajib)]).
+TEMPLATE_KEBUTUHAN_DEFAULT = (
+	("Standar", None, 0, [
+		("Project Manager", 1), ("Site Manager", 1), ("Quantity Surveyor", 1), ("HSE Officer", 1), ("Project Admin", 1),
+		("Site Engineer", 0), ("Logistik", 0), ("Surveyor", 0), ("Quality Control", 0),
+	]),
+	("Proyek ≥ Rp 10 M", None, 10_000_000_000, [("Site Engineer", 1), ("Quality Control", 1)]),
+)
+
+
 def buat_custom_field_project():
 	from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 	create_custom_fields({"Project": CUSTOM_FIELD_PROJECT}, update=True)
 	atur_project_erpnext()
+
+
+def buat_tim_proyek_default():
+	from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+	create_custom_fields(CUSTOM_FIELD_TIM, update=True)
+	for nama, wajib_skk, tugas in JABATAN_KONSTRUKSI:
+		if frappe.db.exists("Designation", nama):
+			if not frappe.db.get_value("Designation", nama, "description"):
+				frappe.db.set_value("Designation", nama, {"description": tugas, "wajib_skk": wajib_skk})
+			continue
+		frappe.get_doc(
+			{"doctype": "Designation", "designation_name": nama, "description": tugas, "wajib_skk": wajib_skk}
+		).insert(ignore_permissions=True)
+	for nama, jenis, nilai, jabatan in TEMPLATE_KEBUTUHAN_DEFAULT:
+		if frappe.db.exists("Template Kebutuhan Personel", nama):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Template Kebutuhan Personel",
+				"nama_template": nama,
+				"jenis_project": jenis,
+				"nilai_minimal": nilai,
+				"jabatan": [{"jabatan": j, "wajib": w, "jumlah": 1} for j, w in jabatan],
+			}
+		).insert(ignore_permissions=True)
 
 
 def atur_project_erpnext():
@@ -109,6 +176,7 @@ def atur_project_erpnext():
 
 def after_install():
 	buat_custom_field_project()
+	buat_tim_proyek_default()
 	buat_jenis_project_default()
 	buat_template_dokumen_default()
 	buat_tarif_pph_final_default()

@@ -1,0 +1,193 @@
+{
+ "actions": [],
+ "creation": "2026-10-07 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "project",
+  "nama_project",
+  "employee",
+  "nama_personel",
+  "jabatan",
+  "penugasan_column",
+  "tanggal_mulai",
+  "tanggal_selesai",
+  "alokasi",
+  "kontak_section",
+  "user_id",
+  "telepon",
+  "kontak_column",
+  "email",
+  "status_skk",
+  "catatan_section",
+  "catatan"
+ ],
+ "fields": [
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "nama_project",
+   "fieldtype": "Data",
+   "label": "Nama Proyek",
+   "fetch_from": "project.project_name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Personel",
+   "options": "Employee",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "ignore_user_permissions": 1
+  },
+  {
+   "fieldname": "nama_personel",
+   "fieldtype": "Data",
+   "label": "Nama Personel",
+   "fetch_from": "employee.employee_name",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_global_search": 1
+  },
+  {
+   "fieldname": "jabatan",
+   "fieldtype": "Link",
+   "label": "Jabatan di Proyek",
+   "options": "Designation",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "penugasan_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tanggal_mulai",
+   "fieldtype": "Date",
+   "label": "Mulai Tugas",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "tanggal_selesai",
+   "fieldtype": "Date",
+   "label": "Selesai Tugas",
+   "in_list_view": 1,
+   "description": "Kosongkan bila sampai proyek selesai."
+  },
+  {
+   "fieldname": "alokasi",
+   "fieldtype": "Percent",
+   "label": "Alokasi (%)",
+   "default": "100",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "Porsi waktu kerja untuk proyek ini; 100% = penuh."
+  },
+  {
+   "fieldname": "kontak_section",
+   "fieldtype": "Section Break",
+   "label": "Kontak & Akses"
+  },
+  {
+   "fieldname": "user_id",
+   "fieldtype": "Link",
+   "label": "Akun Login",
+   "options": "User",
+   "fetch_from": "employee.user_id",
+   "read_only": 1,
+   "description": "Bila ada, otomatis ditambahkan ke tim (Users) di Project sehingga bisa mengakses proyek."
+  },
+  {
+   "fieldname": "telepon",
+   "fieldtype": "Data",
+   "label": "Telepon",
+   "fetch_from": "employee.cell_number",
+   "read_only": 1
+  },
+  {
+   "fieldname": "kontak_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "fetch_from": "employee.prefered_email",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status_skk",
+   "fieldtype": "Select",
+   "label": "Status SKK",
+   "options": "\nTidak Wajib\nBerlaku\nBelum Ada\nKedaluwarsa",
+   "read_only": 1,
+   "description": "Dicek dari tabel SKK di data personel bila jabatan mewajibkan SKK."
+  },
+  {
+   "fieldname": "catatan_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "catatan",
+   "fieldtype": "Small Text",
+   "label": "Catatan"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-07 11:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Konstruksi",
+ "name": "Penugasan Personel",
+ "owner": "Administrator",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "PTG-.YYYY.-.####",
+ "naming_rule": "Expression (old style)",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "role": "Projects Manager",
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "role": "Projects User",
+   "read": 1,
+   "report": 1
+  }
+ ],
+ "title_field": "nama_personel",
+ "show_title_field_in_link": 1,
+ "search_fields": "nama_personel,jabatan",
+ "track_changes": 1
+}

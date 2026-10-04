@@ -1,0 +1,110 @@
+{
+ "actions": [],
+ "creation": "2026-10-07 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "nama_template",
+  "jenis_project",
+  "template_column",
+  "nilai_minimal",
+  "disabled",
+  "jabatan_section",
+  "jabatan"
+ ],
+ "fields": [
+  {
+   "fieldname": "nama_template",
+   "fieldtype": "Data",
+   "label": "Nama Template",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "jenis_project",
+   "fieldtype": "Link",
+   "label": "Jenis Project",
+   "options": "Jenis Project",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "Kosongkan = berlaku untuk semua jenis project."
+  },
+  {
+   "fieldname": "template_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "nilai_minimal",
+   "fieldtype": "Currency",
+   "label": "Nilai Kontrak Minimal",
+   "options": "IDR",
+   "default": "0",
+   "in_list_view": 1,
+   "description": "Berlaku untuk proyek dengan nilai kontrak (termasuk PPN) sebesar ini atau lebih."
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Nonaktif"
+  },
+  {
+   "fieldname": "jabatan_section",
+   "fieldtype": "Section Break",
+   "label": "Kebutuhan Jabatan",
+   "description": "Semua template yang cocok dengan proyek digabung; jabatan menjadi wajib bila salah satu template mewajibkannya."
+  },
+  {
+   "fieldname": "jabatan",
+   "fieldtype": "Table",
+   "label": "Jabatan",
+   "options": "Kebutuhan Jabatan"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-07 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Konstruksi",
+ "name": "Template Kebutuhan Personel",
+ "owner": "Administrator",
+ "sort_field": "nilai_minimal",
+ "sort_order": "ASC",
+ "states": [],
+ "autoname": "field:nama_template",
+ "naming_rule": "By fieldname",
+ "document_type": "Setup",
+ "allow_rename": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "role": "Projects Manager",
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "role": "Projects User",
+   "read": 1,
+   "report": 1
+  }
+ ],
+ "track_changes": 1
+}

@@ -1,0 +1,65 @@
+{
+ "actions": [],
+ "creation": "2026-10-07 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "subklasifikasi",
+  "jenjang",
+  "nomor",
+  "berlaku_sampai",
+  "file_skk"
+ ],
+ "fields": [
+  {
+   "fieldname": "subklasifikasi",
+   "fieldtype": "Data",
+   "label": "Jabatan Kerja / Subklasifikasi",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 3,
+   "description": "Sesuai sertifikat, mis. Ahli Manajemen Proyek, Ahli K3 Konstruksi."
+  },
+  {
+   "fieldname": "jenjang",
+   "fieldtype": "Select",
+   "label": "Jenjang",
+   "options": "\n1\n2\n3\n4\n5\n6\n7\n8\n9",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "nomor",
+   "fieldtype": "Data",
+   "label": "Nomor Sertifikat",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "berlaku_sampai",
+   "fieldtype": "Date",
+   "label": "Berlaku Sampai",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "file_skk",
+   "fieldtype": "Attach",
+   "label": "Scan SKK",
+   "in_list_view": 1,
+   "columns": 2
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-07 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Konstruksi",
+ "name": "SKK Personel",
+ "owner": "Administrator",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1,
+ "editable_grid": 1,
+ "permissions": []
+}

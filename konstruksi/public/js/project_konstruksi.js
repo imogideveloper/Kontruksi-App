@@ -75,9 +75,159 @@
 			if (frm.doc.tender) {
 				frm.add_custom_button(__("Tender"), () => frappe.set_route("Form", "Tender", frm.doc.tender), __("Buka"));
 			}
-			if (!frm.is_new()) muat_dashboard(frm);
+			if (!frm.is_new()) {
+				muat_dashboard(frm);
+				muat_tim(frm);
+			}
 		},
 	});
+
+	// -----------------------------------------------------------------------
+	// Tab Tim Proyek: ringkasan, kebutuhan personel (dari Template Kebutuhan Personel), daftar penugasan.
+
+	const TIM_METHOD = "konstruksi.konstruksi.tim_proyek";
+	const SKK_BERMASALAH = ["Belum Ada", "Kedaluwarsa"];
+
+	function muat_tim(frm) {
+		const field = frm.fields_dict.tim_html;
+		if (!field) return;
+		frappe.call(`${TIM_METHOD}.get_tim`, { project: frm.doc.name }).then((r) => {
+			field.$wrapper.html(html_tim(frm, r.message || {}));
+			pasang_aksi_tim(frm, field.$wrapper);
+		});
+	}
+
+	function html_tim(frm, d) {
+		const bisa = Boolean(frm.perm?.[0]?.write);
+		const persen_wajib = d.wajib_total ? Math.round((d.wajib_terisi / d.wajib_total) * 100) : 100;
+		const lengkap = d.wajib_terisi >= d.wajib_total;
+		const kartu = (ikon, warna, label, nilai, sub) => `<div class="kpr-card kpr-kartu">
+			<div class="kpr-kartu-atas"><div class="kpr-ikon kpr-ikon-${warna}">${frappe.utils.icon(ikon, "sm")}</div>
+				<div class="kpr-kartu-label">${label}</div></div>
+			<div class="kpr-kartu-nilai">${nilai}</div><div class="kpr-kartu-sub">${sub}</div></div>`;
+
+		const skk_chip = (status) =>
+			SKK_BERMASALAH.includes(status)
+				? `<span class="kpt-skk" title="${esc(__("SKK {0}", [__(status)]))}">${frappe.utils.icon("circle-alert", "xs")} SKK</span>`
+				: "";
+		const perlu = (d.perlu || [])
+			.map(
+				(k) => `<div class="kpt-keb" title="${esc(k.tugas)}">
+					<span class="kpt-titik ${k.wajib ? "kpt-titik-wajib" : ""}"></span>
+					<div class="kpt-keb-info"><b>${esc(__(k.jabatan))}</b>
+						<span>${k.wajib ? __("wajib") : __("disarankan")}${k.kurang > 1 ? ` · ${__("kurang {0} orang", [k.kurang])}` : ""}</span></div>
+					${bisa ? `<button class="btn btn-xs btn-default kpt-tugaskan" data-jabatan="${esc(k.jabatan)}">${frappe.utils.icon("add", "xs")} ${__("Tugaskan")}</button>` : ""}
+				</div>`
+			)
+			.join("");
+		const terisi = (d.terisi || [])
+			.map(
+				(k) => `<div class="kpt-keb" title="${esc(k.tugas)}">
+					<span class="kpt-centang">${frappe.utils.icon("check", "xs")}</span>
+					<div class="kpt-keb-info"><b>${esc(__(k.jabatan))}</b><span>${k.personel.map((p) => esc(p.nama)).join(", ")}</span></div>
+					${k.personel.map((p) => skk_chip(p.status_skk)).join("")}
+				</div>`
+			)
+			.join("");
+
+		const baris = (d.penugasan || [])
+			.map(
+				(p) => `<tr>
+					<td><a href="/app/employee/${encodeURIComponent(p.employee)}"><b>${esc(p.nama_personel)}</b></a></td>
+					<td>${esc(__(p.jabatan))} ${skk_chip(p.status_skk)}</td>
+					<td>${p.user_id ? `<span class="kpt-pill" title="${esc(p.user_id)}">${__("Login")}</span>` : `<span class="text-muted">—</span>`}</td>
+					<td>${esc(p.telepon || "")}${p.email ? `<div class="text-muted small">${esc(p.email)}</div>` : ""}${!p.telepon && !p.email ? '<span class="text-muted">—</span>' : ""}</td>
+					<td>${tanggal(p.tanggal_mulai)} – ${p.tanggal_selesai ? tanggal(p.tanggal_selesai) : __("selesai proyek")}</td>
+					<td class="text-right">${format_number(flt(p.alokasi), null, 0)}%</td>
+					<td class="text-right kpt-aksi">${
+						bisa
+							? `<a class="btn btn-xs btn-default" href="/app/penugasan-personel/${encodeURIComponent(p.name)}" title="${__("Ubah")}">${frappe.utils.icon("edit", "xs")}</a>
+								<button class="btn btn-xs btn-default kpt-hapus" data-name="${esc(p.name)}" data-nama="${esc(p.nama_personel)}" title="${__("Hapus")}">${frappe.utils.icon("delete", "xs")}</button>`
+							: ""
+					}</td>
+				</tr>`
+			)
+			.join("");
+
+		return `<div class="kpr kpt">
+			<div class="kpr-kartu-baris kpr-kartu-3">
+				${kartu("users", "biru", __("Jumlah Personel"), cint(d.jumlah_personel), __("orang ditugaskan"))}
+				${kartu("clock", "ungu", __("Full-Time Equivalent"), format_number(flt(d.fte), null, 1), __("total alokasi / 100%"))}
+				${kartu(
+					"clipboard-check",
+					lengkap ? "hijau" : "oranye",
+					__("Jabatan Wajib Terisi"),
+					`${cint(d.wajib_terisi)}<span> ${__("dari")} ${cint(d.wajib_total)}</span>`,
+					`<div class="kpr-progress ${lengkap ? "kpr-progress-ok" : ""}"><div style="width: ${persen_wajib}%"></div></div>`
+				)}
+			</div>
+			<div class="kpr-card">
+				<div class="kpr-judul">${__("Kebutuhan Personel")}
+					<a class="btn btn-xs btn-default kpt-atur" href="/app/template-kebutuhan-personel">${frappe.utils.icon("setting-gear", "xs")} ${__("Atur kebutuhan")}</a>
+				</div>
+				<div class="kpt-keb-grid">
+					<div><div class="kpt-keb-judul">${__("Perlu diisi")} <span>${(d.perlu || []).length}</span></div>
+						${perlu || `<div class="kpr-muted">${__("Semua kebutuhan sudah terisi.")}</div>`}</div>
+					<div><div class="kpt-keb-judul">${__("Sudah terisi")} <span>${(d.terisi || []).length}</span></div>
+						${terisi || `<div class="kpr-muted">${__("Belum ada personel ditugaskan.")}</div>`}</div>
+				</div>
+				<div class="kpr-catatan">${__("Kebutuhan dari Template Kebutuhan Personel sesuai jenis & nilai proyek. Arahkan kursor ke jabatan untuk melihat tugasnya.")}</div>
+			</div>
+			<div class="kpr-card kpt-tabel-card">
+				<div class="kpr-judul">${__("Personel Ditugaskan")}
+					${bisa ? `<button class="btn btn-sm btn-primary kpt-tugaskan kpt-tugaskan-utama">${frappe.utils.icon("add", "xs")} ${__("Tugaskan Personel")}</button>` : ""}
+				</div>
+				${
+					baris
+						? `<div class="kp-tabel-wrap"><table class="kp-tabel kpt-tabel">
+							<thead><tr><th>${__("Nama")}</th><th>${__("Jabatan")}</th><th>${__("Akses Sistem")}</th><th>${__("Kontak")}</th>
+								<th>${__("Periode Tugas")}</th><th class="text-right">${__("Alokasi")}</th><th></th></tr></thead>
+							<tbody>${baris}</tbody></table></div>`
+						: `<div class="kpr-muted">${__("Belum ada personel. Klik Tugaskan Personel atau tombol Tugaskan di kebutuhan.")}</div>`
+				}
+			</div>
+		</div>`;
+	}
+
+	function pasang_aksi_tim(frm, $w) {
+		$w.find(".kpt-tugaskan").on("click", function () {
+			dialog_tugaskan(frm, $(this).attr("data-jabatan"));
+		});
+		$w.find(".kpt-hapus").on("click", function () {
+			const name = $(this).attr("data-name");
+			frappe.confirm(__("Hapus penugasan <b>{0}</b> dari proyek ini?", [esc($(this).attr("data-nama"))]), () =>
+				frappe.db.delete_doc("Penugasan Personel", name).then(() => muat_tim(frm))
+			);
+		});
+	}
+
+	function dialog_tugaskan(frm, jabatan) {
+		const d = new frappe.ui.Dialog({
+			title: __("Tugaskan Personel"),
+			fields: [
+				{ fieldname: "employee", fieldtype: "Link", options: "Employee", label: __("Personel"), reqd: 1, ignore_user_permissions: 1,
+					description: __("Belum ada di daftar? Tambahkan dulu di Data Personel.") },
+				{ fieldname: "jabatan", fieldtype: "Link", options: "Designation", label: __("Jabatan di Proyek"), reqd: 1, default: jabatan },
+				{ fieldname: "kolom", fieldtype: "Column Break" },
+				{ fieldname: "tanggal_mulai", fieldtype: "Date", label: __("Mulai Tugas"), reqd: 1,
+					default: frm.doc.expected_start_date || frappe.datetime.get_today() },
+				{ fieldname: "tanggal_selesai", fieldtype: "Date", label: __("Selesai Tugas"), default: frm.doc.expected_end_date,
+					description: __("Kosongkan bila sampai proyek selesai.") },
+				{ fieldname: "alokasi", fieldtype: "Percent", label: __("Alokasi (%)"), default: 100, reqd: 1 },
+			],
+			primary_action_label: __("Tugaskan"),
+			primary_action(values) {
+				frappe
+					.call({ method: `${TIM_METHOD}.tugaskan`, args: { project: frm.doc.name, ...values }, freeze: true })
+					.then(() => {
+						d.hide();
+						frappe.show_alert({ message: __("Personel ditugaskan."), indicator: "green" });
+						muat_tim(frm);
+					});
+			},
+		});
+		d.show();
+	}
 
 	// Project milik modul Projects ERPNext, jadi bila dibuka dari luar sidebar Konstruksi (pencarian, link, notifikasi)
 	// Frappe memilih sidebar "Projects". Project yang punya kontrak selalu memakai sidebar Konstruksi.
