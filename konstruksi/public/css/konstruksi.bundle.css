@@ -3648,3 +3648,66 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpa-lapor-form {
 	display: block;
 }
+
+/* Task & Activity: pengelompokan tabel aktivitas. */
+.kpa-kelompok-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	font-size: var(--text-sm);
+	font-weight: normal;
+	color: var(--text-muted);
+	white-space: nowrap;
+}
+
+.kpa-kelompok-label .form-control {
+	min-width: 170px;
+}
+
+.kpa-tabel tr.kpa-grup td {
+	padding: 8px 12px;
+	background: var(--subtle-fg, #f3f4f6);
+	border-top: 1px solid var(--border-color);
+	cursor: pointer;
+}
+
+.kpa-tabel tr.kpa-grup:hover td {
+	background: var(--konstruksi-active-bg);
+}
+
+.kpa-grup-isi {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.kpa-grup-judul {
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.kpa-grup-info {
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+}
+
+.kpa-grup-progres {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	width: 190px;
+	margin-left: auto;
+}
+
+.kpa-grup-progres .kpr-progress {
+	flex: 1;
+	margin: 0;
+}
+
+.kpa-grup-progres > span {
+	width: 44px;
+	font-size: var(--text-xs);
+	text-align: right;
+	color: var(--text-muted);
+}

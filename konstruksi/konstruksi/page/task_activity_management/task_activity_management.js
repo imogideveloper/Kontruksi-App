@@ -44,6 +44,13 @@ class HalamanAktivitas {
 		this.tab = "aktivitas";
 		this.filter = { cari: "", wbs: "", status: "" };
 		this.filter_laporan = "";
+		this.kelompok_tertutup = new Set();
+		try {
+			const simpanan = localStorage.getItem("konstruksi.aktivitas.kelompok");
+			this.kelompok = simpanan === null ? "wbs" : simpanan;
+		} catch (e) {
+			this.kelompok = "wbs";
+		}
 		this.field_project = page.add_field({
 			fieldname: "project",
 			fieldtype: "Link",
@@ -61,8 +68,17 @@ class HalamanAktivitas {
 			this.filter.cari = e.target.value;
 			this.render_tabel_aktivitas();
 		}, 200));
-		this.$body.on("change", ".kpa-filter-wbs, .kpa-filter-status, .kpa-filter-laporan", (e) => {
+		this.$body.on("change", ".kpa-filter-wbs, .kpa-filter-status, .kpa-filter-laporan, .kpa-kelompok", (e) => {
 			const $s = $(e.target);
+			if ($s.hasClass("kpa-kelompok")) {
+				this.kelompok = $s.val();
+				this.kelompok_tertutup.clear();
+				try {
+					localStorage.setItem("konstruksi.aktivitas.kelompok", this.kelompok);
+				} catch (err) {
+					// abaikan
+				}
+			}
 			if ($s.hasClass("kpa-filter-wbs")) this.filter.wbs = $s.val();
 			if ($s.hasClass("kpa-filter-status")) this.filter.status = $s.val();
 			if ($s.hasClass("kpa-filter-laporan")) {
@@ -205,6 +221,11 @@ class HalamanAktivitas {
 				<input type="search" class="form-control input-sm kpa-cari" placeholder="${__("Cari aktivitas / PJ...")}" value="${kpa_esc(this.filter.cari)}">
 				<select class="form-control input-sm kpa-filter-wbs"><option value="">${__("Semua WBS")}</option>${opsi_wbs}</select>
 				<select class="form-control input-sm kpa-filter-status"><option value="">${__("Semua status")}</option>${opsi_status}</select>
+				<label class="kpa-kelompok-label">${__("Kelompokkan")}
+					<select class="form-control input-sm kpa-kelompok">${[
+						["", __("Tidak dikelompokkan")], ["wbs", __("WBS (induk)")], ["status", __("Status")], ["pj", __("Penanggung Jawab")], ["prioritas", __("Prioritas")],
+					].map(([v, l]) => `<option value="${v}" ${this.kelompok === v ? "selected" : ""}>${l}</option>`).join("")}</select>
+				</label>
 				<div class="kpa-toolbar-kanan">
 					<button class="btn btn-default btn-sm" data-kpa="template" title="${__("Excel berisi aktivitas proyek ini (atau item WBS bila belum ada aktivitas)")}">${frappe.utils.icon("download", "xs")} ${__("Template Excel")}</button>
 					${d.bisa_buat ? `<button class="btn btn-default btn-sm" data-kpa="upload">${frappe.utils.icon("upload", "xs")} ${__("Upload Excel")}</button>` : ""}
@@ -237,9 +258,7 @@ class HalamanAktivitas {
 			}</td></tr>`);
 			return;
 		}
-		$tbody.html(
-			rows
-				.map((t) => {
+		const html_baris = (t) => {
 					const progres = Math.min(flt(t.progress), 100);
 					const ket_progres =
 						t.metode_progres === "Tahapan"
@@ -269,9 +288,66 @@ class HalamanAktivitas {
 							${this.html_aksi(t)}
 						</td>
 					</tr>`;
+		};
+
+		const kelompok = this.kelompok_aktivitas(rows);
+		if (!kelompok) return $tbody.html(rows.map(html_baris).join(""));
+		$tbody.html(
+			kelompok
+				.map((g) => {
+					const tertutup = this.kelompok_tertutup.has(g.kunci);
+					const rata = g.rows.reduce((s, t) => s + Math.min(flt(t.progress), 100), 0) / g.rows.length;
+					const selesai = g.rows.filter((t) => t.status === "Completed").length;
+					const terlambat = g.rows.filter((t) => t.status_tampil === "Terlambat").length;
+					const kepala = `<tr class="kpa-grup" data-kpa="grup" data-kunci="${kpa_esc(g.kunci)}">
+						<td colspan="9"><div class="kpa-grup-isi">
+							<span class="kpw-toggle">${frappe.utils.icon(tertutup ? "right" : "down", "xs")}</span>
+							${g.kode ? `<span class="kpw-kode">${kpa_esc(g.kode)}</span>` : ""}
+							<span class="kpa-grup-judul">${g.judul}</span>
+							<span class="kpw-badge">${g.rows.length} ${__("aktivitas")}</span>
+							<span class="kpa-grup-info">${__("Selesai {0}/{1}", [selesai, g.rows.length])}${terlambat ? ` · <span class="kpa-merah">${__("{0} terlambat", [terlambat])}</span>` : ""}</span>
+							<span class="kpa-grup-progres"><div class="kpr-progress ${rata >= 100 ? "kpr-progress-ok" : "kpr-progress-biru"}"><div style="width:${rata}%"></div></div><span>${kpa_persen(rata, 1)}</span></span>
+						</div></td></tr>`;
+					return kepala + (tertutup ? "" : g.rows.map(html_baris).join(""));
 				})
 				.join("")
 		);
+	}
+
+	// Kelompok baris tabel aktivitas sesuai pilihan Kelompokkan; null = tanpa kelompok.
+	kelompok_aktivitas(rows) {
+		const mode = this.kelompok;
+		if (!mode) return null;
+		const wbs_kode = Object.fromEntries(this.data.wbs.map((w) => [w.kode, w]));
+		const urut_status = ["Terlambat", "Berjalan", "Belum Mulai", "Menunggu Review", "Selesai", "Dibatalkan"];
+		const urut_prio = ["Urgent", "High", "Medium", "Low"];
+		const peta = new Map();
+		rows.forEach((t) => {
+			let kunci, judul, kode = "", urut;
+			if (mode === "wbs") {
+				const induk = (t.kode_wbs || "").split(".")[0];
+				const w = wbs_kode[induk];
+				kunci = induk || "-";
+				kode = induk;
+				judul = kpa_esc(w ? w.uraian : __("Tanpa WBS"));
+				urut = (induk || "").split(".").map((x) => x.padStart(4, "0")).join(".") || "zzzz";
+			} else if (mode === "status") {
+				kunci = t.status_tampil;
+				judul = `<span class="kpa-status kpa-status-${KPA_STATUS_WARNA[t.status_tampil] || "abu"}">${__(t.status_tampil)}</span>`;
+				urut = String(urut_status.indexOf(t.status_tampil)).padStart(2, "0");
+			} else if (mode === "pj") {
+				kunci = t.pj || "-";
+				judul = t.pj ? `${kpa_esc(t.pj_nama)} <span class="kpa-sub">${kpa_esc(t.pj_jabatan || "")}</span>` : __("Tanpa Penanggung Jawab");
+				urut = t.pj ? (t.pj_nama || "").toLowerCase() : "zzzz";
+			} else {
+				kunci = t.priority || "-";
+				judul = `<span class="kpa-prio kpa-prio-${kpa_esc(t.priority || "")}">${__(KPA_PRIORITAS[t.priority] || t.priority || "-")}</span>`;
+				urut = String(urut_prio.indexOf(t.priority)).padStart(2, "0");
+			}
+			if (!peta.has(kunci)) peta.set(kunci, { kunci: `${mode}:${kunci}`, judul, kode, urut, rows: [] });
+			peta.get(kunci).rows.push(t);
+		});
+		return [...peta.values()].sort((a, b) => (a.urut < b.urut ? -1 : a.urut > b.urut ? 1 : 0));
 	}
 
 	html_aksi(t) {
@@ -356,6 +432,11 @@ class HalamanAktivitas {
 		switch (jenis) {
 			case "buka":
 				return frappe.set_route("task-activity-management", $el.attr("data-project"));
+			case "grup": {
+				const kunci = $el.attr("data-kunci");
+				this.kelompok_tertutup.has(kunci) ? this.kelompok_tertutup.delete(kunci) : this.kelompok_tertutup.add(kunci);
+				return this.render_tabel_aktivitas();
+			}
 			case "tab":
 				this.tab = $el.attr("data-tab");
 				return this.render();
