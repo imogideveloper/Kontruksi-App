@@ -7,7 +7,10 @@
 const SIDEBAR_KONSTRUKSI = "Konstruksi";
 const sidebar_konstruksi = (judul) => String(judul || "").toLowerCase() === SIDEBAR_KONSTRUKSI.toLowerCase();
 
-$(document).on("app_ready", () => {
+// app_ready dipicu di dalam constructor frappe.Application, sebelum frappe.app terisi; pasang sesudahnya.
+$(document).on("app_ready", () => setTimeout(pasang_kunci_sidebar, 0));
+
+function pasang_kunci_sidebar() {
 	const sidebar = frappe.app?.sidebar;
 	if (!sidebar || !frappe.boot.workspace_sidebar_item?.konstruksi) return;
 
@@ -26,4 +29,4 @@ $(document).on("app_ready", () => {
 			sidebar.set_active_workspace_item?.();
 		}
 	};
-});
+}
