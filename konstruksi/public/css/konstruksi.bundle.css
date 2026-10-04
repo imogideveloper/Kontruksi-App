@@ -186,6 +186,49 @@ body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .
 	justify-content: center;
 	text-align: center;
 }
+/* Kolom biaya (Harga Pokok & Margin, permlevel 1) hanya tampil untuk Projects Manager; bila tampil, lebar semua
+   kolom dibagi ulang supaya tetap muat. */
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"]:has(.col[data-fieldname="harga_satuan_pokok"]) .data-row > .col[data-fieldname="kode_wbs"] {
+	flex: 0 0 calc((100% - 119px) * 6 / 87);
+	max-width: none;
+}
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"]:has(.col[data-fieldname="harga_satuan_pokok"]) .data-row > .col[data-fieldname="uraian_pekerjaan"] {
+	flex: 0 0 calc((100% - 119px) * 13 / 87);
+	max-width: none;
+}
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"]:has(.col[data-fieldname="harga_satuan_pokok"]) .data-row > .col[data-fieldname="spesifikasi"] {
+	flex: 0 0 calc((100% - 119px) * 11 / 87);
+	max-width: none;
+}
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"]:has(.col[data-fieldname="harga_satuan_pokok"]) .data-row > .col[data-fieldname="satuan"] {
+	flex: 0 0 calc((100% - 119px) * 5 / 87);
+	max-width: none;
+}
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"]:has(.col[data-fieldname="harga_satuan_pokok"]) .data-row > .col[data-fieldname="volume"] {
+	flex: 0 0 calc((100% - 119px) * 6 / 87);
+	max-width: none;
+}
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"]:has(.col[data-fieldname="harga_satuan_pokok"]) .data-row > .col[data-fieldname="harga_satuan"] {
+	flex: 0 0 calc((100% - 119px) * 11 / 87);
+	max-width: none;
+}
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"]:has(.col[data-fieldname="harga_satuan_pokok"]) .data-row > .col[data-fieldname="jumlah_harga"] {
+	flex: 0 0 calc((100% - 119px) * 12 / 87);
+	max-width: none;
+}
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"]:has(.col[data-fieldname="harga_satuan_pokok"]) .data-row > .col[data-fieldname="bobot"] {
+	flex: 0 0 calc((100% - 119px) * 6 / 87);
+	max-width: none;
+}
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"]:has(.col[data-fieldname="harga_satuan_pokok"]) .data-row > .col[data-fieldname="harga_satuan_pokok"] {
+	flex: 0 0 calc((100% - 119px) * 11 / 87);
+	max-width: none;
+}
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"]:has(.col[data-fieldname="harga_satuan_pokok"]) .data-row > .col[data-fieldname="margin_persen"] {
+	flex: 0 0 calc((100% - 119px) * 6 / 87);
+	max-width: none;
+}
+
 /* Lebar kolom tidak boleh melebar mengikuti teks panjang; posisi kolom lurus di semua baris. */
 body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname] {
 	min-width: 0;
@@ -202,8 +245,15 @@ body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .
 body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="volume"] input,
 body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="harga_satuan"] input,
 body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="jumlah_harga"] input,
-body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="bobot"] input {
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="bobot"] input,
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="harga_satuan_pokok"] input,
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="margin_persen"] input {
 	text-align: right !important;
+}
+
+/* Kolom biaya diberi latar tipis supaya terlihat sebagai data internal. */
+body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .data-row > .col:is([data-fieldname="harga_satuan_pokok"], [data-fieldname="margin_persen"]) {
+	background-color: #fffaf0;
 }
 
 /* RAB Penawaran: tampilan item berkelompok per WBS (field rab_tree). */
