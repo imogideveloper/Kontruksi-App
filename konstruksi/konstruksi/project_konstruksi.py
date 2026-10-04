@@ -84,8 +84,11 @@ def get_or_create_project(kontrak_project):
 	project.insert(set_name=kontrak.name)
 	# Kalender proyek (hari kerja Senin–Sabtu + libur nasional) langsung tersedia.
 	from konstruksi.konstruksi.project_calendar import pastikan_kalender
+	from konstruksi.konstruksi.wbs import buat_dari_rab
 
 	pastikan_kalender(project.name)
+	# WBS disalin otomatis dari RAB Penawaran tender proyek.
+	buat_dari_rab(project.name)
 	return project.name
 
 

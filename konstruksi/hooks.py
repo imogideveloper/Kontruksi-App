@@ -51,6 +51,7 @@ doctype_js = {
 	"Employee": "public/js/employee_konstruksi.js",
 	"Timesheet": "public/js/biaya_personel.js",
 	"Expense Claim": "public/js/biaya_personel.js",
+	"Task": "public/js/task_konstruksi.js",
 }
 # Project: Gross Margin ikut memotong biaya personel (gaji); turunan dari override HRMS.
 override_doctype_class = {"Project": "konstruksi.overrides.project.KonstruksiProject"}
@@ -190,6 +191,11 @@ doc_events = {
 	"RAB Penawaran": {
 		"on_update": "konstruksi.konstruksi.doctype.kontrak_project.kontrak_project.hitung_ulang_dari_rab",
 		"after_delete": "konstruksi.konstruksi.doctype.kontrak_project.kontrak_project.hitung_ulang_dari_rab",
+	},
+	# Progres item WBS mengikuti Task yang terhubung.
+	"Task": {
+		"on_update": "konstruksi.konstruksi.wbs.hitung_ulang_dari_task",
+		"after_delete": "konstruksi.konstruksi.wbs.hitung_ulang_dari_task",
 	},
 }
 

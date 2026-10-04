@@ -1,0 +1,207 @@
+{
+ "actions": [],
+ "creation": "2026-10-08 16:00:00.000000",
+ "modified": "2026-10-08 16:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "module": "Konstruksi",
+ "name": "WBS Item",
+ "autoname": "WBS-.#####",
+ "naming_rule": "Expression (old style)",
+ "title_field": "uraian",
+ "show_title_field_in_link": 1,
+ "search_fields": "kode,project",
+ "track_changes": 1,
+ "sort_field": "kode",
+ "sort_order": "ASC",
+ "links": [],
+ "states": [],
+ "field_order": [
+  "project",
+  "kode",
+  "uraian",
+  "spesifikasi",
+  "column_break_induk",
+  "parent_wbs",
+  "is_group",
+  "level",
+  "sumber",
+  "rab_item",
+  "section_nilai",
+  "satuan",
+  "volume",
+  "harga_satuan",
+  "column_break_nilai",
+  "jumlah_harga",
+  "bobot",
+  "progres",
+  "section_catatan",
+  "keterangan"
+ ],
+ "fields": [
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "kode",
+   "fieldtype": "Data",
+   "label": "Kode",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "Kode bertingkat, mis. 3.2 (sub-item dari 3)."
+  },
+  {
+   "fieldname": "uraian",
+   "fieldtype": "Data",
+   "label": "Uraian Pekerjaan",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "spesifikasi",
+   "fieldtype": "Small Text",
+   "label": "Spesifikasi"
+  },
+  {
+   "fieldname": "column_break_induk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "parent_wbs",
+   "fieldtype": "Link",
+   "label": "Induk",
+   "options": "WBS Item",
+   "read_only": 1
+  },
+  {
+   "fieldname": "is_group",
+   "fieldtype": "Check",
+   "label": "Punya Sub-item",
+   "read_only": 1
+  },
+  {
+   "fieldname": "level",
+   "fieldtype": "Int",
+   "label": "Level",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sumber",
+   "fieldtype": "Select",
+   "label": "Sumber",
+   "options": "RAB Penawaran\nAddendum\nManual",
+   "default": "Manual",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rab_item",
+   "fieldtype": "Data",
+   "label": "Baris RAB",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "section_nilai",
+   "fieldtype": "Section Break",
+   "label": "Volume & Nilai"
+  },
+  {
+   "fieldname": "satuan",
+   "fieldtype": "Data",
+   "label": "Satuan",
+   "depends_on": "eval:!doc.is_group"
+  },
+  {
+   "fieldname": "volume",
+   "fieldtype": "Float",
+   "label": "Volume",
+   "depends_on": "eval:!doc.is_group"
+  },
+  {
+   "fieldname": "harga_satuan",
+   "fieldtype": "Currency",
+   "label": "Harga Satuan",
+   "options": "IDR",
+   "depends_on": "eval:!doc.is_group"
+  },
+  {
+   "fieldname": "column_break_nilai",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "jumlah_harga",
+   "fieldtype": "Currency",
+   "label": "Jumlah Harga",
+   "options": "IDR",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "bobot",
+   "fieldtype": "Percent",
+   "label": "Bobot",
+   "read_only": 1,
+   "in_list_view": 1,
+   "description": "Jumlah Harga ÷ total WBS proyek (sebelum PPN)."
+  },
+  {
+   "fieldname": "progres",
+   "fieldtype": "Percent",
+   "label": "Progres",
+   "read_only": 1,
+   "in_list_view": 1,
+   "description": "Otomatis dari Task yang terhubung ke item ini."
+  },
+  {
+   "fieldname": "section_catatan",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "keterangan",
+   "fieldtype": "Small Text",
+   "label": "Keterangan"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "export": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1
+  },
+  {
+   "role": "Projects Manager",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "export": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1
+  },
+  {
+   "role": "Projects User",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "export": 1
+  }
+ ]
+}

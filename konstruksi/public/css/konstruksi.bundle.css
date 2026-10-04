@@ -2758,3 +2758,275 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 		opacity: 1;
 	}
 }
+
+/* Work Breakdown Structure (page/work_breakdown_structure): kartu ringkasan + tabel pohon item WBS.
+   Memakai variabel & kartu .kpr-* dan menu Aksi .kpt-aksi-*. */
+.kpw {
+	padding: 4px 0 24px;
+}
+
+.kpw-head .kpw-crumb {
+	font-size: var(--text-sm);
+	font-weight: 500;
+	color: var(--kpr-biru) !important;
+}
+
+.kpw-sub {
+	margin: 2px 0 4px;
+	color: var(--text-muted);
+}
+
+.kpw-sumber {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
+.kpw-sumber a {
+	color: var(--kpr-biru);
+}
+
+.kpw .kpr-kosong .btn {
+	margin-top: 4px;
+}
+
+.kpw-kartu-baris {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: 16px;
+}
+
+@media (max-width: 1199px) {
+	.kpw-kartu-baris {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 767px) {
+	.kpw-kartu-baris {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.kpw-kartu {
+	position: relative;
+	overflow: hidden;
+	padding: 14px 16px;
+}
+
+.kpw-kartu-garis {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+}
+
+.kpw-garis-biru { background: var(--kpr-biru); }
+.kpw-garis-hijau { background: var(--kpr-hijau); }
+.kpw-garis-ungu { background: var(--kpr-ungu); }
+.kpw-garis-oranye { background: var(--kpr-oranye); }
+.kpw-garis-abu { background: var(--border-color); }
+
+.kpw-kartu-label {
+	font-size: var(--text-xs);
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+
+.kpw-kartu-nilai {
+	margin: 4px 0;
+	font-size: 20px;
+	font-weight: 700;
+	white-space: nowrap;
+	color: var(--text-color);
+}
+
+.kpw-kartu-sub {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
+.kpw-ok {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	color: var(--kpr-hijau);
+}
+
+.kpw-ok .icon {
+	stroke: currentColor;
+}
+
+.kpw-beda {
+	color: var(--kpr-oranye);
+}
+
+.kpw-tabel-card {
+	padding: 0;
+	overflow: hidden;
+}
+
+.kpw-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 16px;
+}
+
+.kpw-petunjuk {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
+.kpw-tabel-wrap {
+	overflow-x: auto;
+}
+
+.kpw-tabel {
+	width: 100%;
+	min-width: 1100px;
+	table-layout: fixed;
+	border-collapse: collapse;
+}
+
+.kpw-tabel th {
+	padding: 9px 12px;
+	background: var(--konstruksi-active-bg);
+	color: var(--konstruksi-header-fg);
+	font-size: var(--text-sm);
+	font-weight: 600;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.kpw-tabel td {
+	padding: 9px 12px;
+	border-top: 1px solid var(--border-color);
+	font-size: var(--text-sm);
+	vertical-align: middle;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* Kolom Aksi: menu dropdown tidak terpotong. */
+.kpw-tabel td.kpt-aksi {
+	overflow: visible;
+}
+
+.kpw-tabel tbody tr:hover td {
+	background: var(--subtle-fg, #f8f9fa);
+}
+
+.kpw-induk {
+	cursor: pointer;
+}
+
+.kpw-induk td {
+	font-weight: 600;
+}
+
+.kpw-level-1.kpw-induk td {
+	background: var(--fg-color, #fff);
+}
+
+.kpw-kode {
+	font-family: var(--font-family-monospace, monospace);
+	color: var(--text-muted);
+}
+
+.kpw-uraian-isi {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+}
+
+.kpw-uraian-teks {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.kpw-toggle,
+.kpw-toggle-kosong {
+	display: inline-flex;
+	flex-shrink: 0;
+	width: 16px;
+	justify-content: center;
+}
+
+.kpw-toggle .icon {
+	stroke: var(--kpr-biru);
+}
+
+.kpw-badge {
+	flex-shrink: 0;
+	padding: 0 7px;
+	border-radius: 999px;
+	background: var(--subtle-fg, #f3f3f3);
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 18px;
+	color: var(--text-muted);
+}
+
+.kpw-badge-biru {
+	background: var(--kpr-biru-bg);
+	color: var(--kpr-biru);
+}
+
+.kpw-spek {
+	color: var(--text-muted);
+}
+
+.kpw-strip {
+	color: var(--gray-400, #9ca3af);
+}
+
+.kpw-nilai {
+	font-weight: 600;
+}
+
+.kpw-progres {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.kpw-progres .kpr-progress {
+	flex: 1;
+	margin: 0;
+}
+
+.kpw-progres span {
+	width: 36px;
+	font-size: var(--text-xs);
+	text-align: right;
+	color: var(--text-muted);
+}
+
+.kpw-tabel tfoot td {
+	background: var(--subtle-fg, #f8f9fa);
+	border-top: 1px solid var(--border-color);
+}
+
+.kpw-tabel tfoot tr:first-child td {
+	border-top: 2px solid var(--border-color);
+}
+
+.kpw-total td {
+	font-weight: 700;
+	color: var(--text-color);
+}
+
+.kpw-catatan {
+	vertical-align: top !important;
+	white-space: normal !important;
+	font-size: var(--text-xs) !important;
+	color: var(--text-muted);
+}

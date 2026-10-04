@@ -344,10 +344,27 @@ def atur_expense_claim():
 		make_property_setter("Expense Claim", fieldname, "in_standard_filter", 1, "Check", validate_fields_for_doctype=False)
 
 
+# Task: tautan ke item WBS (progres item WBS = rata-rata progres Task-nya; konstruksi/wbs.py).
+CUSTOM_FIELD_WBS = {
+	"Task": [
+		{"fieldname": "wbs_item", "fieldtype": "Link", "label": "Item WBS", "options": "WBS Item", "insert_after": "project",
+			"depends_on": "eval:doc.project", "search_index": 1,
+			"description": "Pekerjaan di Work Breakdown Structure proyek; progres Task ini menjadi progres item tersebut."},
+	],
+}
+
+
+def buat_wbs_default():
+	from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+	create_custom_fields(CUSTOM_FIELD_WBS, update=True)
+
+
 def after_install():
 	buat_custom_field_project()
 	buat_tim_proyek_default()
 	buat_biaya_personel_default()
+	buat_wbs_default()
 	buat_jenis_project_default()
 	buat_template_dokumen_default()
 	buat_tarif_pph_final_default()

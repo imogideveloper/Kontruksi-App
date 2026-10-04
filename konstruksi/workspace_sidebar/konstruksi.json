@@ -117,6 +117,18 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "network",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Work Breakdown Structure",
+   "link_to": "work-breakdown-structure",
+   "link_type": "Page",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
    "label": "Konfigurasi",
@@ -179,6 +191,18 @@
    "keep_closed": 0,
    "label": "Event",
    "link_to": "Event",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "list-tree",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "WBS Item",
+   "link_to": "WBS Item",
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
@@ -292,7 +316,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-08 15:00:00.000000",
+ "modified": "2026-10-08 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Konstruksi",
