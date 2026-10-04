@@ -1204,5 +1204,7 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 		white-space: nowrap;
 		text-align: left;
 		justify-self: start;
+		/* Hitam supaya terbaca (bawaan: abu-abu muda). */
+		color: var(--text-color) !important;
 	}
 }
