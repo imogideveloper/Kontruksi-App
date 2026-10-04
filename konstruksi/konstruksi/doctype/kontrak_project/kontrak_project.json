@@ -5,9 +5,12 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "data_kontrak_tab",
+  "ringkasan_tab",
   "ringkasan_section",
   "ringkasan",
+  "kelengkapan_section",
+  "kelengkapan_html",
+  "kontrak_tab",
   "identitas_section",
   "tender",
   "nama_project",
@@ -25,6 +28,7 @@
   "konsultan_pengawas",
   "pihak_column_2",
   "project_manager",
+  "nilai_waktu_tab",
   "nilai_section",
   "nilai_kontrak",
   "status_ppn",
@@ -41,6 +45,7 @@
   "waktu_column_2",
   "masa_pemeliharaan",
   "akhir_pemeliharaan",
+  "pembayaran_tab",
   "pembayaran_section",
   "cara_pembayaran",
   "uang_muka_persen",
@@ -48,8 +53,9 @@
   "pembayaran_column",
   "retensi_persen",
   "pph_final_persen",
-  "pembayaran_column_2",
+  "konfirmasi_bayar_section",
   "syarat_bayar_dikonfirmasi",
+  "jaminan_tab",
   "jaminan_section",
   "jaminan_pelaksanaan_wajib",
   "jaminan_pelaksanaan_nilai",
@@ -58,9 +64,11 @@
   "jaminan_pelaksanaan_nomor",
   "jaminan_pelaksanaan_penerbit",
   "jaminan_pelaksanaan_berlaku",
-  "jaminan_column_2",
+  "jaminan_uang_muka_section",
   "jaminan_uang_muka_nilai",
+  "jaminan_uang_muka_column",
   "jaminan_uang_muka_diserahkan",
+  "dokumen_tab",
   "dokumen_section",
   "file_kontrak",
   "dokumen_column",
@@ -68,16 +76,13 @@
   "catatan_section",
   "catatan",
   "kelengkapan_terisi",
-  "kelengkapan_total",
-  "kelengkapan_tab",
-  "kelengkapan_section",
-  "kelengkapan_html"
+  "kelengkapan_total"
  ],
  "fields": [
   {
-   "fieldname": "data_kontrak_tab",
+   "fieldname": "ringkasan_tab",
    "fieldtype": "Tab Break",
-   "label": "Data Kontrak"
+   "label": "Ringkasan"
   },
   {
    "fieldname": "ringkasan_section",
@@ -86,6 +91,21 @@
   {
    "fieldname": "ringkasan",
    "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "kelengkapan_section",
+   "fieldtype": "Section Break",
+   "label": "Kelengkapan Kontrak",
+   "collapsible": 0
+  },
+  {
+   "fieldname": "kelengkapan_html",
+   "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "kontrak_tab",
+   "fieldtype": "Tab Break",
+   "label": "Kontrak"
   },
   {
    "fieldname": "identitas_section",
@@ -202,6 +222,11 @@
    "fetch_if_empty": 1
   },
   {
+   "fieldname": "nilai_waktu_tab",
+   "fieldtype": "Tab Break",
+   "label": "Nilai & Waktu"
+  },
+  {
    "fieldname": "nilai_section",
    "fieldtype": "Section Break",
    "label": "Nilai Kontrak"
@@ -306,6 +331,11 @@
    "read_only": 1
   },
   {
+   "fieldname": "pembayaran_tab",
+   "fieldtype": "Tab Break",
+   "label": "Pembayaran"
+  },
+  {
    "fieldname": "pembayaran_section",
    "fieldtype": "Section Break",
    "label": "Syarat Pembayaran"
@@ -347,8 +377,8 @@
    "description": "Sesuai kualifikasi usaha (SBU)."
   },
   {
-   "fieldname": "pembayaran_column_2",
-   "fieldtype": "Column Break"
+   "fieldname": "konfirmasi_bayar_section",
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "syarat_bayar_dikonfirmasi",
@@ -357,9 +387,14 @@
    "description": "Centang setelah isian di kiri dicocokkan dengan pasal pembayaran di kontrak."
   },
   {
+   "fieldname": "jaminan_tab",
+   "fieldtype": "Tab Break",
+   "label": "Jaminan"
+  },
+  {
    "fieldname": "jaminan_section",
    "fieldtype": "Section Break",
-   "label": "Jaminan"
+   "label": "Jaminan Pelaksanaan"
   },
   {
    "fieldname": "jaminan_pelaksanaan_wajib",
@@ -405,8 +440,10 @@
    "depends_on": "eval:doc.jaminan_pelaksanaan_wajib"
   },
   {
-   "fieldname": "jaminan_column_2",
-   "fieldtype": "Column Break"
+   "fieldname": "jaminan_uang_muka_section",
+   "fieldtype": "Section Break",
+   "label": "Jaminan Uang Muka",
+   "depends_on": "eval:doc.uang_muka_persen"
   },
   {
    "fieldname": "jaminan_uang_muka_nilai",
@@ -417,10 +454,19 @@
    "depends_on": "eval:doc.uang_muka_persen"
   },
   {
+   "fieldname": "jaminan_uang_muka_column",
+   "fieldtype": "Column Break"
+  },
+  {
    "fieldname": "jaminan_uang_muka_diserahkan",
    "fieldtype": "Check",
    "label": "Jaminan Uang Muka Sudah Diserahkan",
    "depends_on": "eval:doc.uang_muka_persen"
+  },
+  {
+   "fieldname": "dokumen_tab",
+   "fieldtype": "Tab Break",
+   "label": "Dokumen"
   },
   {
    "fieldname": "dokumen_section",
@@ -463,25 +509,11 @@
    "label": "Kelengkapan Total",
    "read_only": 1,
    "hidden": 1
-  },
-  {
-   "fieldname": "kelengkapan_tab",
-   "fieldtype": "Tab Break",
-   "label": "Kelengkapan Kontrak"
-  },
-  {
-   "fieldname": "kelengkapan_section",
-   "fieldtype": "Section Break",
-   "collapsible": 0
-  },
-  {
-   "fieldname": "kelengkapan_html",
-   "fieldtype": "HTML"
   }
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-05 10:30:00.000000",
+ "modified": "2026-10-05 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kontrak Project",
