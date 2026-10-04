@@ -2296,3 +2296,14 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpt-aksi-menu .dropdown-divider {
 	margin: 6px 0;
 }
+
+/* Tim Proyek: kolom Akses Sistem (label Role Profile) satu baris, tidak turun ke baris baru. */
+.kpt-tabel td:nth-child(3),
+.kpt-tabel th:nth-child(3) {
+	white-space: nowrap;
+}
+
+.kpt-pill {
+	display: inline-block;
+	white-space: nowrap;
+}
