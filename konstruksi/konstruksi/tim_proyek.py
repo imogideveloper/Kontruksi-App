@@ -188,7 +188,7 @@ def cari_approver(doctype, txt, searchfield, start, page_len, filters):
 	if filters and filters.get("employee"):
 		from hrms.hr.doctype.department_approver.department_approver import get_approvers
 
-		users = [row[0] for row in get_approvers(doctype, txt, searchfield, start, page_len, filters)]
+		users = sorted(row[0] for row in get_approvers(doctype, txt, searchfield, start, page_len, filters))
 	else:
 		users = frappe.get_all(
 			"User",
@@ -215,12 +215,16 @@ def approver_bawaan(employee, doctype="Expense Claim"):
 	"""Expense Approver bawaan personel: dari Data Personel, bila kosong dari approver pertama di Department-nya."""
 	from hrms.hr.doctype.department_approver.department_approver import get_approvers
 
+	pribadi = frappe.db.get_value("Employee", employee, "expense_approver")
+	if pribadi and frappe.db.get_value("User", pribadi, "enabled"):
+		return pribadi
 	try:
-		approvers = get_approvers("User", "", "name", 0, 1, {"employee": employee, "doctype": doctype})
+		# get_approvers mengembalikan set (urutan tidak tetap); diurutkan supaya hasilnya konsisten.
+		approvers = sorted(row[0] for row in get_approvers("User", "", "name", 0, 20, {"employee": employee, "doctype": doctype}))
 	except frappe.ValidationError:
 		frappe.clear_messages()
 		return None
-	return approvers[0][0] if approvers else None
+	return approvers[0] if approvers else None
 
 
 BELUM_PUNYA_AKUN = "Belum punya akun"
