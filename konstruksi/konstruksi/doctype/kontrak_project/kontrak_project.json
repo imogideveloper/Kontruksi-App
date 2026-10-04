@@ -66,6 +66,7 @@
   "jaminan_pelaksanaan_wajib",
   "jaminan_pelaksanaan_nilai",
   "jaminan_pelaksanaan_diserahkan",
+  "file_jaminan_pelaksanaan",
   "jaminan_column",
   "jaminan_pelaksanaan_nomor",
   "jaminan_pelaksanaan_penerbit",
@@ -464,7 +465,14 @@
    "fieldname": "jaminan_pelaksanaan_diserahkan",
    "fieldtype": "Check",
    "label": "Jaminan Pelaksanaan Sudah Diserahkan",
-   "depends_on": "eval:doc.jaminan_pelaksanaan_wajib"
+   "depends_on": "eval:doc.jaminan_pelaksanaan_wajib",
+   "description": "Centang setelah bank garansi / surety bond diserahkan ke pemberi kerja; nomor, penerbit, dan masa berlaku wajib diisi."
+  },
+  {
+   "fieldname": "file_jaminan_pelaksanaan",
+   "fieldtype": "Attach",
+   "label": "Scan Jaminan Pelaksanaan",
+   "depends_on": "eval:doc.jaminan_pelaksanaan_wajib && doc.jaminan_pelaksanaan_diserahkan"
   },
   {
    "fieldname": "jaminan_column",
@@ -474,19 +482,23 @@
    "fieldname": "jaminan_pelaksanaan_nomor",
    "fieldtype": "Data",
    "label": "Nomor Jaminan Pelaksanaan",
-   "depends_on": "eval:doc.jaminan_pelaksanaan_wajib"
+   "depends_on": "eval:doc.jaminan_pelaksanaan_wajib",
+   "mandatory_depends_on": "eval:doc.jaminan_pelaksanaan_wajib && doc.jaminan_pelaksanaan_diserahkan"
   },
   {
    "fieldname": "jaminan_pelaksanaan_penerbit",
    "fieldtype": "Data",
    "label": "Penerbit (Bank / Asuransi)",
-   "depends_on": "eval:doc.jaminan_pelaksanaan_wajib"
+   "depends_on": "eval:doc.jaminan_pelaksanaan_wajib",
+   "mandatory_depends_on": "eval:doc.jaminan_pelaksanaan_wajib && doc.jaminan_pelaksanaan_diserahkan"
   },
   {
    "fieldname": "jaminan_pelaksanaan_berlaku",
    "fieldtype": "Date",
    "label": "Berlaku Sampai",
-   "depends_on": "eval:doc.jaminan_pelaksanaan_wajib"
+   "depends_on": "eval:doc.jaminan_pelaksanaan_wajib",
+   "mandatory_depends_on": "eval:doc.jaminan_pelaksanaan_wajib && doc.jaminan_pelaksanaan_diserahkan",
+   "description": "Umumnya harus berlaku sampai serah terima pertama (PHO), minimal sampai Tanggal Selesai."
   },
   {
    "fieldname": "jaminan_uang_muka_section",
@@ -562,7 +574,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-05 14:00:00.000000",
+ "modified": "2026-10-05 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kontrak Project",

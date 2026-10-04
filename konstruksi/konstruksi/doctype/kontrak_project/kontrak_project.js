@@ -17,6 +17,8 @@ const FIELD_KELENGKAPAN = [
 	"uang_muka_persen",
 	"jaminan_pelaksanaan_wajib",
 	"jaminan_pelaksanaan_diserahkan",
+	"jaminan_pelaksanaan_penerbit",
+	"jaminan_pelaksanaan_berlaku",
 	"jaminan_uang_muka_diserahkan",
 	"nilai_kontrak",
 	"status_ppn",

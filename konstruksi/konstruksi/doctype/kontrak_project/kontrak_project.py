@@ -40,6 +40,27 @@ class KontrakProject(Document):
 		self.hitung_jaminan()
 		self.ambil_tarif_pph()
 
+		if self.jaminan_pelaksanaan_wajib and self.jaminan_pelaksanaan_diserahkan:
+			kosong = [
+				_(self.meta.get_label(fieldname))
+				for fieldname in ("jaminan_pelaksanaan_nomor", "jaminan_pelaksanaan_penerbit", "jaminan_pelaksanaan_berlaku")
+				if not self.get(fieldname)
+			]
+			if kosong:
+				frappe.throw(
+					_("Jaminan pelaksanaan ditandai sudah diserahkan; lengkapi: {0}.").format(", ".join(kosong)),
+					title=_("Data jaminan belum lengkap"),
+				)
+
+		if self.jaminan_pelaksanaan_kurang_lama():
+			frappe.msgprint(
+				_("Jaminan pelaksanaan berlaku sampai {0}, sebelum Tanggal Selesai pekerjaan {1}. Minta perpanjangan ke penerbit.").format(
+					frappe.format(self.jaminan_pelaksanaan_berlaku, "Date"), frappe.format(self.tanggal_selesai, "Date")
+				),
+				title=_("Masa berlaku jaminan kurang"),
+				indicator="orange",
+			)
+
 		if self.tanggal_kontrak and self.tanggal_spmk and getdate(self.tanggal_spmk) < getdate(self.tanggal_kontrak):
 			frappe.throw(_("Tanggal SPMK tidak boleh sebelum Tanggal Kontrak."))
 		for fieldname in ("uang_muka_persen", "retensi_persen", "tarif_ppn"):
@@ -63,6 +84,15 @@ class KontrakProject(Document):
 		# Project Manager diisi di kontrak; awalnya Penanggung Jawab tender.
 		if not self.project_manager:
 			self.project_manager = frappe.db.get_value("Tender", self.tender, "penanggung_jawab")
+
+	def jaminan_pelaksanaan_kurang_lama(self):
+		"""Jaminan pelaksanaan harus berlaku minimal sampai tanggal selesai pekerjaan."""
+		return bool(
+			self.jaminan_pelaksanaan_wajib
+			and self.jaminan_pelaksanaan_berlaku
+			and self.tanggal_selesai
+			and getdate(self.jaminan_pelaksanaan_berlaku) < getdate(self.tanggal_selesai)
+		)
 
 	def ambil_tarif_pph(self):
 		"""PPh Final dari master Tarif PPh Final (berlaku pada tanggal kontrak), bukan diisi manual."""
@@ -151,16 +181,22 @@ class KontrakProject(Document):
 			},
 		]
 		if self.jaminan_pelaksanaan_wajib:
-			items.append(
-				{
-					"label": _("Jaminan pelaksanaan"),
-					"ok": bool(self.jaminan_pelaksanaan_diserahkan),
-					"ket": _("Diserahkan · {0}").format(fmt_money(self.jaminan_pelaksanaan_nilai, 0, "IDR"))
-					if self.jaminan_pelaksanaan_diserahkan
-					else _("Belum diserahkan · nilai {0}").format(fmt_money(self.jaminan_pelaksanaan_nilai, 0, "IDR")),
-					"field": "jaminan_pelaksanaan_diserahkan",
-				}
-			)
+			nilai = fmt_money(self.jaminan_pelaksanaan_nilai, 0, "IDR")
+			if not self.jaminan_pelaksanaan_diserahkan:
+				ok, ket, field = False, _("Belum diserahkan · nilai {0}").format(nilai), "jaminan_pelaksanaan_diserahkan"
+			elif self.jaminan_pelaksanaan_kurang_lama():
+				ok, field = False, "jaminan_pelaksanaan_berlaku"
+				ket = _("Berlaku sampai {0}, sebelum tanggal selesai {1} · minta perpanjangan").format(
+					frappe.format(self.jaminan_pelaksanaan_berlaku, "Date"), frappe.format(self.tanggal_selesai, "Date")
+				)
+			else:
+				ok, field = True, "jaminan_pelaksanaan_diserahkan"
+				ket = _("{0} · {1} · berlaku sampai {2}").format(
+					self.jaminan_pelaksanaan_penerbit or _("Diserahkan"),
+					nilai,
+					frappe.format(self.jaminan_pelaksanaan_berlaku, "Date"),
+				)
+			items.append({"label": _("Jaminan pelaksanaan"), "ok": ok, "ket": ket, "field": field})
 		if flt(self.uang_muka_persen):
 			items.append(
 				{
