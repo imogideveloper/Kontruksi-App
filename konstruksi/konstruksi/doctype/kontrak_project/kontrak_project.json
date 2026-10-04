@@ -58,7 +58,6 @@
   "pph_final_persen",
   "tarif_pph_final",
   "pph_column",
-  "konfirmasi_bayar_section",
   "syarat_bayar_dikonfirmasi",
   "jaminan_tab",
   "jaminan_section",
@@ -422,10 +421,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "konfirmasi_bayar_section",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "syarat_bayar_dikonfirmasi",
    "fieldtype": "Check",
    "label": "Syarat pembayaran sudah dicek sesuai kontrak",
@@ -571,7 +566,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-05 18:00:00.000000",
+ "modified": "2026-10-05 18:15:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kontrak Project",
