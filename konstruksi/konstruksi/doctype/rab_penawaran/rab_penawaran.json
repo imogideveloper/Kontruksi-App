@@ -146,8 +146,7 @@
    "fieldname": "biaya_section",
    "fieldtype": "Section Break",
    "label": "Estimasi Biaya & Margin (Internal)",
-   "permlevel": 1,
-   "description": "Dari Harga Satuan Pokok tiap item. Tidak ikut tercetak dan hanya terlihat oleh Projects Manager."
+   "permlevel": 1
   },
   {
    "fieldname": "total_biaya",
@@ -207,7 +206,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-06 17:00:00.000000",
+ "modified": "2026-10-06 17:30:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "RAB Penawaran",

@@ -455,11 +455,6 @@ body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .
 	white-space: normal;
 }
 
-.rab-tree .rab-catatan {
-	margin-top: 8px;
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-}
 
 /* List view: tombol Group & judul kelompok (list_group_by.bundle.js). */
 .page-form .filter-section {

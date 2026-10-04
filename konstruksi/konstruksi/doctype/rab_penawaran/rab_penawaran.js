@@ -354,11 +354,6 @@ function render_rab_tree(frm) {
 				</table>
 			</div>
 			<datalist id="rab-saran-uraian">${(frm.__saran_uraian || []).map((s) => `<option value="${esc(s)}">`).join("")}</datalist>
-			${
-				hak.lihat_biaya
-					? `<div class="rab-catatan">${frappe.utils.icon("lock", "xs")} ${__("Kolom Harga Pokok & Margin hanya terlihat oleh Projects Manager dan tidak ikut tercetak.")}</div>`
-					: ""
-			}
 		</div>`);
 
 	pulihkan_fokus(field.$wrapper, fokus);
