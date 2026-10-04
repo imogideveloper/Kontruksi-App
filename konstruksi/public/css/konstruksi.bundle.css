@@ -1220,7 +1220,18 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 /* Kepala kontrak: dua baris (judul + status, lalu meta). */
 .kpr-kepala {
 	padding: 16px 20px;
-	border-left: 4px solid var(--kpr-biru);
+	/* Blok warna penuh, sama dengan menu sidebar aktif. */
+	border-color: var(--konstruksi-active-bg);
+	background: var(--konstruksi-active-bg);
+}
+
+.kpr-kepala .kpr-kepala-judul {
+	color: var(--konstruksi-active-fg);
+}
+
+.kpr-kepala .kpr-kepala-sub {
+	color: var(--konstruksi-active-fg);
+	opacity: 0.85;
 }
 
 .kpr-kepala-baris {
