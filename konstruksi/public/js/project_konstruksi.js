@@ -17,6 +17,7 @@
 	const INFO_COSTING = [
 		["Estimated Cost", __("Perkiraan biaya pelaksanaan proyek (budget internal), bukan nilai kontrak."), __("Proyek dari kontrak: otomatis dari Total Biaya (RAP) di RAB Penawaran. Lainnya: diisi manual.")],
 		["Total Costing Amount", __("Biaya jam kerja orang yang dicatat untuk proyek ini."), __("Timesheet bertanda proyek ini")],
+		["Total Biaya Personel (Gaji)", __("Gaji personel yang dibebankan ke proyek ini sesuai alokasi % penugasan."), __("Biaya Personel Bulanan (otomatis tiap tanggal 1)")],
 		["Total Expense Claim", __("Klaim biaya karyawan (transport, makan, akomodasi) untuk proyek ini."), __("Expense Claim (HR)")],
 		["Total Purchase Cost", __("Pembelian material / jasa / subkon dari supplier."), __("Purchase Invoice bertanda proyek ini")],
 		["Company", __("Perusahaan pemilik proyek; menentukan akun & mata uang."), __("Diisi saat proyek dibuat")],

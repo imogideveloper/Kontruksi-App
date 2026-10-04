@@ -1,0 +1,183 @@
+{
+ "actions": [],
+ "creation": "2026-10-08 10:00:00.000000",
+ "modified": "2026-10-08 10:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "module": "Konstruksi",
+ "name": "Biaya Personel Bulanan",
+ "is_submittable": 1,
+ "track_changes": 1,
+ "sort_field": "periode",
+ "sort_order": "DESC",
+ "title_field": "nama_project",
+ "show_title_field_in_link": 0,
+ "search_fields": "nama_project,periode",
+ "links": [],
+ "states": [],
+ "field_order": [
+  "project",
+  "nama_project",
+  "company",
+  "column_break_periode",
+  "periode",
+  "periode_selesai",
+  "hari_periode",
+  "section_rincian",
+  "rincian",
+  "section_total",
+  "rumus",
+  "column_break_total",
+  "jumlah_personel",
+  "total_biaya",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "nama_project",
+   "fieldtype": "Data",
+   "label": "Nama Project",
+   "fetch_from": "project.project_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "fetch_from": "project.company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_periode",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "periode",
+   "fieldtype": "Date",
+   "label": "Bulan",
+   "reqd": 1,
+   "description": "Pilih tanggal mana saja di bulan itu; disimpan sebagai tanggal 1."
+  },
+  {
+   "fieldname": "periode_selesai",
+   "fieldtype": "Date",
+   "label": "Sampai",
+   "read_only": 1
+  },
+  {
+   "fieldname": "hari_periode",
+   "fieldtype": "Int",
+   "label": "Jumlah Hari",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_rincian",
+   "fieldtype": "Section Break",
+   "label": "Rincian Biaya per Personel"
+  },
+  {
+   "fieldname": "rincian",
+   "fieldtype": "Table",
+   "label": "Rincian",
+   "options": "Biaya Personel Bulanan Detail",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_total",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "rumus",
+   "fieldtype": "HTML",
+   "label": "Rumus",
+   "options": "<div class=\"text-muted small\">Biaya = Gaji Bulanan × Alokasi % × (Hari Bertugas ÷ Jumlah Hari bulan itu). Personel yang sudah mencatat Timesheet di proyek ini pada bulan yang sama tidak dihitung lagi (biaya jamnya sudah masuk dari Timesheet). Rincian dihitung ulang otomatis setiap disimpan selama masih Draft.</div>"
+  },
+  {
+   "fieldname": "column_break_total",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "jumlah_personel",
+   "fieldtype": "Int",
+   "label": "Jumlah Personel",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_biaya",
+   "fieldtype": "Currency",
+   "label": "Total Biaya Personel",
+   "options": "IDR",
+   "read_only": 1,
+   "in_list_view": 1,
+   "bold": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Biaya Personel Bulanan",
+   "read_only": 1,
+   "no_copy": 1,
+   "print_hide": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "export": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Projects Manager",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "export": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "HR Manager",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "export": 1
+  },
+  {
+   "role": "Accounts Manager",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "export": 1
+  }
+ ]
+}

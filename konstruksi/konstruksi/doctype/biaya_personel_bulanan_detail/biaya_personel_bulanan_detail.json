@@ -1,0 +1,116 @@
+{
+ "actions": [],
+ "creation": "2026-10-08 10:00:00.000000",
+ "modified": "2026-10-08 10:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "module": "Konstruksi",
+ "name": "Biaya Personel Bulanan Detail",
+ "istable": 1,
+ "editable_grid": 0,
+ "links": [],
+ "states": [],
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "field_order": [
+  "penugasan",
+  "employee",
+  "nama_personel",
+  "jabatan",
+  "mulai",
+  "selesai",
+  "hari_bertugas",
+  "gaji_bulanan",
+  "alokasi",
+  "biaya",
+  "keterangan"
+ ],
+ "fields": [
+  {
+   "fieldname": "penugasan",
+   "fieldtype": "Link",
+   "label": "Penugasan",
+   "options": "Penugasan Personel",
+   "read_only": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Personel",
+   "options": "Employee",
+   "read_only": 1
+  },
+  {
+   "fieldname": "nama_personel",
+   "fieldtype": "Data",
+   "label": "Nama Personel",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "jabatan",
+   "fieldtype": "Link",
+   "label": "Jabatan",
+   "options": "Designation",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "mulai",
+   "fieldtype": "Date",
+   "label": "Mulai",
+   "read_only": 1
+  },
+  {
+   "fieldname": "selesai",
+   "fieldtype": "Date",
+   "label": "Selesai",
+   "read_only": 1
+  },
+  {
+   "fieldname": "hari_bertugas",
+   "fieldtype": "Int",
+   "label": "Hari",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "gaji_bulanan",
+   "fieldtype": "Currency",
+   "label": "Gaji Bulanan",
+   "options": "IDR",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "alokasi",
+   "fieldtype": "Percent",
+   "label": "Alokasi",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "biaya",
+   "fieldtype": "Currency",
+   "label": "Biaya",
+   "options": "IDR",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "keterangan",
+   "fieldtype": "Data",
+   "label": "Keterangan",
+   "read_only": 1
+  }
+ ]
+}

@@ -264,10 +264,20 @@ EXPENSE_CLAIM_TYPE_KONSTRUKSI = (
 	("Lain-lain Proyek", "Miscellaneous Expenses"),
 )
 AKUN_HUTANG_KLAIM = "Hutang Klaim Biaya Karyawan"
+# Project: total dari Biaya Personel Bulanan (alokasi gaji) yang sudah submit.
+CUSTOM_FIELD_BIAYA = {
+	"Project": [
+		{"fieldname": "total_biaya_personel", "fieldtype": "Currency", "label": "Total Biaya Personel (Gaji)", "options": "IDR",
+			"read_only": 1, "no_copy": 1, "insert_after": "total_costing_amount"},
+	],
+}
 
 
 def buat_biaya_personel_default():
 	"""Activity Type (Timesheet), Expense Claim Type, dan akun hutang klaim biaya per company bila belum ada."""
+	from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+	create_custom_fields(CUSTOM_FIELD_BIAYA, update=True)
 	for nama, tarif in ACTIVITY_TYPE_KONSTRUKSI:
 		if not frappe.db.exists("Activity Type", nama):
 			frappe.get_doc({"doctype": "Activity Type", "activity_type": nama, "costing_rate": tarif, "billing_rate": 0}).insert(
