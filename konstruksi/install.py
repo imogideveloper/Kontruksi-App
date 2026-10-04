@@ -102,6 +102,10 @@ CUSTOM_FIELD_TIM = {
 			# Branch); bila disisipkan setelah Branch, posisinya bentrok dengan Grade dan terlempar ke tab Address.
 			"insert_after": "grade" if frappe.get_meta("Employee").has_field("grade") else "branch", "collapsible": 0},
 		{"fieldname": "skk", "fieldtype": "Table", "label": "SKK", "options": "SKK Personel", "insert_after": "skk_section"},
+		# Tab Salary: gaji bulanan untuk alokasi biaya personel ke proyek; terisi dari Gaji Standar jabatan bila kosong.
+		{"fieldname": "gaji_bulanan", "fieldtype": "Currency", "label": "Gaji Bulanan", "insert_after": "ctc",
+			"fetch_from": "designation.gaji_standar", "fetch_if_empty": 1,
+			"description": "Dipakai untuk menghitung biaya personel per proyek (gaji × alokasi %)."},
 	],
 	"Designation": [
 		{"fieldname": "wajib_skk", "fieldtype": "Check", "label": "Wajib SKK", "insert_after": "designation_name",
@@ -109,6 +113,8 @@ CUSTOM_FIELD_TIM = {
 		{"fieldname": "role_profile_bawaan", "fieldtype": "Link", "label": "Role Profile Bawaan", "options": "Role Profile",
 			"insert_after": "wajib_skk",
 			"description": "Hak akses sistem untuk akun login personel di jabatan ini (dipakai tombol Buat Akun Login di Data Personel)."},
+		{"fieldname": "gaji_standar", "fieldtype": "Currency", "label": "Gaji Standar (per Bulan)", "insert_after": "role_profile_bawaan",
+			"description": "Nilai awal Gaji Bulanan personel di jabatan ini (bisa diubah per orang di Data Personel)."},
 	],
 }
 
@@ -141,6 +147,19 @@ JABATAN_KONSTRUKSI = (
 	("Surveyor", 0, "Pengukuran, marking, dan as-built."),
 	("Quality Control", 0, "Pemeriksaan mutu material & pekerjaan, uji lab."),
 )
+
+# Gaji standar per bulan per jabatan (Rp). Hanya mengisi yang masih kosong.
+GAJI_STANDAR_JABATAN = {
+	"Project Manager": 25_000_000,
+	"Site Manager": 18_000_000,
+	"Site Engineer": 10_000_000,
+	"Quantity Surveyor": 11_000_000,
+	"HSE Officer": 9_000_000,
+	"Project Admin": 6_500_000,
+	"Logistik": 7_000_000,
+	"Surveyor": 8_000_000,
+	"Quality Control": 9_000_000,
+}
 
 # Template kebutuhan personel: (nama, jenis project, nilai minimal, [(jabatan, wajib)]).
 TEMPLATE_KEBUTUHAN_DEFAULT = (
@@ -183,6 +202,9 @@ def buat_tim_proyek_default():
 	for jabatan, profile in ROLE_PROFILE_JABATAN.items():
 		if frappe.db.exists("Designation", jabatan) and not frappe.db.get_value("Designation", jabatan, "role_profile_bawaan"):
 			frappe.db.set_value("Designation", jabatan, "role_profile_bawaan", profile)
+	for jabatan, gaji in GAJI_STANDAR_JABATAN.items():
+		if frappe.db.exists("Designation", jabatan) and not frappe.db.get_value("Designation", jabatan, "gaji_standar"):
+			frappe.db.set_value("Designation", jabatan, "gaji_standar", gaji)
 	for nama, jenis, nilai, jabatan in TEMPLATE_KEBUTUHAN_DEFAULT:
 		if frappe.db.exists("Template Kebutuhan Personel", nama):
 			continue
