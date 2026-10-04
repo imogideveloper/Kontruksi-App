@@ -135,7 +135,11 @@
 				(p) => `<tr>
 					<td><a href="/app/employee/${encodeURIComponent(p.employee)}"><b>${esc(p.nama_personel)}</b></a></td>
 					<td>${esc(__(p.jabatan))} ${skk_chip(p.status_skk)}</td>
-					<td>${p.user_id ? `<span class="kpt-pill" title="${esc(p.user_id)}">${__("Login")}</span>` : `<span class="text-muted">—</span>`}</td>
+					<td>${
+						p.user_id && !["Akun nonaktif", "Role diatur manual"].includes(p.akses)
+							? p.akses.split(", ").map((r) => `<span class="kpt-pill" title="${esc(p.user_id)}">${esc(r)}</span>`).join(" ")
+							: `<span class="text-muted" title="${esc(p.user_id || "")}">${esc(__(p.akses || "Belum punya akun"))}</span>`
+					}</td>
 					<td>${esc(p.telepon || "")}${p.email ? `<div class="text-muted small">${esc(p.email)}</div>` : ""}${!p.telepon && !p.email ? '<span class="text-muted">—</span>' : ""}</td>
 					<td>${tanggal(p.tanggal_mulai)} – ${p.tanggal_selesai ? tanggal(p.tanggal_selesai) : __("selesai proyek")}</td>
 					<td class="text-right">${format_number(flt(p.alokasi), null, 0)}%</td>

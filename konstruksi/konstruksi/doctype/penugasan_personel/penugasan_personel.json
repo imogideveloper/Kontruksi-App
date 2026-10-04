@@ -15,6 +15,7 @@
   "alokasi",
   "kontak_section",
   "user_id",
+  "akses_sistem",
   "telepon",
   "kontak_column",
   "email",
@@ -109,6 +110,13 @@
    "description": "Bila ada, otomatis ditambahkan ke tim (Users) di Project sehingga bisa mengakses proyek."
   },
   {
+   "fieldname": "akses_sistem",
+   "fieldtype": "Data",
+   "label": "Akses Sistem",
+   "read_only": 1,
+   "description": "Role Profile akun login personel (diatur di User)."
+  },
+  {
    "fieldname": "telepon",
    "fieldtype": "Data",
    "label": "Telepon",
@@ -145,7 +153,7 @@
   }
  ],
  "links": [],
- "modified": "2026-10-07 11:00:00.000000",
+ "modified": "2026-10-07 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Penugasan Personel",

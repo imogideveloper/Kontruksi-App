@@ -46,7 +46,7 @@ app_include_js = ["list_group_by.bundle.js", "sinkron_form.bundle.js", "form_kon
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # Project bawaan ERPNext dipakai sebagai Project Master (project_konstruksi.py).
-doctype_js = {"Project": "public/js/project_konstruksi.js"}
+doctype_js = {"Project": "public/js/project_konstruksi.js", "Employee": "public/js/employee_konstruksi.js"}
 doctype_list_js = {"Project": "public/js/project_list_konstruksi.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}

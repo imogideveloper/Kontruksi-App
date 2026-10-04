@@ -84,6 +84,9 @@ def get_tim(project):
 		],
 		order_by="creation asc",
 	)
+	for p in penugasan:
+		# Dihitung saat ditampilkan supaya mengikuti perubahan role di User.
+		p.akses = get_akses(p.user_id)
 	per_jabatan = {}
 	for p in penugasan:
 		per_jabatan.setdefault(p.jabatan, []).append(p)
@@ -155,3 +158,51 @@ def cari_personel(doctype, txt, searchfield, start, page_len, filters):
 		limit_page_length=page_len,
 		as_list=True,
 	)
+
+
+BELUM_PUNYA_AKUN = "Belum punya akun"
+
+
+def get_akses(user):
+	"""Teks Akses Sistem: Role Profile akun login personel, atau keterangan bila belum / tidak bisa login."""
+	if not user:
+		return BELUM_PUNYA_AKUN
+	if not frappe.db.get_value("User", user, "enabled"):
+		return _("Akun nonaktif")
+	profiles = frappe.get_all("User Role Profile", filters={"parent": user, "parenttype": "User"}, pluck="role_profile")
+	return ", ".join(profiles) if profiles else _("Role diatur manual")
+
+
+@frappe.whitelist()
+def buat_akun_login(employee, email, role_profile=None, kirim_email=0):
+	"""Data Personel: buat User untuk personel (Role Profile sesuai jabatan), tautkan ke Employee & penugasannya."""
+	frappe.has_permission("User", "create", throw=True)
+	emp = frappe.get_doc("Employee", employee)
+	if emp.user_id:
+		frappe.throw(_("{0} sudah punya akun login ({1}).").format(emp.employee_name, emp.user_id))
+	email = (email or "").strip().lower()
+	if frappe.db.exists("User", email):
+		frappe.throw(_("Email {0} sudah dipakai akun lain.").format(email))
+
+	user = frappe.get_doc(
+		{
+			"doctype": "User",
+			"email": email,
+			"first_name": emp.first_name,
+			"last_name": emp.last_name,
+			"user_type": "System User",
+			"send_welcome_email": frappe.utils.cint(kirim_email),
+			"role_profiles": [{"role_profile": role_profile}] if role_profile else [],
+		}
+	)
+	user.insert()
+
+	# set_value, bukan save: HRMS tidak membuat User Permission otomatis yang membatasi user hanya melihat dirinya.
+	frappe.db.set_value("Employee", employee, "user_id", user.name)
+	# ERPNext membuang role Employee dari user yang belum tertaut ke Employee saat user dibuat; tambahkan setelah tertaut.
+	if role_profile and "Employee" in [r.role for r in frappe.get_doc("Role Profile", role_profile).roles]:
+		frappe.get_doc("User", user.name).add_roles("Employee")
+	for p in frappe.get_all("Penugasan Personel", filters={"employee": employee}, fields=["name", "project"]):
+		frappe.db.set_value("Penugasan Personel", p.name, {"user_id": user.name, "akses_sistem": get_akses(user.name)})
+		sinkron_users_project(p.project)
+	return user.name

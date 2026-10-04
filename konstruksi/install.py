@@ -104,7 +104,27 @@ CUSTOM_FIELD_TIM = {
 	"Designation": [
 		{"fieldname": "wajib_skk", "fieldtype": "Check", "label": "Wajib SKK", "insert_after": "designation_name",
 			"description": "Personel di jabatan ini harus punya SKK yang masih berlaku (diperingatkan di Tim Proyek)."},
+		{"fieldname": "role_profile_bawaan", "fieldtype": "Link", "label": "Role Profile Bawaan", "options": "Role Profile",
+			"insert_after": "wajib_skk",
+			"description": "Hak akses sistem untuk akun login personel di jabatan ini (dipakai tombol Buat Akun Login di Data Personel)."},
 	],
+}
+
+# Role Profile proyek: nama -> roles. Jabatan -> Role Profile bawaan.
+ROLE_PROFILE_PROYEK = {
+	"Manajer Proyek": ["Projects Manager", "Projects User", "Employee"],
+	"Staf Proyek": ["Projects User", "Employee"],
+}
+ROLE_PROFILE_JABATAN = {
+	"Project Manager": "Manajer Proyek",
+	"Site Manager": "Manajer Proyek",
+	"Site Engineer": "Staf Proyek",
+	"Quantity Surveyor": "Staf Proyek",
+	"HSE Officer": "Staf Proyek",
+	"Project Admin": "Staf Proyek",
+	"Logistik": "Staf Proyek",
+	"Surveyor": "Staf Proyek",
+	"Quality Control": "Staf Proyek",
 }
 
 # Jabatan proyek konstruksi: (nama, wajib SKK, uraian tugas). Jabatan yang sudah ada tidak diubah.
@@ -149,6 +169,14 @@ def buat_tim_proyek_default():
 		frappe.get_doc(
 			{"doctype": "Designation", "designation_name": nama, "description": tugas, "wajib_skk": wajib_skk}
 		).insert(ignore_permissions=True)
+	for nama, roles in ROLE_PROFILE_PROYEK.items():
+		if not frappe.db.exists("Role Profile", nama):
+			frappe.get_doc(
+				{"doctype": "Role Profile", "role_profile": nama, "roles": [{"role": r} for r in roles if frappe.db.exists("Role", r)]}
+			).insert(ignore_permissions=True)
+	for jabatan, profile in ROLE_PROFILE_JABATAN.items():
+		if frappe.db.exists("Designation", jabatan) and not frappe.db.get_value("Designation", jabatan, "role_profile_bawaan"):
+			frappe.db.set_value("Designation", jabatan, "role_profile_bawaan", profile)
 	for nama, jenis, nilai, jabatan in TEMPLATE_KEBUTUHAN_DEFAULT:
 		if frappe.db.exists("Template Kebutuhan Personel", nama):
 			continue

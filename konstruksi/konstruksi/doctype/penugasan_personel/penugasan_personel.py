@@ -6,7 +6,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, getdate
 
-from konstruksi.konstruksi.tim_proyek import get_status_skk, sinkron_users_project
+from konstruksi.konstruksi.tim_proyek import get_akses, get_status_skk, sinkron_users_project
 
 
 class PenugasanPersonel(Document):
@@ -24,6 +24,7 @@ class PenugasanPersonel(Document):
 			frappe.throw(_("{0} sudah ditugaskan sebagai {1} di proyek ini ({2}).").format(self.nama_personel, self.jabatan, dobel))
 
 		self.user_id = frappe.db.get_value("Employee", self.employee, "user_id")
+		self.akses_sistem = get_akses(self.user_id)
 		akhir = self.tanggal_selesai or frappe.db.get_value("Project", self.project, "expected_end_date")
 		self.status_skk = get_status_skk(self.employee, self.jabatan, akhir)
 		self.cek_beban()
