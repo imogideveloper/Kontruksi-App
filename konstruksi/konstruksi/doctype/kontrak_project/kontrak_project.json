@@ -453,7 +453,7 @@
    "fieldtype": "Check",
    "label": "Sudah Diserahkan",
    "depends_on": "eval:doc.jaminan_pelaksanaan_wajib",
-   "description": "Centang setelah bank garansi / surety bond diserahkan ke pemberi kerja; nomor, penerbit, dan masa berlaku wajib diisi."
+   "description": "Centang setelah bank garansi / surety bond diserahkan ke pemberi kerja."
   },
   {
    "fieldname": "jaminan_pelaksanaan_nomor",
@@ -591,7 +591,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-05 20:00:00.000000",
+ "modified": "2026-10-05 20:15:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kontrak Project",
