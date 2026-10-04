@@ -1,14 +1,10 @@
-// List Milestone Termin: tombol tambah membuka dialog di halaman Milestone & Termin (proyek dari filter bila ada).
+// List Milestone Termin: tombol tambah (+ Add / Ctrl+B / "buat baru" saat list kosong) membuka dialog di halaman
+// Milestone & Termin — proyek diambil dari filter list bila ada. primary_action = hook bawaan list view Frappe.
 frappe.listview_settings["Milestone Termin"] = {
-	onload(listview) {
-		listview.page.set_primary_action(
-			__("Milestone / Termin Baru"),
-			() => {
-				const filter = (listview.filter_area?.get() || []).find((f) => f[1] === "project" && f[2] === "=");
-				frappe.route_options = { milestone_baru: 1 };
-				frappe.set_route(...(filter ? ["milestone-termin", filter[3]] : ["milestone-termin"]));
-			},
-			"add"
-		);
+	primary_action() {
+		const listview = cur_list;
+		const filter = (listview?.filter_area?.get() || []).find((f) => f[1] === "project" && f[2] === "=");
+		frappe.route_options = { milestone_baru: 1 };
+		frappe.set_route(...(filter ? ["milestone-termin", filter[3]] : ["milestone-termin"]));
 	},
 };
