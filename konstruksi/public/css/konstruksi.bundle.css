@@ -3955,3 +3955,12 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	font-weight: 600;
 	color: var(--text-color);
 }
+
+/* Sidebar Konstruksi sedikit lebih lebar supaya label menu panjang (mis. "Task & Activity Management",
+   "Template Kebutuhan Personel") tampil utuh dalam satu baris. Hanya saat sidebar Konstruksi aktif; sidebar
+   modul lain tetap lebar bawaan (220px). Placeholder & konten utama ikut bergeser lewat variabel yang sama. */
+@media (min-width: 768px) {
+	body:has(.body-sidebar[data-title="Konstruksi"]) {
+		--sidebar-width: 268px;
+	}
+}
