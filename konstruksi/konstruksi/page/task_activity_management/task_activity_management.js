@@ -73,6 +73,7 @@ class HalamanAktivitas {
 			if ($s.hasClass("kpa-kelompok")) {
 				this.kelompok = $s.val();
 				this.kelompok_tertutup.clear();
+				this.$body.find(".kpa-buka-tutup").toggle(!!this.kelompok);
 				try {
 					localStorage.setItem("konstruksi.aktivitas.kelompok", this.kelompok);
 				} catch (err) {
@@ -232,6 +233,10 @@ class HalamanAktivitas {
 						["", __("Tidak dikelompokkan")], ["wbs", __("WBS (induk)")], ["status", __("Status")], ["pj", __("Penanggung Jawab")], ["prioritas", __("Prioritas")],
 					].map(([v, l]) => `<option value="${v}" ${this.kelompok === v ? "selected" : ""}>${l}</option>`).join("")}</select>
 				</label>
+				<div class="btn-group kpa-buka-tutup" ${this.kelompok ? "" : 'style="display:none"'}>
+					<button class="btn btn-default btn-sm" data-kpa="buka-semua">${frappe.utils.icon("down", "xs")} ${__("Buka semua")}</button>
+					<button class="btn btn-default btn-sm" data-kpa="tutup-semua">${frappe.utils.icon("right", "xs")} ${__("Tutup semua")}</button>
+				</div>
 			</div>
 			<div class="kpw-tabel-wrap"><table class="kpw-tabel kpa-tabel">
 				<colgroup><col style="width:60px"><col><col style="width:150px"><col style="width:190px"><col style="width:70px">
@@ -293,6 +298,7 @@ class HalamanAktivitas {
 		};
 
 		const kelompok = this.kelompok_aktivitas(rows);
+		this.kelompok_terakhir = kelompok;
 		if (!kelompok) return $tbody.html(rows.map(html_baris).join(""));
 		$tbody.html(
 			kelompok
@@ -433,6 +439,12 @@ class HalamanAktivitas {
 		switch (jenis) {
 			case "buka":
 				return frappe.set_route("task-activity-management", $el.attr("data-project"));
+			case "buka-semua":
+				this.kelompok_tertutup.clear();
+				return this.render_tabel_aktivitas();
+			case "tutup-semua":
+				this.kelompok_tertutup = new Set((this.kelompok_terakhir || []).map((g) => g.kunci));
+				return this.render_tabel_aktivitas();
 			case "grup": {
 				const kunci = $el.attr("data-kunci");
 				this.kelompok_tertutup.has(kunci) ? this.kelompok_tertutup.delete(kunci) : this.kelompok_tertutup.add(kunci);
