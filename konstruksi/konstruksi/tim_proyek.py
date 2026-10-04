@@ -9,7 +9,7 @@ di tim bawaan ERPNext.
 
 import frappe
 from frappe import _
-from frappe.utils import flt, getdate, today
+from frappe.utils import cint, flt, getdate, today
 
 from konstruksi.api import beri_tahu_form
 
@@ -93,9 +93,14 @@ def get_tim(project):
 		],
 		order_by="creation asc",
 	)
+	biaya = biaya_per_personel(project, list({p.employee for p in penugasan}))
+	sudah = set()
 	for p in penugasan:
 		# Dihitung saat ditampilkan supaya mengikuti perubahan role di User.
 		p.akses = get_akses(p.user_id)
+		# Biaya per personel ditampilkan sekali (di baris pertama orang itu) bila ia punya lebih dari satu jabatan.
+		p.biaya = biaya[p.employee] if p.employee not in sudah else None
+		sudah.add(p.employee)
 	per_jabatan = {}
 	for p in penugasan:
 		per_jabatan.setdefault(p.jabatan, []).append(p)
@@ -215,3 +220,94 @@ def buat_akun_login(employee, email, role_profile=None, kirim_email=0):
 		frappe.db.set_value("Penugasan Personel", p.name, {"user_id": user.name, "akses_sistem": get_akses(user.name)})
 		sinkron_users_project(p.project)
 	return user.name
+
+
+# ---------------------------------------------------------------------------
+# Timesheet & Expense Claim: biaya personel hanya untuk proyek tempat ia ditugaskan.
+
+
+def ditugaskan(project, employee, tanggal=None):
+	"""Personel punya penugasan di proyek ini (yang mencakup `tanggal` bila diisi)."""
+	for p in frappe.get_all(
+		"Penugasan Personel", filters={"project": project, "employee": employee}, fields=["tanggal_mulai", "tanggal_selesai"]
+	):
+		if not tanggal:
+			return True
+		t = getdate(tanggal)
+		if getdate(p.tanggal_mulai) <= t and (not p.tanggal_selesai or t <= getdate(p.tanggal_selesai)):
+			return True
+	return False
+
+
+def cek_penugasan_biaya(doc, method=None):
+	"""Timesheet / Expense Claim validate: peringatan bila personel mencatat biaya ke proyek konstruksi tempat ia
+	tidak ditugaskan pada tanggal itu (biaya tetap tersimpan; hanya diperingatkan)."""
+	if not doc.employee:
+		return
+	if doc.doctype == "Timesheet":
+		pasangan = [(row.project, row.from_time) for row in doc.time_logs if row.project]
+	else:
+		pasangan = [(doc.project, doc.posting_date)] if doc.project else []
+		pasangan += [(row.project, row.expense_date) for row in doc.expenses if row.project]
+
+	salah = []
+	for project, tanggal in pasangan:
+		if not frappe.db.get_value("Project", project, "kontrak_project"):
+			continue
+		if not ditugaskan(project, doc.employee, tanggal):
+			salah.append(_("{0} ({1})").format(project, frappe.format(getdate(tanggal), "Date")))
+	if salah:
+		frappe.msgprint(
+			_("{0} tidak ditugaskan di proyek berikut pada tanggal tersebut: {1}. Periksa pilihan proyek, atau tambahkan penugasannya di Tim Proyek.").format(
+				doc.employee_name or doc.employee, ", ".join(dict.fromkeys(salah))
+			),
+			title=_("Personel tidak ditugaskan di proyek"),
+			indicator="orange",
+		)
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def cari_proyek_personel(doctype, txt, searchfield, start, page_len, filters):
+	"""Pilihan Project di Timesheet / Expense Claim: proyek konstruksi tempat personel ditugaskan, plus proyek
+	umum (tanpa kontrak). Tanpa personel: semua proyek aktif."""
+	filters = filters or {}
+	employee = filters.get("employee")
+	kondisi = {"status": "Open"}
+	if filters.get("customer"):
+		kondisi["customer"] = filters["customer"]
+	rows = frappe.get_list(
+		"Project",
+		filters=kondisi,
+		or_filters={"name": ("like", f"%{txt}%"), "project_name": ("like", f"%{txt}%")},
+		fields=["name", "project_name", "kontrak_project"],
+		order_by="modified desc",
+		limit_page_length=0,
+	)
+	if employee:
+		milik = set(frappe.get_all("Penugasan Personel", filters={"employee": employee}, pluck="project"))
+		rows = [r for r in rows if not r.kontrak_project or r.name in milik]
+	return [(r.name, r.project_name) for r in rows[cint(start) : cint(start) + cint(page_len)]]
+
+
+def biaya_per_personel(project, employees):
+	"""Jam & biaya Timesheet serta klaim biaya (Expense Claim) yang sudah submit, per personel di proyek ini."""
+	hasil = {e: {"jam": 0, "biaya_timesheet": 0, "klaim": 0} for e in employees}
+	if not employees:
+		return hasil
+	for row in frappe.db.sql(
+		"""select t.employee, sum(d.hours) as jam, sum(d.costing_amount) as biaya
+		from `tabTimesheet Detail` d join `tabTimesheet` t on t.name = d.parent
+		where t.docstatus = 1 and d.project = %s and t.employee in %s group by t.employee""",
+		(project, tuple(employees)),
+		as_dict=True,
+	):
+		hasil[row.employee].update({"jam": flt(row.jam), "biaya_timesheet": flt(row.biaya)})
+	for row in frappe.db.sql(
+		"""select employee, sum(total_sanctioned_amount) as klaim from `tabExpense Claim`
+		where docstatus = 1 and project = %s and employee in %s group by employee""",
+		(project, tuple(employees)),
+		as_dict=True,
+	):
+		hasil[row.employee]["klaim"] = flt(row.klaim)
+	return hasil

@@ -143,6 +143,9 @@
 					<td>${esc(p.telepon || "")}${p.email ? `<div class="text-muted small">${esc(p.email)}</div>` : ""}${!p.telepon && !p.email ? '<span class="text-muted">—</span>' : ""}</td>
 					<td>${tanggal(p.tanggal_mulai)} – ${p.tanggal_selesai ? tanggal(p.tanggal_selesai) : __("selesai proyek")}</td>
 					<td class="text-right">${format_number(flt(p.alokasi), null, 0)}%</td>
+					<td class="text-right">${p.biaya && flt(p.biaya.jam) ? format_number(flt(p.biaya.jam), null, 1) : '<span class="text-muted">—</span>'}</td>
+					<td class="text-right">${p.biaya && flt(p.biaya.biaya_timesheet) ? format_currency(p.biaya.biaya_timesheet, "IDR", 0) : '<span class="text-muted">—</span>'}</td>
+					<td class="text-right">${p.biaya && flt(p.biaya.klaim) ? format_currency(p.biaya.klaim, "IDR", 0) : '<span class="text-muted">—</span>'}</td>
 					<td class="text-right kpt-aksi">${
 						bisa
 							? `<a class="btn btn-xs btn-default" href="/app/penugasan-personel/${encodeURIComponent(p.name)}" title="${__("Ubah")}">${frappe.utils.icon("edit", "xs")}</a>
@@ -185,7 +188,10 @@
 					baris
 						? `<div class="kp-tabel-wrap"><table class="kp-tabel kpt-tabel">
 							<thead><tr><th>${__("Nama")}</th><th>${__("Jabatan")}</th><th>${__("Akses Sistem")}</th><th>${__("Kontak")}</th>
-								<th>${__("Periode Tugas")}</th><th class="text-right">${__("Alokasi")}</th><th></th></tr></thead>
+								<th>${__("Periode Tugas")}</th><th class="text-right">${__("Alokasi")}</th>
+								<th class="text-right" title="${__("Dari Timesheet yang sudah submit")}">${__("Jam Kerja")}</th>
+								<th class="text-right" title="${__("Dari Timesheet yang sudah submit")}">${__("Biaya Timesheet")}</th>
+								<th class="text-right" title="${__("Dari Expense Claim yang sudah submit")}">${__("Klaim Biaya")}</th><th></th></tr></thead>
 							<tbody>${baris}</tbody></table></div>`
 						: `<div class="kpr-muted">${__("Belum ada personel. Klik Tugaskan Personel atau tombol Tugaskan di kebutuhan.")}</div>`
 				}
