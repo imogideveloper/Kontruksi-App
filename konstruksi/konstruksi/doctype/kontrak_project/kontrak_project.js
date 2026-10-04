@@ -20,6 +20,8 @@ const FIELD_KELENGKAPAN = [
 	"jaminan_pelaksanaan_penerbit",
 	"jaminan_pelaksanaan_berlaku",
 	"jaminan_uang_muka_diserahkan",
+	"jaminan_uang_muka_penerbit",
+	"jaminan_uang_muka_berlaku",
 	"nilai_kontrak",
 	"status_ppn",
 	"tarif_ppn",

@@ -40,17 +40,7 @@ class KontrakProject(Document):
 		self.hitung_jaminan()
 		self.ambil_tarif_pph()
 
-		if self.jaminan_pelaksanaan_wajib and self.jaminan_pelaksanaan_diserahkan:
-			kosong = [
-				_(self.meta.get_label(fieldname))
-				for fieldname in ("jaminan_pelaksanaan_nomor", "jaminan_pelaksanaan_penerbit", "jaminan_pelaksanaan_berlaku")
-				if not self.get(fieldname)
-			]
-			if kosong:
-				frappe.throw(
-					_("Jaminan pelaksanaan ditandai sudah diserahkan; lengkapi: {0}.").format(", ".join(kosong)),
-					title=_("Data jaminan belum lengkap"),
-				)
+		self.cek_data_jaminan()
 
 		if self.jaminan_pelaksanaan_kurang_lama():
 			frappe.msgprint(
@@ -84,6 +74,26 @@ class KontrakProject(Document):
 		# Project Manager diisi di kontrak; awalnya Penanggung Jawab tender.
 		if not self.project_manager:
 			self.project_manager = frappe.db.get_value("Tender", self.tender, "penanggung_jawab")
+
+	def cek_data_jaminan(self):
+		"""Jaminan yang ditandai sudah diserahkan wajib punya nomor, penerbit, dan masa berlaku."""
+		jaminan = (
+			(_("Jaminan pelaksanaan"), "jaminan_pelaksanaan", self.jaminan_pelaksanaan_wajib),
+			(_("Jaminan uang muka"), "jaminan_uang_muka", flt(self.uang_muka_persen)),
+		)
+		for nama, prefix, berlaku in jaminan:
+			if not (berlaku and self.get(f"{prefix}_diserahkan")):
+				continue
+			kosong = [
+				_(self.meta.get_label(f"{prefix}_{field}"))
+				for field in ("nomor", "penerbit", "berlaku")
+				if not self.get(f"{prefix}_{field}")
+			]
+			if kosong:
+				frappe.throw(
+					_("{0} ditandai sudah diserahkan; lengkapi: {1}.").format(nama, ", ".join(kosong)),
+					title=_("Data jaminan belum lengkap"),
+				)
 
 	def jaminan_pelaksanaan_kurang_lama(self):
 		"""Jaminan pelaksanaan harus berlaku minimal sampai tanggal selesai pekerjaan."""
@@ -202,7 +212,11 @@ class KontrakProject(Document):
 				{
 					"label": _("Jaminan uang muka"),
 					"ok": bool(self.jaminan_uang_muka_diserahkan),
-					"ket": _("Diserahkan · {0}").format(fmt_money(self.jaminan_uang_muka_nilai, 0, "IDR"))
+					"ket": _("{0} · {1} · berlaku sampai {2}").format(
+						self.jaminan_uang_muka_penerbit or _("Diserahkan"),
+						fmt_money(self.jaminan_uang_muka_nilai, 0, "IDR"),
+						frappe.format(self.jaminan_uang_muka_berlaku, "Date"),
+					)
 					if self.jaminan_uang_muka_diserahkan
 					else _("Wajib sebelum uang muka dibayar · nilai {0}").format(
 						fmt_money(self.jaminan_uang_muka_nilai, 0, "IDR")

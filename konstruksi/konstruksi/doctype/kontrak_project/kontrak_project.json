@@ -59,18 +59,22 @@
   "syarat_bayar_dikonfirmasi",
   "jaminan_tab",
   "jaminan_section",
+  "jaminan_pelaksanaan_column",
   "jaminan_pelaksanaan_wajib",
   "jaminan_pelaksanaan_nilai",
   "jaminan_pelaksanaan_diserahkan",
-  "file_jaminan_pelaksanaan",
-  "jaminan_column",
   "jaminan_pelaksanaan_nomor",
   "jaminan_pelaksanaan_penerbit",
   "jaminan_pelaksanaan_berlaku",
-  "jaminan_uang_muka_section",
-  "jaminan_uang_muka_nilai",
+  "file_jaminan_pelaksanaan",
   "jaminan_uang_muka_column",
+  "jaminan_uang_muka_kosong",
+  "jaminan_uang_muka_nilai",
   "jaminan_uang_muka_diserahkan",
+  "jaminan_uang_muka_nomor",
+  "jaminan_uang_muka_penerbit",
+  "jaminan_uang_muka_berlaku",
+  "file_jaminan_uang_muka",
   "dokumen_tab",
   "dokumen_section",
   "file_kontrak",
@@ -421,20 +425,25 @@
   },
   {
    "fieldname": "jaminan_section",
-   "fieldtype": "Section Break",
-   "label": "Jaminan Pelaksanaan"
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "jaminan_pelaksanaan_column",
+   "fieldtype": "Column Break",
+   "label": "Jaminan Pelaksanaan",
+   "description": "Menjamin pekerjaan diselesaikan · 5% nilai kontrak · berlaku sampai serah terima pertama (PHO)."
   },
   {
    "fieldname": "jaminan_pelaksanaan_wajib",
    "fieldtype": "Check",
-   "label": "Wajib Jaminan Pelaksanaan",
+   "label": "Wajib (disyaratkan kontrak)",
    "default": "1",
    "description": "Hilangkan centang bila kontrak tidak mensyaratkan (umumnya swasta / nilai kecil)."
   },
   {
    "fieldname": "jaminan_pelaksanaan_nilai",
    "fieldtype": "Currency",
-   "label": "Nilai Jaminan Pelaksanaan",
+   "label": "Nilai",
    "options": "IDR",
    "read_only": 1,
    "depends_on": "eval:doc.jaminan_pelaksanaan_wajib"
@@ -442,24 +451,14 @@
   {
    "fieldname": "jaminan_pelaksanaan_diserahkan",
    "fieldtype": "Check",
-   "label": "Jaminan Pelaksanaan Sudah Diserahkan",
+   "label": "Sudah Diserahkan",
    "depends_on": "eval:doc.jaminan_pelaksanaan_wajib",
    "description": "Centang setelah bank garansi / surety bond diserahkan ke pemberi kerja; nomor, penerbit, dan masa berlaku wajib diisi."
   },
   {
-   "fieldname": "file_jaminan_pelaksanaan",
-   "fieldtype": "Attach",
-   "label": "Scan Jaminan Pelaksanaan",
-   "depends_on": "eval:doc.jaminan_pelaksanaan_wajib && doc.jaminan_pelaksanaan_diserahkan"
-  },
-  {
-   "fieldname": "jaminan_column",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "jaminan_pelaksanaan_nomor",
    "fieldtype": "Data",
-   "label": "Nomor Jaminan Pelaksanaan",
+   "label": "Nomor",
    "depends_on": "eval:doc.jaminan_pelaksanaan_wajib",
    "mandatory_depends_on": "eval:doc.jaminan_pelaksanaan_wajib && doc.jaminan_pelaksanaan_diserahkan"
   },
@@ -481,28 +480,66 @@
    "description": "Umumnya harus berlaku sampai serah terima pertama (PHO), minimal sampai Tanggal Selesai."
   },
   {
-   "fieldname": "jaminan_uang_muka_section",
-   "fieldtype": "Section Break",
+   "fieldname": "file_jaminan_pelaksanaan",
+   "fieldtype": "Attach",
+   "label": "Scan Dokumen",
+   "depends_on": "eval:doc.jaminan_pelaksanaan_wajib && doc.jaminan_pelaksanaan_diserahkan"
+  },
+  {
+   "fieldname": "jaminan_uang_muka_column",
+   "fieldtype": "Column Break",
    "label": "Jaminan Uang Muka",
-   "depends_on": "eval:doc.uang_muka_persen"
+   "description": "Menjamin uang muka dikembalikan lewat potongan termin · senilai uang muka."
+  },
+  {
+   "fieldname": "jaminan_uang_muka_kosong",
+   "fieldtype": "HTML",
+   "depends_on": "eval:!doc.uang_muka_persen",
+   "options": "<div class=\"text-muted\">Tidak ada uang muka di kontrak ini (Uang Muka 0% di tab Pembayaran), jadi jaminan uang muka tidak diperlukan.</div>"
   },
   {
    "fieldname": "jaminan_uang_muka_nilai",
    "fieldtype": "Currency",
-   "label": "Nilai Jaminan Uang Muka",
+   "label": "Nilai",
    "options": "IDR",
    "read_only": 1,
    "depends_on": "eval:doc.uang_muka_persen"
   },
   {
-   "fieldname": "jaminan_uang_muka_column",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "jaminan_uang_muka_diserahkan",
    "fieldtype": "Check",
-   "label": "Jaminan Uang Muka Sudah Diserahkan",
-   "depends_on": "eval:doc.uang_muka_persen"
+   "label": "Sudah Diserahkan",
+   "depends_on": "eval:doc.uang_muka_persen",
+   "description": "Centang setelah jaminan uang muka diserahkan; nomor, penerbit, dan masa berlaku wajib diisi."
+  },
+  {
+   "fieldname": "jaminan_uang_muka_nomor",
+   "fieldtype": "Data",
+   "label": "Nomor",
+   "depends_on": "eval:doc.uang_muka_persen",
+   "mandatory_depends_on": "eval:doc.uang_muka_persen && doc.jaminan_uang_muka_diserahkan"
+  },
+  {
+   "fieldname": "jaminan_uang_muka_penerbit",
+   "fieldtype": "Link",
+   "label": "Penerbit (Bank / Asuransi)",
+   "options": "Penerbit Jaminan",
+   "depends_on": "eval:doc.uang_muka_persen",
+   "mandatory_depends_on": "eval:doc.uang_muka_persen && doc.jaminan_uang_muka_diserahkan"
+  },
+  {
+   "fieldname": "jaminan_uang_muka_berlaku",
+   "fieldtype": "Date",
+   "label": "Berlaku Sampai",
+   "depends_on": "eval:doc.uang_muka_persen",
+   "mandatory_depends_on": "eval:doc.uang_muka_persen && doc.jaminan_uang_muka_diserahkan",
+   "description": "Umumnya sampai uang muka lunas dipotong dari termin."
+  },
+  {
+   "fieldname": "file_jaminan_uang_muka",
+   "fieldtype": "Attach",
+   "label": "Scan Dokumen",
+   "depends_on": "eval:doc.uang_muka_persen && doc.jaminan_uang_muka_diserahkan"
   },
   {
    "fieldname": "dokumen_tab",
@@ -554,7 +591,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-05 19:00:00.000000",
+ "modified": "2026-10-05 20:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kontrak Project",
