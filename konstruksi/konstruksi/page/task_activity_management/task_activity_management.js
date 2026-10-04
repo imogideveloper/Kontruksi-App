@@ -302,9 +302,8 @@ class HalamanAktivitas {
 					const kepala = `<tr class="kpa-grup" data-kpa="grup" data-kunci="${kpa_esc(g.kunci)}">
 						<td colspan="9"><div class="kpa-grup-isi">
 							<span class="kpw-toggle">${frappe.utils.icon(tertutup ? "right" : "down", "xs")}</span>
-							${g.kode ? `<span class="kpw-kode">${kpa_esc(g.kode)}</span>` : ""}
-							<span class="kpa-grup-judul">${g.judul}</span>
-							<span class="kpw-badge">${g.rows.length} ${__("aktivitas")}</span>
+							<span class="kpa-grup-judul">${g.kode ? `<span class="kpw-kode">${kpa_esc(g.kode)}</span> ` : ""}${g.judul}</span>
+							<span class="kpa-grup-jumlah"><span class="kpw-badge">${g.rows.length} ${__("aktivitas")}</span></span>
 							<span class="kpa-grup-info">${__("Selesai {0}/{1}", [selesai, g.rows.length])}${terlambat ? ` · <span class="kpa-merah">${__("{0} terlambat", [terlambat])}</span>` : ""}</span>
 							<span class="kpa-grup-progres"><div class="kpr-progress ${rata >= 100 ? "kpr-progress-ok" : "kpr-progress-biru"}"><div style="width:${rata}%"></div></div><span>${kpa_persen(rata, 1)}</span></span>
 						</div></td></tr>`;

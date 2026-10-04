@@ -3676,15 +3676,32 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	background: var(--konstruksi-active-bg);
 }
 
+/* Kolom tetap: toggle | judul | jumlah | info | progres — sejajar antar kelompok berapa pun panjang judulnya. */
 .kpa-grup-isi {
-	display: flex;
+	display: grid;
+	grid-template-columns: 16px minmax(0, 420px) 110px minmax(0, 1fr) 190px;
+	gap: 12px;
 	align-items: center;
-	gap: 10px;
 }
 
 .kpa-grup-judul {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 	font-weight: 600;
 	color: var(--text-color);
+}
+
+.kpa-grup-judul .kpa-sub {
+	display: inline;
+	margin-left: 4px;
+	font-weight: normal;
+}
+
+.kpa-grup-jumlah .kpw-badge {
+	display: inline-block;
+	min-width: 92px;
 }
 
 .kpa-grup-info {
@@ -3693,11 +3710,9 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 }
 
 .kpa-grup-progres {
-	display: inline-flex;
+	display: flex;
 	align-items: center;
 	gap: 8px;
-	width: 190px;
-	margin-left: auto;
 }
 
 .kpa-grup-progres .kpr-progress {
