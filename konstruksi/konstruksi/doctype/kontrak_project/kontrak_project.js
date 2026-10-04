@@ -173,7 +173,12 @@ function render_kelengkapan_kontrak(frm) {
 	const items = frm.__kelengkapan || [];
 
 	if (!items.length) {
-		field.$wrapper.html(`<div class="text-muted small">${__("Checklist muncul setelah Asal Tender dipilih.")}</div>`);
+		// Asal Tender ada di tab Kontrak; tombol ini memindahkan ke sana.
+		field.$wrapper.html(`<div class="dok-kosong">
+			<div>${__("Checklist muncul setelah Asal Tender dipilih.")}</div>
+			<button class="btn btn-primary btn-sm kp-pilih-tender">${__("Pilih Asal Tender")}</button>
+		</div>`);
+		field.$wrapper.find(".kp-pilih-tender").on("click", () => frm.scroll_to_field("tender"));
 		return;
 	}
 
