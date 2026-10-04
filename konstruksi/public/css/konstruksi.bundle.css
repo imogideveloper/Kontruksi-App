@@ -1197,5 +1197,9 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 		grid-column: 2;
 		grid-row: 1;
 		margin: 0;
+		/* Satu baris; bila ruang tidak cukup dipotong "…", tidak turun ke baris baru. */
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 }
