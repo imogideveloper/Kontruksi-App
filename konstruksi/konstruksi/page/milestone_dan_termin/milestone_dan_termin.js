@@ -1,13 +1,13 @@
 // Milestone & Termin: tahapan capaian pekerjaan sebagai dasar penagihan termin ke klien.
 // Data & aksi: konstruksi.konstruksi.milestone. Gaya: kelas kpm2-* (+ kpw-*, kpa-*, kpr-*) di konstruksi.bundle.css.
-// Route: /app/milestone-termin (daftar proyek) · /app/milestone-termin/<ID Project>.
+// Route: /app/milestone-dan-termin (daftar proyek) · /app/milestone-dan-termin/<ID Project>.
 
-frappe.pages["milestone-termin"].on_page_load = function (wrapper) {
+frappe.pages["milestone-dan-termin"].on_page_load = function (wrapper) {
 	const page = frappe.ui.make_app_page({ parent: wrapper, title: __("Milestone & Termin"), single_column: true });
 	wrapper.milestone = new HalamanMilestone(page);
 };
 
-frappe.pages["milestone-termin"].on_page_show = function (wrapper) {
+frappe.pages["milestone-dan-termin"].on_page_show = function (wrapper) {
 	wrapper.milestone?.tampil();
 };
 
@@ -33,7 +33,7 @@ class HalamanMilestone {
 			get_query: () => ({ filters: { kontrak_project: ["is", "set"] } }),
 			change: () => {
 				const project = this.field_project.get_value();
-				if (project && project !== this.project) frappe.set_route("milestone-termin", project);
+				if (project && project !== this.project) frappe.set_route("milestone-dan-termin", project);
 			},
 		});
 		this.$body = $(`<div class="kpr kpw kpa kpm2"></div>`).appendTo(page.main);
@@ -59,7 +59,7 @@ class HalamanMilestone {
 		this.page.clear_inner_toolbar();
 		this.page.clear_menu();
 		if (mode !== "proyek") return;
-		this.page.add_inner_button(__("Semua Proyek"), () => frappe.set_route("milestone-termin"));
+		this.page.add_inner_button(__("Semua Proyek"), () => frappe.set_route("milestone-dan-termin"));
 		this.page.add_inner_button(__("Work Breakdown Structure"), () => frappe.set_route("work-breakdown-structure", this.project));
 		this.page.add_inner_button(__("Project Calendar"), () => frappe.set_route("project-calendar", this.project));
 		if (this.data?.bisa_buat) this.page.set_primary_action(__("Milestone / Termin Baru"), () => this.dialog_milestone({}), "add");
@@ -256,7 +256,7 @@ class HalamanMilestone {
 		const m = this.data?.milestone.find((x) => x.name === name);
 		switch (jenis) {
 			case "buka":
-				return frappe.set_route("milestone-termin", $el.attr("data-project"));
+				return frappe.set_route("milestone-dan-termin", $el.attr("data-project"));
 			case "ubah":
 				return this.dialog_milestone(m);
 			case "form":

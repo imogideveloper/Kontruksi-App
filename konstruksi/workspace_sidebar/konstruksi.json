@@ -145,7 +145,7 @@
    "indent": 0,
    "keep_closed": 0,
    "label": "Milestone & Termin",
-   "link_to": "milestone-termin",
+   "link_to": "milestone-dan-termin",
    "link_type": "Page",
    "show_arrow": 0,
    "type": "Link"
@@ -376,7 +376,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-09 09:00:00.000000",
+ "modified": "2026-10-09 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Konstruksi",

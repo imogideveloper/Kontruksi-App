@@ -5,6 +5,6 @@ frappe.listview_settings["Milestone Termin"] = {
 		const listview = cur_list;
 		const filter = (listview?.filter_area?.get() || []).find((f) => f[1] === "project" && f[2] === "=");
 		frappe.route_options = { milestone_baru: 1 };
-		frappe.set_route(...(filter ? ["milestone-termin", filter[3]] : ["milestone-termin"]));
+		frappe.set_route(...(filter ? ["milestone-dan-termin", filter[3]] : ["milestone-dan-termin"]));
 	},
 };

@@ -324,7 +324,7 @@ class KalenderProyek {
 			}
 			case "task": {
 				const m = d.milestone.find((x) => x.name === $el.attr("data-name"));
-				if (m?.jenis === "termin") return frappe.set_route("milestone-termin", this.project);
+				if (m?.jenis === "termin") return frappe.set_route("milestone-dan-termin", this.project);
 				return frappe.set_route("Form", "Task", $el.attr("data-name"));
 			}
 			case "hari-kerja": {
