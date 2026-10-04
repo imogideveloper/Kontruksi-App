@@ -238,8 +238,21 @@ function format_group_value(key, group) {
 	if (granularity === "month") return `${NAMA_BULAN[cint(key.slice(5, 7)) - 1]} ${key.slice(0, 4)}`;
 	if (granularity === "day") return frappe.datetime.str_to_user(key);
 	if (df.fieldtype === "Check") return cint(key) ? __("Ya") : __("Tidak");
-	if (df.fieldtype === "Link") return frappe.utils.get_link_title(df.options, key) || key;
+	if (df.fieldtype === "Link") return label_link(df.options, key);
 	return __(key);
+}
+
+// Link: tampilkan judul dokumen (mis. nama proyek) beserta ID-nya; judul yang belum dimuat diambil lalu labelnya diperbarui.
+function label_link(doctype, key) {
+	const title = frappe.utils.get_link_title(doctype, key);
+	return title && title !== key ? `${title} · ${key}` : key;
+}
+
+function muat_judul_link($label, doctype, key) {
+	if (frappe.utils.get_link_title(doctype, key)) return;
+	frappe.utils.fetch_link_title(doctype, key).then((title) => {
+		if (title && title !== key) $label.text(`${title} · ${key}`);
+	});
 }
 
 function level_badge(group) {
@@ -319,7 +332,10 @@ function render_groups(listview) {
 					</div>
 				</div>`);
 			$head.attr("data-konstruksi-path", path);
-			$head.find(".konstruksi-group-label").text(format_group_value(keys[level], groups[level]));
+			const $label = $head.find(".konstruksi-group-label").text(format_group_value(keys[level], groups[level]));
+			if (groups[level].df.fieldtype === "Link" && keys[level] !== "") {
+				muat_judul_link($label, groups[level].df.options, keys[level]);
+			}
 			$head.find(".konstruksi-group-sub").text(
 				level ? judul_induk.join(" / ") : __("Group per {0}", [level_badge(groups[level])])
 			);
