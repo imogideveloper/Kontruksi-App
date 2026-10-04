@@ -1978,3 +1978,34 @@ body.konstruksi-tanpa-sidebar[data-route^="Form"] .layout-main-section-wrapper {
 .konstruksi-tag-hapus:hover {
 	background: rgba(0, 0, 0, 0.08);
 }
+
+/* RAB Penawaran, section Estimasi Biaya & Margin: satu kolom, keterangan di kanan field (satu baris utuh, rata kiri,
+   hitam) — sama dengan section Waktu Pelaksanaan di Kontrak Project. */
+@media (min-width: 768px) {
+	body[data-route^="Form/RAB Penawaran"] .frappe-control:is([data-fieldname="total_biaya"], [data-fieldname="estimasi_margin"], [data-fieldname="persen_margin"]) .control-input-wrapper {
+		display: grid;
+		grid-template-columns: 360px max-content;
+		justify-content: start;
+		column-gap: 16px;
+		align-items: center;
+	}
+
+	body[data-route^="Form/RAB Penawaran"] .frappe-control:is([data-fieldname="total_biaya"], [data-fieldname="estimasi_margin"], [data-fieldname="persen_margin"]) .control-input-wrapper > :is(.control-input, .control-value) {
+		grid-column: 1;
+		grid-row: 1;
+	}
+
+	body[data-route^="Form/RAB Penawaran"] .frappe-control:is([data-fieldname="total_biaya"], [data-fieldname="estimasi_margin"], [data-fieldname="persen_margin"]) .control-input-wrapper > .help-box {
+		grid-column: 2;
+		grid-row: 1;
+		justify-self: start;
+		margin: 0;
+		text-align: left;
+		white-space: nowrap;
+		color: var(--text-color) !important;
+	}
+
+	body[data-route^="Form/RAB Penawaran"] .frappe-control:is([data-fieldname="total_biaya"], [data-fieldname="estimasi_margin"], [data-fieldname="persen_margin"]) > .form-group > .clearfix > .control-label {
+		white-space: nowrap !important;
+	}
+}
