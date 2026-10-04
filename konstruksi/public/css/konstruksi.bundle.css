@@ -1917,3 +1917,14 @@ body[data-route^="List/Project"] .frappe-list .list-row-col:is([data-fieldname="
 		white-space: nowrap !important;
 	}
 }
+
+/* Form RAB Penawaran: sidebar form di kanan (Assigned To, Attachments, Tags, Share) dipersempit 277px -> 200px,
+   juga di layar < 1200px (bawaan Frappe melebarkannya ke ±38% layar) supaya tabel item dapat ruang lebih. */
+body[data-route^="Form/RAB Penawaran"] {
+	--form-sidebar-width: 200px;
+}
+
+body[data-route^="Form/RAB Penawaran"] .layout-side-section {
+	min-width: var(--form-sidebar-width) !important;
+	max-width: var(--form-sidebar-width);
+}
