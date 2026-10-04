@@ -6,7 +6,9 @@ import json
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_days, cint, flt, fmt_money, getdate
+from frappe.utils import add_days, cint, flt, fmt_money, getdate, now
+
+from konstruksi.api import beri_tahu_form
 
 from konstruksi.konstruksi.doctype.tender.tender import BATAS_HARGA_WAJAR
 
@@ -206,7 +208,9 @@ def sinkron_dari_tender(tender, method=None):
 	doc.ambil_dari_tender()
 	doc.hitung_semua()
 	# db_update, bukan save: validasi kontrak (mis. tanggal SPMK) tidak boleh menggagalkan simpan Tender.
+	doc.modified = now()
 	doc.db_update()
+	beri_tahu_form("Kontrak Project", name)
 
 
 @frappe.whitelist()
@@ -247,7 +251,5 @@ def hitung_ulang_dari_rab(rab, method=None):
 		return
 	doc = frappe.get_doc("Kontrak Project", name)
 	doc.set_jumlah_kelengkapan(doc.get_kelengkapan())
-	doc.db_set(
-		{"kelengkapan_terisi": doc.kelengkapan_terisi, "kelengkapan_total": doc.kelengkapan_total},
-		update_modified=False,
-	)
+	doc.db_set({"kelengkapan_terisi": doc.kelengkapan_terisi, "kelengkapan_total": doc.kelengkapan_total})
+	beri_tahu_form("Kontrak Project", name)

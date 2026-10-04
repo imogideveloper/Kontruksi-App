@@ -6,6 +6,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, getdate, today
 
+from konstruksi.api import beri_tahu_form
+
 PEMENANG_KITA = "Kita"
 HASIL_FINAL = ("Menang", "Kalah", "Batal / Mundur")
 
@@ -117,6 +119,7 @@ def sinkron_dari_tender(tender, method=None):
 		# Nilai kontrak mengikuti penawaran di Tender.
 		harga = penawaran
 		frappe.db.set_value("Tender", tender.name, "nilai_pemenang", penawaran, update_modified=False)
+		tender.nilai_pemenang = penawaran  # supaya form Tender yang baru disimpan langsung menampilkannya
 	harga = flt(harga)
 	frappe.db.set_value(
 		"Hasil Tender",
@@ -130,5 +133,5 @@ def sinkron_dari_tender(tender, method=None):
 			"harga_pemenang": harga,
 			"selisih_persen": flt((penawaran - harga) / harga * 100, 2) if harga and penawaran else 0,
 		},
-		update_modified=False,
 	)
+	beri_tahu_form("Hasil Tender", name)

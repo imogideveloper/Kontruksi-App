@@ -6,6 +6,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, now_datetime
 
+from konstruksi.api import beri_tahu_form
 from konstruksi.konstruksi.doctype.hasil_tender.hasil_tender import buat_menunggu, hapus_menunggu
 
 class DokumenTender(Document):
@@ -263,8 +264,8 @@ def sinkron_dari_tender(tender, method=None):
 				"batas_pemasukan": tender.batas_pemasukan,
 				"status_tender": tender.status,
 			},
-			update_modified=False,
 		)
+		beri_tahu_form("Dokumen Tender", name)
 
 
 def hapus_baris_file(file, method=None):

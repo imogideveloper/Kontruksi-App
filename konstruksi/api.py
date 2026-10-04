@@ -67,3 +67,12 @@ def get_group_counts(doctype, groups, filters=None, sum_field=None):
 			if sum_field:
 				sums[key] += flt(row.get(sum_field))
 	return {"counts": counts, "sums": sums}
+
+
+def beri_tahu_form(doctype, name):
+	"""Kirim sinyal doc_update supaya form dokumen ini yang sedang terbuka di browser reload otomatis.
+
+	Dipakai setelah dokumen diubah lewat sinkron (db_update / set_value) tanpa save. Frappe hanya me-reload form
+	bila `modified` di sinyal berbeda, jadi `modified` dokumen harus sudah diperbarui sebelum memanggil ini.
+	"""
+	frappe.get_doc(doctype, name).notify_update()
