@@ -35,6 +35,14 @@ class LaporanProgres(Document):
 					frappe.throw(_("Tahap {0} tidak ada di aktivitas ini.").format(t.nama_tahap))
 				if nama_tahap[t.nama_tahap].selesai and nama_tahap[t.nama_tahap].laporan != self.name:
 					frappe.throw(_("Tahap {0} sudah dilaporkan selesai.").format(t.nama_tahap))
+				if self.status == "Menunggu":
+					lain = frappe.db.sql(
+						"""select l.name from `tabLaporan Progres` l join `tabLaporan Progres Tahap` t on t.parent = l.name
+						where l.task = %s and l.status = 'Menunggu' and l.name != %s and t.nama_tahap = %s limit 1""",
+						(self.task, self.name or "", t.nama_tahap),
+					)
+					if lain:
+						frappe.throw(_("Tahap {0} sudah dilaporkan di {1} (menunggu persetujuan).").format(t.nama_tahap, lain[0][0]))
 		else:
 			self.tahap = []
 			if flt(self.volume) <= 0:

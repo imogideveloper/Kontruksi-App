@@ -3517,3 +3517,129 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpa-pratinjau-catatan {
 	font-size: var(--text-xs);
 }
+
+/* Dialog Lapor Progres (task_activity_management.js): ringkasan, form, pratinjau progres, riwayat. */
+.kpa-lapor-ringkas {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 16px;
+	margin-bottom: 20px;
+	padding: 14px 18px;
+	border: 1px solid var(--border-color);
+	border-radius: 10px;
+	background: var(--subtle-fg, #f8f9fa);
+}
+
+@media (max-width: 767px) {
+	.kpa-lapor-ringkas {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.kpa-lapor-label {
+	font-size: var(--text-xs);
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+
+.kpa-lapor-nilai {
+	margin-top: 2px;
+	font-size: var(--text-lg);
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.kpa-lapor-baris {
+	grid-template-columns: 260px minmax(0, 1fr);
+}
+
+.kpa-input-tanggal {
+	max-width: 230px;
+}
+
+.kpa-pratinjau-progres {
+	padding: 8px 14px;
+	border-radius: 8px;
+	background: var(--subtle-fg, #f3f4f6);
+	color: var(--text-muted);
+}
+
+.kpa-pratinjau-progres.kpa-aktif {
+	background: var(--konstruksi-active-bg);
+	color: var(--konstruksi-active-fg);
+}
+
+.kpa-pratinjau-progres.kpa-lebih {
+	background: #fff4e5;
+	color: #b45309;
+}
+
+.kpa-lapor-tahap {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding-top: 6px;
+}
+
+.kpa-cek {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	font-weight: normal;
+	cursor: pointer;
+}
+
+.kpa-cek input {
+	margin: 0;
+}
+
+.kpa-riwayat-judul {
+	margin-top: 24px !important;
+}
+
+.kpa-peringatan {
+	margin-bottom: 10px;
+	padding: 10px 14px;
+	border-radius: 8px;
+	background: #fdecec;
+	color: #b91c1c;
+}
+
+[data-theme="dark"] .kpa-peringatan {
+	background: rgba(220, 38, 38, 0.2);
+	color: #f28b8b;
+}
+
+.kpa-riwayat {
+	width: 100%;
+	overflow: hidden;
+	border-collapse: separate;
+	border-spacing: 0;
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+}
+
+.kpa-riwayat th {
+	padding: 9px 12px;
+	background: var(--konstruksi-active-bg);
+	color: var(--konstruksi-header-fg);
+	font-size: var(--text-sm);
+	font-weight: 600;
+	white-space: nowrap;
+	vertical-align: bottom;
+}
+
+.kpa-th-sub {
+	font-size: 11px;
+	font-weight: normal;
+}
+
+.kpa-riwayat td {
+	padding: 9px 12px;
+	border-top: 1px solid var(--border-color);
+	font-size: var(--text-sm);
+	vertical-align: top;
+}

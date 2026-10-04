@@ -660,49 +660,153 @@ class HalamanAktivitas {
 	}
 
 	dialog_lapor(t) {
-		const tahap_sisa = (t.tahapan || []).filter((x) => !x.selesai);
+		frappe.xcall(KPA_API + "get_riwayat", { project: this.project, task: t.name }).then((r) => this.tampil_dialog_lapor(t, r));
+	}
+
+	tampil_dialog_lapor(t, r) {
+		const d = this.data;
 		const volume = t.metode_progres !== "Tahapan";
-		const sisa_volume = Math.max(flt(t.target_volume) - flt(t.realisasi_volume), 0);
-		const fields = [
-			{ fieldname: "info", fieldtype: "HTML" },
-			{ fieldname: "tanggal", fieldtype: "Date", label: __("Tanggal"), reqd: 1, default: frappe.datetime.get_today() },
-		];
-		if (volume) {
-			fields.push({ fieldname: "volume", fieldtype: "Float", label: __("Volume dikerjakan ({0})", [t.satuan || "-"]), reqd: 1,
-				description: __("Sisa {0} {1} dari target.", [kpa_angka(sisa_volume), t.satuan || ""]) });
-		} else {
-			fields.push({ fieldname: "tahap", fieldtype: "MultiCheck", label: __("Tahap yang selesai"), reqd: 1, columns: 1,
-				options: tahap_sisa.map((x) => ({ label: flt(x.bobot) ? `${x.nama_tahap} (${kpa_persen(x.bobot, 1)})` : x.nama_tahap, value: x.nama_tahap })) });
+		const satuan = t.satuan || "";
+		const target = flt(t.target_volume);
+		const realisasi = flt(t.realisasi_volume);
+		const sisa = Math.max(target - realisasi, 0);
+		const tahap_menunggu = new Set(r.menunggu_tahap || []);
+		const tahap_sisa = (t.tahapan || []).filter((x) => !x.selesai && !tahap_menunggu.has(x.nama_tahap));
+		const total_bobot = (t.tahapan || []).reduce((s, x) => s + flt(x.bobot), 0) || (t.tahapan || []).length || 1;
+		const bobot = (x) => (flt(x.bobot) || ((t.tahapan || []).some((y) => flt(y.bobot)) ? 0 : 1)) / total_bobot * 100;
+		const bisa_setujui = d.bisa_setujui;
+		const hari_ini = frappe.datetime.get_today();
+		const terlambat = t.exp_end_date && String(t.exp_end_date).slice(0, 10) < hari_ini && flt(t.progress) < 100;
+
+		// Pelapor: personel Tim Proyek (+ diri sendiri bila punya Data Personel).
+		const personel = [...d.personel];
+		if (r.pegawai_saya && !personel.some((p) => p.employee === r.pegawai_saya.name)) {
+			personel.unshift({ employee: r.pegawai_saya.name, nama_personel: r.pegawai_saya.employee_name, jabatan: "" });
 		}
-		fields.push(
-			{ fieldname: "catatan", fieldtype: "Small Text", label: __("Catatan Pekerjaan") },
-			{ fieldname: "kendala", fieldtype: "Small Text", label: __("Kendala") },
-			{ fieldname: "foto", fieldtype: "Attach Image", label: __("Foto") }
-		);
-		if (this.data.bisa_setujui) {
-			fields.push({ fieldname: "langsung_setujui", fieldtype: "Check", label: __("Langsung setujui (progres langsung bertambah)"), default: 1 });
-		}
+		const pelapor_awal = r.pegawai_saya?.name || t.pj || "";
+
 		const dialog = new frappe.ui.Dialog({
-			title: __("Lapor Progres"),
-			fields,
-			primary_action_label: __("Kirim Laporan"),
-			primary_action: (v) => {
-				if (!volume && !(v.tahap || []).length) return frappe.msgprint(__("Pilih minimal satu tahap yang selesai."));
-				dialog.hide();
-				const disetujui = v.langsung_setujui && this.data.bisa_setujui;
-				this.call("simpan_laporan", { ...v, task: t.name }, disetujui ? __("Laporan disimpan & disetujui") : __("Laporan dikirim, menunggu persetujuan"));
-			},
+			title: __("Lapor Progres — {0}", [t.subject]),
+			size: "extra-large",
+			fields: [{ fieldname: "form", fieldtype: "HTML" }],
+			primary_action_label: bisa_setujui ? __("Simpan (langsung disetujui)") : __("Kirim Laporan"),
+			primary_action: () => simpan(),
 			secondary_action_label: __("Batal"),
 			secondary_action: () => dialog.hide(),
 		});
-		dialog.$wrapper.addClass("kpw-dialog");
-		const realisasi = volume
-			? `${kpa_angka(t.realisasi_volume)} / ${kpa_angka(t.target_volume)} ${kpa_esc(t.satuan || "")}`
-			: __("{0} / {1} tahap selesai", [t.tahapan.filter((x) => x.selesai).length, t.tahapan.length]);
-		dialog.fields_dict.info.$wrapper.html(`<div class="kpa-lapor-info">
-			<div class="kpa-judul">${kpa_esc(t.subject)}</div>
-			<div class="kpa-sub">${kpa_esc(t.kode_wbs)} · ${__("Realisasi saat ini")}: <b>${realisasi}</b> (${kpa_persen(t.progress, 1)})</div>
+		dialog.$wrapper.addClass("kpa-form-dialog");
+		const $f = dialog.fields_dict.form.$wrapper;
+		const baris = (label, isi, wajib) =>
+			`<div class="kpa-form-baris kpa-lapor-baris"><label class="kpa-form-label">${label}${wajib ? ' <span class="kpa-wajib">*</span>' : ""}</label><div class="kpa-form-isi">${isi}</div></div>`;
+
+		const info_target = volume ? `${kpa_angka(target)} ${kpa_esc(satuan)}` : __("{0} tahap", [(t.tahapan || []).length]);
+		const info_progres_sub = volume
+			? __("{0} {1} disetujui", [kpa_angka(realisasi), kpa_esc(satuan)])
+			: __("{0} / {1} tahap disetujui", [(t.tahapan || []).filter((x) => x.selesai).length, (t.tahapan || []).length]);
+		const info_menunggu = r.menunggu
+			? volume
+				? `${kpa_angka(r.menunggu_volume)} ${kpa_esc(satuan)}<div class="kpa-sub">${__("{0} laporan", [r.menunggu])}</div>`
+				: `${r.menunggu_tahap.map(kpa_esc).join(", ")}<div class="kpa-sub">${__("{0} laporan", [r.menunggu])}</div>`
+			: "—";
+
+		const isian = volume
+			? baris(__("Volume Dikerjakan ({0})", [kpa_esc(satuan || "-")]),
+				`<input type="number" step="any" min="0" class="form-control" name="volume">
+				<div class="kpa-form-ket">${__("Sisa target {0} {1} dari {2} {1}.", [kpa_angka(sisa), kpa_esc(satuan), kpa_angka(target)])}</div>`, true)
+			: baris(__("Tahap Selesai"),
+				tahap_sisa.length
+					? `<div class="kpa-lapor-tahap">${tahap_sisa
+							.map((x) => `<label class="kpa-cek"><input type="checkbox" name="tahap" value="${kpa_esc(x.nama_tahap)}"> <span>${kpa_esc(x.nama_tahap)}</span> <span class="kpa-sub">${kpa_persen(bobot(x), 1)}</span></label>`)
+							.join("")}</div>`
+					: `<div class="kpa-form-ket">${__("Semua tahap sudah dilaporkan.")}</div>`,
+				true);
+
+		const riwayat = r.riwayat.length
+			? `<table class="kpa-riwayat"><thead><tr>
+					<th>${__("Tanggal")}</th><th class="text-right">${__("Dikerjakan")}</th>
+					<th class="text-right">${__("Progres")}<div class="kpa-th-sub">${__("kumulatif disetujui")}</div></th>
+					<th>${__("Pelapor")}</th><th>${__("Status")}</th><th>${__("Keterangan")}</th></tr></thead>
+				<tbody>${r.riwayat
+					.slice()
+					.reverse()
+					.map((x) => {
+						const warna = { Menunggu: "oranye", Disetujui: "hijau", Ditolak: "merah" }[x.status];
+						const kerja = volume ? `${kpa_angka(x.volume)} ${kpa_esc(satuan)}` : x.tahap.map(kpa_esc).join(", ");
+						return `<tr><td>${kpa_tgl(x.tanggal)}</td><td class="text-right">${kerja}</td>
+							<td class="text-right">${x.status === "Disetujui" ? kpa_persen(x.progres_kumulatif, 1) : "—"}</td>
+							<td>${kpa_esc(x.nama_pelapor || x.owner)}</td>
+							<td><span class="kpa-status kpa-status-${warna}">${__(x.status)}</span></td>
+							<td class="kpa-wrap">${kpa_esc(x.catatan || "")}${x.alasan_tolak ? `<div class="kpa-sub kpa-merah">${__("Ditolak")}: ${kpa_esc(x.alasan_tolak)}</div>` : ""}</td></tr>`;
+					})
+					.join("")}</tbody></table>`
+			: `<div class="kpa-form-ket">${__("Belum ada laporan untuk aktivitas ini.")}</div>`;
+
+		$f.html(`<div class="kpa-lapor">
+			<div class="kpa-lapor-ringkas">
+				<div><div class="kpa-lapor-label">${__("Target")}</div><div class="kpa-lapor-nilai">${info_target}</div></div>
+				<div><div class="kpa-lapor-label">${__("Progres saat ini")}</div><div class="kpa-lapor-nilai">${kpa_persen(t.progress, 1)}</div><div class="kpa-sub">${info_progres_sub}</div></div>
+				<div><div class="kpa-lapor-label">${__("Menunggu persetujuan")}</div><div class="kpa-lapor-nilai">${info_menunggu}</div></div>
+				<div><div class="kpa-lapor-label">${__("Jadwal")}</div><div class="kpa-lapor-nilai">${kpa_tgl(t.exp_start_date)} – ${kpa_tgl(t.exp_end_date)}</div></div>
+			</div>
+			${baris(__("Tanggal Pekerjaan"), `<input type="date" class="form-control kpa-input-tanggal" name="tanggal" value="${hari_ini}" max="${hari_ini}">`, true)}
+			${baris(__("Dilaporkan Oleh"), `<select class="form-control" name="pelapor">${[
+				`<option value="">— ${__("Pilih personel")} —</option>`,
+				...personel.map((p) => `<option value="${kpa_esc(p.employee)}" ${p.employee === pelapor_awal ? "selected" : ""}>${kpa_esc(p.nama_personel)}${p.jabatan ? ` · ${kpa_esc(p.jabatan)}` : ""}</option>`),
+			].join("")}</select>`, true)}
+			${isian}
+			${baris(__("Progres"), `<div class="kpa-pratinjau-progres">${volume ? __("Isi volume untuk melihat progres") : __("Pilih tahap untuk melihat progres")}</div>`)}
+			${baris(__("Keterangan"), `<textarea class="form-control" name="catatan" rows="3" placeholder="${__("mis. area / grid yang dikerjakan, kendala, jumlah pekerja")}"></textarea>`)}
+			<div class="kpa-form-judul kpa-riwayat-judul">${__("Riwayat Laporan ({0})", [r.riwayat.length])}</div>
+			${terlambat ? `<div class="kpa-peringatan">${volume
+				? __("Sudah lewat jadwal selesai ({0}), sisa {1} {2}.", [kpa_tgl(t.exp_end_date), kpa_angka(sisa), kpa_esc(satuan)])
+				: __("Sudah lewat jadwal selesai ({0}), {1} tahap belum selesai.", [kpa_tgl(t.exp_end_date), tahap_sisa.length])}</div>` : ""}
+			${riwayat}
 		</div>`);
+
+		const nilai = (name) => $f.find(`[name="${name}"]`).val();
+		const tahap_dipilih = () => $f.find('[name="tahap"]:checked').map((_, el) => el.value).get();
+		const pratinjau = () => {
+			const $p = $f.find(".kpa-pratinjau-progres");
+			let tambah = 0;
+			if (volume) {
+				const v = flt(nilai("volume"));
+				if (!v) return $p.removeClass("kpa-aktif kpa-lebih").text(__("Isi volume untuk melihat progres"));
+				tambah = target ? (v / target) * 100 : 0;
+				const lebih = realisasi + v > target;
+				$p.toggleClass("kpa-lebih", lebih);
+			} else {
+				const dipilih = tahap_dipilih();
+				if (!dipilih.length) return $p.removeClass("kpa-aktif").text(__("Pilih tahap untuk melihat progres"));
+				tambah = (t.tahapan || []).filter((x) => dipilih.includes(x.nama_tahap)).reduce((s, x) => s + bobot(x), 0);
+			}
+			const baru = Math.min(flt(t.progress) + tambah, 100);
+			$p.addClass("kpa-aktif").html(
+				`${kpa_persen(t.progress, 1)} → <b>${kpa_persen(baru, 1)}</b> <span class="kpa-sub">(+${kpa_persen(tambah, 1)}${
+					volume && realisasi + flt(nilai("volume")) > target ? ` · ${__("melebihi target, progres maksimal 100%")}` : ""
+				})</span>${bisa_setujui ? "" : ` <span class="kpa-sub">· ${__("setelah disetujui")}</span>`}`
+			);
+		};
+		$f.on("input change", '[name="volume"], [name="tahap"]', pratinjau);
+
+		const simpan = () => {
+			const v = {
+				tanggal: nilai("tanggal"),
+				pelapor: nilai("pelapor"),
+				volume: flt(nilai("volume")),
+				tahap: tahap_dipilih(),
+				catatan: nilai("catatan"),
+			};
+			const salah = [];
+			if (!v.tanggal) salah.push(__("Tanggal Pekerjaan"));
+			if (!v.pelapor) salah.push(__("Dilaporkan Oleh"));
+			if (volume && v.volume <= 0) salah.push(__("Volume Dikerjakan"));
+			if (!volume && !v.tahap.length) salah.push(__("Tahap Selesai"));
+			if (salah.length) return frappe.msgprint(__("Lengkapi: {0}", [salah.join(", ")]));
+			if (v.tanggal > hari_ini) return frappe.msgprint(__("Tanggal pekerjaan tidak boleh di masa depan."));
+			this.call("simpan_laporan", { ...v, task: t.name, langsung_setujui: bisa_setujui ? 1 : 0 },
+				bisa_setujui ? __("Laporan disimpan & disetujui") : __("Laporan dikirim, menunggu persetujuan")
+			).then(() => dialog.hide());
+		};
 		dialog.show();
 	}
 }

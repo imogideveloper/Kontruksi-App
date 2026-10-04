@@ -373,7 +373,46 @@ def hapus_aktivitas(project, name):
 
 
 @frappe.whitelist()
-def simpan_laporan(project, task, tanggal, volume=0, tahap=None, catatan=None, kendala=None, foto=None, langsung_setujui=0):
+def get_riwayat(project, task):
+	"""Riwayat laporan satu aktivitas (lama → baru) dengan progres kumulatif dari laporan yang disetujui."""
+	t = task_milik(project, task, "read")
+	rows = frappe.get_all(
+		"Laporan Progres",
+		filters={"task": task},
+		fields=["name", "tanggal", "volume", "status", "nama_pelapor", "owner", "catatan", "alasan_tolak", "creation"],
+		order_by="tanggal asc, creation asc",
+	)
+	tahap = {}
+	if rows:
+		for r in frappe.get_all(
+			"Laporan Progres Tahap", filters={"parent": ("in", [r.name for r in rows]), "parenttype": "Laporan Progres"},
+			fields=["parent", "nama_tahap"], order_by="idx asc",
+		):
+			tahap.setdefault(r.parent, []).append(r.nama_tahap)
+	bobot = {x.nama_tahap: flt(x.bobot) for x in t.get("tahapan") or []}
+	total_bobot = sum(bobot.values()) or len(bobot) or 1
+	kumulatif = 0
+	for r in rows:
+		r.tahap = tahap.get(r.name, [])
+		if r.status == "Disetujui":
+			if t.metode_progres == "Tahapan":
+				kumulatif += sum(bobot.get(n) or (0 if sum(bobot.values()) else 1) for n in r.tahap) / total_bobot * 100
+			elif flt(t.target_volume):
+				kumulatif += flt(r.volume) / flt(t.target_volume) * 100
+			r.progres_kumulatif = flt(min(kumulatif, 100), 2)
+	pegawai = frappe.db.get_value("Employee", {"user_id": frappe.session.user, "status": "Active"}, ["name", "employee_name"], as_dict=True)
+	return {
+		"riwayat": rows,
+		"menunggu_volume": sum(flt(r.volume) for r in rows if r.status == "Menunggu"),
+		"menunggu_tahap": [n for r in rows if r.status == "Menunggu" for n in r.tahap],
+		"menunggu": sum(1 for r in rows if r.status == "Menunggu"),
+		"pegawai_saya": pegawai,
+	}
+
+
+@frappe.whitelist()
+def simpan_laporan(project, task, tanggal, volume=0, tahap=None, catatan=None, kendala=None, foto=None, langsung_setujui=0,
+		pelapor=None):
 	t = task_milik(project, task, "read")
 	frappe.has_permission("Laporan Progres", "create", throw=True)
 	tahap = json.loads(tahap) if isinstance(tahap, str) else (tahap or [])
@@ -387,6 +426,7 @@ def simpan_laporan(project, task, tanggal, volume=0, tahap=None, catatan=None, k
 			"catatan": catatan,
 			"kendala": kendala,
 			"foto": foto,
+			"pelapor": pelapor or None,
 		}
 	).insert()
 	if cint(langsung_setujui) and bisa_setujui():
