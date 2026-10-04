@@ -3,6 +3,21 @@
 (() => {
 	const BULAN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 	const KOLOM = ["project_name", "customer", "jenis_project", "nilai_kontrak", "expected_start_date", "project_manager"];
+	// Judul kolom (label bawaan ERPNext berbahasa Inggris).
+	const JUDUL = {
+		project_name: __("Nama Proyek"),
+		customer: __("Klien"),
+		jenis_project: __("Jenis"),
+		nilai_kontrak: __("Nilai Kontrak"),
+		expected_start_date: __("Periode"),
+		project_manager: __("PM"),
+	};
+	// Kartu ringkasan sekaligus filter Status Proyek (null = semua).
+	const KARTU = [
+		{ label: __("Total Proyek"), status: null },
+		{ label: __("Sedang Berjalan"), status: "Berjalan" },
+		{ label: __("Perencanaan"), status: "Perencanaan" },
+	];
 	const WARNA_STATUS = {
 		Perencanaan: "gray",
 		Berjalan: "blue",
@@ -78,7 +93,7 @@
 		onload(listview) {
 			bawaan.onload && bawaan.onload(listview);
 
-			// Susun ulang kolom (lihat tender_list.js); kolom tanggal mulai diberi judul "Periode".
+			// Susun ulang kolom (lihat tender_list.js) dengan judul berbahasa Indonesia.
 			const setup_columns = listview.setup_columns.bind(listview);
 			listview.setup_columns = function () {
 				setup_columns();
@@ -86,31 +101,66 @@
 				this.columns = [
 					{ type: "Subject", df: { label: __("Kode"), fieldname: "name" } },
 					{ type: "Tag" },
-					...KOLOM.map((fieldname) => ({
-						type: "Field",
-						df: fieldname === "expected_start_date" ? { ...get_df(fieldname), label: __("Periode") } : get_df(fieldname),
-					})),
+					...KOLOM.map((fieldname) => ({ type: "Field", df: { ...get_df(fieldname), label: JUDUL[fieldname] } })),
 					{ type: "Status" },
 				];
 			};
 			listview.setup_columns();
 			listview.render_header(true);
+			muat_ringkasan(listview);
+		},
 
-			// Kartu ringkasan di atas list.
-			frappe.call("konstruksi.konstruksi.project_konstruksi.get_ringkasan_list").then((r) => {
-				const d = r.message || {};
-				const s = d.per_status || {};
-				const kartu = (label, nilai, aktif) =>
-					`<div class="kpm-kartu ${aktif ? "kpm-kartu-aktif" : ""}"><div class="kpm-kartu-label">${label}</div>
-						<div class="kpm-kartu-nilai">${nilai}</div></div>`;
-				listview.page.main.find(".kpm-ringkasan").remove();
-				listview.page.main.find(".frappe-list").before(`<div class="kpm-ringkasan">
-					${kartu(__("Total Proyek"), cint(d.total))}
-					${kartu(__("Sedang Berjalan"), cint(s.Berjalan), true)}
-					${kartu(__("Perencanaan"), cint(s.Perencanaan))}
-					${kartu(__("Total Nilai Kontrak + PPN"), format_currency(d.total_nilai, "IDR", 0))}
-				</div>`);
-			});
+		// Tiap list di-refresh (filter berubah, data berubah): kartu aktif mengikuti filter Status Proyek.
+		refresh(listview) {
+			bawaan.refresh && bawaan.refresh(listview);
+			render_ringkasan(listview);
 		},
 	};
+
+	function muat_ringkasan(listview) {
+		frappe.call("konstruksi.konstruksi.project_konstruksi.get_ringkasan_list").then((r) => {
+			listview.__ringkasan = r.message || {};
+			render_ringkasan(listview);
+		});
+	}
+
+	// Status Proyek adalah filter standar (kotak filter di atas list): baca & isi lewat field-nya.
+	function filter_status(listview) {
+		const field = listview.page.fields_dict.status_proyek;
+		if (field) return field.get_value() || null;
+		const f = (listview.filter_area?.get() || []).find((x) => x[1] === "status_proyek" && x[2] === "=");
+		return f ? f[3] : null;
+	}
+
+	function render_ringkasan(listview) {
+		const d = listview.__ringkasan;
+		if (!d) return;
+		const s = d.per_status || {};
+		const aktif = filter_status(listview);
+		const kartu = KARTU.map(
+			(k) => `<a href="#" class="kpm-kartu kpm-kartu-filter ${aktif === k.status ? "kpm-kartu-aktif" : ""}"
+				data-status="${k.status || ""}" title="${k.status ? __("Tampilkan proyek {0}", [k.status]) : __("Tampilkan semua proyek")}">
+				<div class="kpm-kartu-label">${k.label}</div>
+				<div class="kpm-kartu-nilai">${cint(k.status ? s[k.status] : d.total)}</div>
+			</a>`
+		).join("");
+		listview.page.main.find(".kpm-ringkasan").remove();
+		listview.page.main.find(".frappe-list").before(`<div class="kpm-ringkasan">
+			${kartu}
+			<div class="kpm-kartu"><div class="kpm-kartu-label">${__("Total Nilai Kontrak + PPN")}</div>
+				<div class="kpm-kartu-nilai">${format_currency(d.total_nilai, "IDR", 0)}</div></div>
+		</div>`);
+		listview.page.main.find(".kpm-kartu-filter").on("click", function (e) {
+			e.preventDefault();
+			const status = $(this).attr("data-status");
+			const field = listview.page.fields_dict.status_proyek;
+			if (field) {
+				field.set_value(status);
+			} else {
+				listview.filter_area.remove("status_proyek").then(() => {
+					if (status) listview.filter_area.add([["Project", "status_proyek", "=", status]]);
+				});
+			}
+		});
+	}
 })();

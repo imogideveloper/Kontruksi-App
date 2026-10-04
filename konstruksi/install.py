@@ -93,6 +93,18 @@ def buat_custom_field_project():
 	from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 	create_custom_fields({"Project": CUSTOM_FIELD_PROJECT}, update=True)
+	atur_project_erpnext()
+
+
+def atur_project_erpnext():
+	"""Project Master: filter bawaan ERPNext yang tidak dipakai disembunyikan, list urut kode terbaru."""
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	# Status bawaan dobel dengan Status Proyek; Project Type & Priority tidak dipakai di alur konstruksi.
+	for fieldname in ("status", "project_type", "priority"):
+		make_property_setter("Project", fieldname, "in_standard_filter", 0, "Check", validate_fields_for_doctype=False)
+	make_property_setter("Project", None, "sort_field", "name", "Data", for_doctype=True, validate_fields_for_doctype=False)
+	make_property_setter("Project", None, "sort_order", "DESC", "Data", for_doctype=True, validate_fields_for_doctype=False)
 
 
 def after_install():

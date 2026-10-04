@@ -1748,3 +1748,32 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 	margin-left: auto;
 	color: var(--text-color);
 }
+
+/* List Project Master: kartu ringkasan bisa diklik sebagai filter; lebar kolom Periode & Klien cukup untuk isinya. */
+a.kpm-kartu-filter,
+a.kpm-kartu-filter:hover {
+	text-decoration: none;
+	cursor: pointer;
+}
+
+a.kpm-kartu-filter:hover {
+	border-color: var(--konstruksi-active-accent);
+}
+
+body[data-route^="List/Project"] .frappe-list .list-row-col[data-fieldname="expected_start_date"] {
+	min-width: 215px !important;
+	flex-shrink: 0 !important;
+}
+
+body[data-route^="List/Project"] .frappe-list .list-row-col[data-fieldname="customer"] {
+	min-width: 190px !important;
+}
+
+body[data-route^="List/Project"] .frappe-list .list-row-col[data-fieldname="nilai_kontrak"] {
+	min-width: 190px !important;
+	flex-shrink: 0 !important;
+}
+
+body[data-route^="List/Project"] .frappe-list .list-row-col:is([data-fieldname="jenis_project"], [data-fieldname="project_manager"]) {
+	max-width: 160px;
+}
