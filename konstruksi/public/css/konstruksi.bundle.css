@@ -3041,3 +3041,74 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	font-size: var(--text-xs) !important;
 	color: var(--text-muted);
 }
+
+/* Dialog Item WBS: label di atas input (bukan form horizontal global); Satuan sempit, Harga lebar; rincian harga. */
+.kpw-dialog .frappe-control:not([data-fieldtype="Check"]) > .form-group {
+	display: block !important;
+}
+
+.kpw-dialog .frappe-control > .form-group > .clearfix {
+	display: block !important;
+	min-height: 0 !important;
+	margin-bottom: 6px !important;
+}
+
+.kpw-dialog .frappe-control > .form-group > .clearfix > .control-label {
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+@media (min-width: 576px) {
+	.kpw-dialog .form-section[data-fieldname="nilai_section"] .section-body {
+		display: grid;
+		grid-template-columns: 90px 150px minmax(0, 1fr);
+		gap: 0 16px;
+	}
+
+	.kpw-dialog .form-section[data-fieldname="nilai_section"] .form-column {
+		width: auto;
+		max-width: none;
+		padding: 0;
+	}
+}
+
+.kpw-rincian-judul {
+	margin-bottom: 6px;
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.kpw-rincian {
+	width: 100%;
+	overflow: hidden;
+	border-collapse: separate;
+	border-spacing: 0;
+	border-radius: 8px;
+	background: var(--subtle-fg, #f8f9fa);
+}
+
+.kpw-rincian td {
+	padding: 9px 14px;
+	border-top: 1px solid var(--border-color);
+	font-size: var(--text-sm);
+	background: var(--fg-color, #fff);
+}
+
+.kpw-rincian tr:first-child td {
+	border-top: none;
+}
+
+.kpw-rincian .kpw-rincian-rumus td {
+	background: var(--subtle-fg, #f8f9fa);
+	color: var(--text-muted);
+}
+
+.kpw-rincian-ket {
+	color: var(--text-muted);
+}
+
+.kpw-rincian .kpw-rincian-total td {
+	background: var(--konstruksi-active-bg);
+	color: var(--konstruksi-active-fg);
+	font-weight: 700;
+}

@@ -301,29 +301,28 @@ class HalamanWBS {
 		const baru = !it.name;
 		const induk = it.induk;
 		const is_group = !baru && it.is_group;
+		const tarif_ppn = flt(this.data.project.tarif_ppn);
 		const judul = baru
 			? induk
 				? __("Sub-item dari {0} {1}", [induk.kode, induk.uraian])
-				: __("Item Level 1")
+				: __("Item WBS Level 1")
 			: __("Ubah Item {0}", [it.kode]);
 		const dialog = new frappe.ui.Dialog({
 			title: judul,
 			fields: [
-				{ fieldname: "uraian", fieldtype: "Data", label: __("Uraian Pekerjaan"), reqd: 1, default: it.uraian },
-				{ fieldname: "spesifikasi", fieldtype: "Small Text", label: __("Spesifikasi"), default: it.spesifikasi },
+				{ fieldname: "uraian", fieldtype: "Autocomplete", label: __("Uraian Pekerjaan"), reqd: 1, default: it.uraian,
+					options: this.saran_uraian || [], ignore_validation: 1, description: __("Ketik bebas atau pilih dari saran.") },
+				{ fieldname: "spesifikasi", fieldtype: "Data", label: __("Spesifikasi / Keterangan"), default: it.spesifikasi,
+					placeholder: __("mis. Beton K-250, paving 8 cm, bata ringan 10 cm") },
 				{ fieldname: "nilai_section", fieldtype: "Section Break", hidden: is_group ? 1 : 0 },
-				{ fieldname: "satuan", fieldtype: "Data", label: __("Satuan"), default: it.satuan },
-				{ fieldname: "volume", fieldtype: "Float", label: __("Volume"), default: it.volume },
-				{ fieldname: "nilai_col", fieldtype: "Column Break" },
-				{ fieldname: "harga_satuan", fieldtype: "Currency", label: __("Harga Satuan"), options: "IDR", default: it.harga_satuan },
-				{ fieldname: "lain_section", fieldtype: "Section Break" },
-				{
-					fieldname: "keterangan",
-					fieldtype: "Small Text",
-					label: __("Keterangan"),
-					default: it.keterangan,
-					description: baru ? __("Mis. nomor addendum bila item ini pekerjaan tambah.") : "",
-				},
+				{ fieldname: "satuan", fieldtype: "Data", label: __("Satuan"), default: baru ? "ls" : it.satuan },
+				{ fieldname: "col_volume", fieldtype: "Column Break" },
+				{ fieldname: "volume", fieldtype: "Float", label: __("Volume"), default: baru ? 1 : it.volume },
+				{ fieldname: "col_harga", fieldtype: "Column Break" },
+				{ fieldname: "harga_satuan", fieldtype: "Currency", label: __("Harga Satuan (Rp)"), options: "IDR",
+					default: it.harga_satuan || 0, description: __("Sebelum PPN. Bobot dihitung otomatis dari nilai WBS.") },
+				{ fieldname: "rincian_section", fieldtype: "Section Break" },
+				{ fieldname: "rincian", fieldtype: "HTML" },
 			],
 			primary_action_label: __("Simpan"),
 			primary_action: (v) => {
@@ -334,10 +333,48 @@ class HalamanWBS {
 					baru ? __("Item ditambahkan") : __("Item disimpan")
 				);
 			},
+			secondary_action_label: __("Batal"),
+			secondary_action: () => dialog.hide(),
 		});
-		if (is_group) {
-			dialog.set_df_property("spesifikasi", "description", __("Nilai item induk = jumlah sub-itemnya."));
-		}
+		dialog.$wrapper.addClass("kpw-dialog");
+
+		// Rincian harga dihitung langsung saat volume / harga diketik.
+		const rincian = () => {
+			// Nilai yang sedang diketik (sebelum control menyimpan nilainya).
+			const isian = (f) => {
+				const c = dialog.fields_dict[f];
+				const teks = c.get_input_value ? c.get_input_value() : c.get_value();
+				return c.parse ? c.parse(teks) : teks;
+			};
+			const v = { satuan: isian("satuan") };
+			const volume = is_group ? 0 : flt(isian("volume"));
+			const harga = is_group ? 0 : flt(isian("harga_satuan"));
+			const jumlah = is_group ? flt(it.jumlah_harga) : volume * harga;
+			const ppn = jumlah * tarif_ppn / 100;
+			const baris_rumus = is_group
+				? `<tr class="kpw-rincian-rumus"><td>${__("Jumlah sub-item")}</td><td class="text-right">${it.jumlah_sub || ""}</td></tr>`
+				: `<tr class="kpw-rincian-rumus"><td>${__("Volume × Harga Satuan")}</td>
+					<td class="text-right">${kpw_angka(volume)} ${kpw_esc(v.satuan || "")} × ${kpw_rp(harga)}</td></tr>`;
+			dialog.fields_dict.rincian.$wrapper.html(`
+				<div class="kpw-rincian-judul">${__("Rincian Harga")}</div>
+				<table class="kpw-rincian">
+					${baris_rumus}
+					<tr><td>${__("Jumlah Harga")}</td><td class="text-right">${kpw_rp(jumlah)}</td></tr>
+					<tr><td>${__("PPN {0}%", [format_number(tarif_ppn, null, 0)])} <span class="kpw-rincian-ket">${__("(tarif dari Project Master)")}</span></td>
+						<td class="text-right">${kpw_rp(ppn)}</td></tr>
+					<tr class="kpw-rincian-total"><td>${__("Jumlah Harga + PPN")}</td><td class="text-right">${kpw_rp(jumlah + ppn)}</td></tr>
+				</table>`);
+		};
+		["satuan", "volume", "harga_satuan"].forEach((f) => dialog.fields_dict[f].$input?.on("input change", rincian));
+		if (is_group) it.jumlah_sub = __("{0} item", [this.data.items.filter((x) => x.parent_wbs === it.name).length]);
+		rincian();
 		dialog.show();
+
+		if (!this.saran_uraian) {
+			frappe.xcall(KPW_API + "get_saran_uraian").then((saran) => {
+				this.saran_uraian = saran || [];
+				dialog.fields_dict.uraian.set_data(this.saran_uraian);
+			});
+		}
 	}
 }

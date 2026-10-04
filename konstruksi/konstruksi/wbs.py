@@ -224,15 +224,26 @@ def simpan_item(project, uraian, name=None, induk=None, spesifikasi=None, satuan
 		frappe.has_permission("WBS Item", "create", throw=True)
 		doc = frappe.get_doc({"doctype": "WBS Item", "project": project, "kode": kode_berikutnya(project, induk), "sumber": "Manual"})
 	doc.update(
-		{"uraian": uraian, "spesifikasi": spesifikasi, "keterangan": keterangan, "satuan": satuan,
-			"volume": flt(volume), "harga_satuan": flt(harga_satuan)}
+		{"uraian": uraian, "spesifikasi": spesifikasi, "satuan": satuan, "volume": flt(volume), "harga_satuan": flt(harga_satuan)}
 	)
+	if keterangan is not None:
+		doc.keterangan = keterangan
 	doc.save()
 	if induk and not frappe.db.get_value("WBS Item", induk, "is_group"):
 		# Induk yang tadinya item biasa menjadi induk: volume & harganya tidak dipakai lagi.
 		frappe.db.set_value("WBS Item", induk, {"is_group": 1, "satuan": None, "volume": 0, "harga_satuan": 0})
 		hitung_ulang(project)
 	return doc.name
+
+
+@frappe.whitelist()
+def get_saran_uraian():
+	"""Saran Uraian Pekerjaan: uraian yang pernah dipakai di WBS dan RAB Penawaran."""
+	saran = set(frappe.get_all("WBS Item", pluck="uraian", distinct=True, limit=500))
+	saran.update(
+		frappe.get_all("RAB Penawaran Item", filters={"parenttype": "RAB Penawaran"}, pluck="uraian_pekerjaan", distinct=True, limit=500)
+	)
+	return sorted(s for s in saran if s)
 
 
 @frappe.whitelist()
