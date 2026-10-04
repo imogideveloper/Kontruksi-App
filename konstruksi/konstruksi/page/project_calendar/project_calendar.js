@@ -68,6 +68,12 @@ class KalenderProyek {
 	}
 
 	tampil() {
+		// Halaman modul Konstruksi: selalu dengan sidebar Konstruksi (lihat sidebar_konstruksi.bundle.js).
+		const sidebar = frappe.app?.sidebar;
+		if (sidebar && sidebar.sidebar_title !== "Konstruksi" && frappe.boot.workspace_sidebar_item?.konstruksi) {
+			sidebar.setup("Konstruksi");
+			sidebar.set_active_workspace_item?.();
+		}
 		const dari_route = frappe.get_route()[1];
 		let simpanan = null;
 		try {

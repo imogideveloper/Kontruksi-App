@@ -1,7 +1,7 @@
-// Sidebar Konstruksi "terkunci": begitu pengguna masuk ke Konstruksi (workspace atau menu sidebar-nya), sidebar tetap
-// Konstruksi untuk halaman apa pun yang dibuka (Holiday List, Event, Timesheet, Task, dsb.) — Frappe sendiri memilih
-// sidebar per halaman (Leaves, Desk, Projects, ...) sehingga menu Konstruksi hilang. Kunci lepas saat pengguna
-// sengaja membuka workspace / app lain (app switcher, /desk/<workspace lain>).
+// Sidebar Konstruksi "terkunci": selama sidebar yang tampil adalah Konstruksi, pindah ke halaman mana pun (Holiday
+// List, Event, Timesheet, Project Calendar, Task, link di form, tombol Back, dsb.) tetap memakai sidebar Konstruksi.
+// Frappe sendiri memilih sidebar per halaman — kadang dari modul halaman sebelumnya — sehingga sidebar pindah ke
+// Leaves / Desk / Projects. Kunci lepas saat pengguna membuka workspace lain (app switcher, /desk/<workspace>).
 //
 // Catatan: dari /desk/konstruksi Frappe menyimpan judul sidebar dalam huruf kecil ("konstruksi"); disamakan ke label.
 const SIDEBAR_KONSTRUKSI = "Konstruksi";
@@ -15,37 +15,15 @@ $(document).on("app_ready", () => {
 	sidebar.setup = (judul, ...args) => setup_asli(sidebar_konstruksi(judul) ? SIDEBAR_KONSTRUKSI : judul, ...args);
 	if (sidebar_konstruksi(sidebar.sidebar_title)) sidebar.sidebar_title = SIDEBAR_KONSTRUKSI;
 
-	let terkunci = sidebar_konstruksi(sidebar.sidebar_title);
-
-	// Klik menu di sidebar mana pun: terkunci bila sidebar-nya Konstruksi.
-	$(document).on("click", ".body-sidebar .item-anchor", () => {
-		terkunci = sidebar_konstruksi(sidebar.sidebar_title);
-	});
-
-	frappe.router.on("change", () => {
-		// Jalan setelah handler sidebar Frappe (didaftarkan lebih dulu) memilih sidebar.
-		setTimeout(() => {
-			const route = frappe.get_route();
-			if (route[0] === "Workspaces") {
-				// Membuka workspace: Konstruksi mengunci, workspace lain melepas.
-				const nama = route[route.length - 1];
-				if (nama && route.length > 1) terkunci = sidebar_konstruksi(nama) || sidebar_konstruksi(sidebar.sidebar_title);
-				return;
-			}
-			if (terkunci && sidebar.sidebar_title !== SIDEBAR_KONSTRUKSI) {
-				sidebar.setup(SIDEBAR_KONSTRUKSI);
-				sidebar.set_active_workspace_item?.();
-			}
-		}, 0);
-	});
-
-	// Refresh halaman (page-change / form-refresh) juga menjalankan pemilih sidebar Frappe.
-	$(document).on("page-change", () => {
-		setTimeout(() => {
-			if (terkunci && frappe.get_route()[0] !== "Workspaces" && sidebar.sidebar_title !== SIDEBAR_KONSTRUKSI) {
-				sidebar.setup(SIDEBAR_KONSTRUKSI);
-				sidebar.set_active_workspace_item?.();
-			}
-		}, 0);
-	});
+	// Pemilih sidebar Frappe (dipanggil tiap pindah route & refresh halaman).
+	const pilih_asli = sidebar.set_workspace_sidebar.bind(sidebar);
+	sidebar.set_workspace_sidebar = (...args) => {
+		const sebelumnya = sidebar.sidebar_title;
+		pilih_asli(...args);
+		const buka_workspace = frappe.get_route()[0] === "Workspaces";
+		if (sidebar_konstruksi(sebelumnya) && !buka_workspace && sidebar.sidebar_title !== SIDEBAR_KONSTRUKSI) {
+			sidebar.setup(SIDEBAR_KONSTRUKSI);
+			sidebar.set_active_workspace_item?.();
+		}
+	};
 });
