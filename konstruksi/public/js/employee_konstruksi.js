@@ -1,6 +1,10 @@
 // Data Personel (Employee): tombol "Buat Akun Login" — membuat User dengan Role Profile sesuai jabatan, lalu
 // menautkannya ke personel & penugasan proyeknya (konstruksi.konstruksi.tim_proyek.buat_akun_login).
 frappe.ui.form.on("Employee", {
+	setup(frm) {
+		// Pilihan Expense Approver menampilkan nama & jabatan (konstruksi.konstruksi.tim_proyek.cari_approver).
+		frm.set_query("expense_approver", () => ({ query: "konstruksi.konstruksi.tim_proyek.cari_approver" }));
+	},
 	refresh(frm) {
 		if (frm.is_new() || frm.doc.user_id || !frappe.model.can_create("User")) return;
 		frm.add_custom_button(__("Buat Akun Login"), () => dialog_akun_login(frm));

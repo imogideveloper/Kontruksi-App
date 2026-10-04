@@ -177,6 +177,39 @@ def cari_personel(doctype, txt, searchfield, start, page_len, filters):
 	)
 
 
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def cari_approver(doctype, txt, searchfield, start, page_len, filters):
+	"""Pilihan Expense Approver dengan jabatan (dari Data Personel yang memakai user itu).
+
+	Di Expense Claim (filters berisi employee): daftar tetap dari HRMS get_approvers, hanya ditambah jabatan.
+	Di Data Personel: semua user aktif, bisa dicari lewat email, nama, atau jabatan.
+	"""
+	if filters and filters.get("employee"):
+		from hrms.hr.doctype.department_approver.department_approver import get_approvers
+
+		users = [row[0] for row in get_approvers(doctype, txt, searchfield, start, page_len, filters)]
+	else:
+		users = frappe.get_all(
+			"User",
+			filters={"enabled": 1, "user_type": "System User", "name": ("not in", ("Administrator", "Guest"))},
+			pluck="name",
+			order_by="full_name asc",
+		)
+	users = list(dict.fromkeys(users))
+	if not users:
+		return []
+	jabatan = dict(
+		frappe.get_all("Employee", filters={"user_id": ("in", users)}, fields=["user_id", "designation"], as_list=True)
+	)
+	nama = dict(frappe.get_all("User", filters={"name": ("in", users)}, fields=["name", "full_name"], as_list=True))
+	hasil = [(u, nama.get(u) or "", jabatan.get(u) or "") for u in users]
+	if not (filters and filters.get("employee")) and txt:
+		hasil = [r for r in hasil if any(txt.lower() in (v or "").lower() for v in r)]
+		return hasil[start : start + page_len]
+	return hasil
+
+
 BELUM_PUNYA_AKUN = "Belum punya akun"
 
 

@@ -18,6 +18,15 @@
 	events.customer = (frm) => setTimeout(() => filter_proyek(frm), 0);
 
 	frappe.ui.form.on("Timesheet", events);
+	// Expense Claim: pilihan Expense Approver tetap dari HRMS, ditambah nama & jabatan.
+	frappe.ui.form.on("Expense Claim", {
+		refresh(frm) {
+			frm.set_query("expense_approver", () => ({
+				query: "konstruksi.konstruksi.tim_proyek.cari_approver",
+				filters: { employee: frm.doc.employee, doctype: frm.doc.doctype },
+			}));
+		},
+	});
 	frappe.ui.form.on("Expense Claim", events);
 
 	// Timesheet: Total Working Hours ditampilkan sebagai baris total di bawah tabel Time Sheets
