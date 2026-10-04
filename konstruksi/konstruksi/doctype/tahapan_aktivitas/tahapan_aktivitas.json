@@ -1,7 +1,7 @@
 {
  "actions": [],
  "creation": "2026-10-08 18:00:00.000000",
- "modified": "2026-10-08 18:00:00.000000",
+ "modified": "2026-10-08 20:00:00.000000",
  "modified_by": "Administrator",
  "owner": "Administrator",
  "doctype": "DocType",
@@ -22,7 +22,15 @@
    "label": "Tahap",
    "reqd": 1,
    "in_list_view": 1,
-   "columns": 5
+   "columns": 4
+  },
+  {
+   "fieldname": "bobot",
+   "fieldtype": "Percent",
+   "label": "Bobot",
+   "in_list_view": 1,
+   "columns": 1,
+   "description": "Porsi tahap ini terhadap aktivitas; total semua tahap 100%."
   },
   {
    "fieldname": "selesai",
@@ -52,6 +60,7 @@
  ],
  "field_order": [
   "nama_tahap",
+  "bobot",
   "selesai",
   "tanggal_selesai",
   "laporan"

@@ -53,7 +53,12 @@ def hitung_task(doc, method=None):
 
 	if doc.get("metode_progres") == "Tahapan":
 		tahap = doc.get("tahapan") or []
-		doc.progress = flt(sum(1 for t in tahap if t.selesai) / len(tahap) * 100, 2) if tahap else 0
+		total_bobot = sum(flt(t.bobot) for t in tahap)
+		if total_bobot:
+			# Progres = jumlah bobot tahap yang selesai (dinormalkan bila total bobot belum tepat 100%).
+			doc.progress = flt(min(sum(flt(t.bobot) for t in tahap if t.selesai) / total_bobot * 100, 100), 2)
+		else:
+			doc.progress = flt(sum(1 for t in tahap if t.selesai) / len(tahap) * 100, 2) if tahap else 0
 	else:
 		target = flt(doc.get("target_volume"))
 		doc.progress = flt(min(flt(doc.realisasi_volume) / target * 100, 100), 2) if target else 0
@@ -141,10 +146,10 @@ def get_aktivitas(project):
 		for d in frappe.get_all("Task Depends On", filters={"parent": ("in", nama), "parenttype": "Task"}, fields=["parent", "task"]):
 			dep.setdefault(d.parent, []).append(d.task)
 		for t in frappe.get_all(
-			"Tahapan Aktivitas", filters={"parent": ("in", nama), "parenttype": "Task"}, fields=["parent", "nama_tahap", "selesai"],
-			order_by="idx asc",
+			"Tahapan Aktivitas", filters={"parent": ("in", nama), "parenttype": "Task"},
+			fields=["parent", "nama_tahap", "bobot", "selesai"], order_by="idx asc",
 		):
-			tahap.setdefault(t.parent, []).append({"nama_tahap": t.nama_tahap, "selesai": t.selesai})
+			tahap.setdefault(t.parent, []).append({"nama_tahap": t.nama_tahap, "bobot": t.bobot, "selesai": t.selesai})
 		for l in frappe.db.sql(
 			"""select task, count(*) as n from `tabLaporan Progres` where task in %s and status = 'Menunggu' group by task""",
 			(tuple(nama),),
@@ -326,22 +331,33 @@ def simpan_aktivitas(project, subject, wbs_item, exp_start_date, exp_end_date, n
 		}
 	)
 	doc.set("depends_on", [{"task": p} for p in predecessor if p and p != doc.name])
-	# Tahapan: urutan baru, status selesai dipertahankan untuk nama tahap yang sama.
+	# Tahapan: [{nama_tahap, bobot}] (atau daftar nama); status selesai dipertahankan untuk nama tahap yang sama.
 	lama = {t.nama_tahap: t for t in doc.get("tahapan") or []}
+	baris = {}
+	for t in tahapan:
+		nama_tahap = (t.get("nama_tahap") if isinstance(t, dict) else t) or ""
+		nama_tahap = nama_tahap.strip()
+		if nama_tahap and nama_tahap not in baris:
+			baris[nama_tahap] = flt(t.get("bobot")) if isinstance(t, dict) else 0
 	doc.set(
 		"tahapan",
 		[
 			{
 				"nama_tahap": n,
+				"bobot": bobot,
 				"selesai": lama[n].selesai if n in lama else 0,
 				"tanggal_selesai": lama[n].tanggal_selesai if n in lama else None,
 				"laporan": lama[n].laporan if n in lama else None,
 			}
-			for n in dict.fromkeys(t.strip() for t in tahapan if t and t.strip())
+			for n, bobot in baris.items()
 		],
 	)
-	if metode_progres == "Tahapan" and not doc.tahapan:
-		frappe.throw(_("Isi minimal satu tahap untuk metode Tahapan."))
+	if metode_progres == "Tahapan":
+		if not doc.tahapan:
+			frappe.throw(_("Isi minimal satu tahap untuk metode Tahapan."))
+		total = sum(flt(t.bobot) for t in doc.tahapan)
+		if abs(total - 100) > 0.01:
+			frappe.throw(_("Total bobot tahapan harus 100% (sekarang {0}%).").format(flt(total, 2)))
 	doc.save()
 	return doc.name
 

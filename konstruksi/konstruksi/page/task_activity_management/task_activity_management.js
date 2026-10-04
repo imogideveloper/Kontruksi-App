@@ -385,86 +385,190 @@ class HalamanAktivitas {
 	dialog_aktivitas(t) {
 		const d = this.data;
 		const baru = !t.name;
+		const tanggal = (v) => (v ? String(v).slice(0, 10) : "");
+		const opsi = (list, terpilih) =>
+			list.map((o) => `<option value="${kpa_esc(o.value)}" ${String(o.value) === String(terpilih ?? "") ? "selected" : ""}>${kpa_esc(o.label)}</option>`).join("");
 		const wbs_daun = d.wbs.filter((w) => !w.is_group);
-		const opsi_wbs = wbs_daun.map((w) => ({ value: w.name, label: `${w.kode} · ${w.uraian}` }));
-		const opsi_pj = [{ value: "", label: "" }, ...d.personel.map((p) => ({ value: p.employee, label: `${p.nama_personel} · ${p.jabatan}` }))];
-		const opsi_pred = d.aktivitas
-			.filter((x) => x.name !== t.name)
-			.map((x) => ({ value: x.name, label: `${x.kode_wbs ? `${x.kode_wbs} · ` : ""}${x.subject}`, description: `${kpa_tgl(x.exp_start_date)} – ${kpa_tgl(x.exp_end_date)}` }));
-		const tanggal = (v) => (v ? String(v).slice(0, 10) : null);
+		const awal_wbs = t.wbs_item || this.filter.wbs || wbs_daun[0]?.name || "";
+		const pred_awal = (t.predecessor || [])[0]?.name || "";
+		const hari_ini = frappe.datetime.get_today();
+
 		const dialog = new frappe.ui.Dialog({
 			title: baru ? __("Aktivitas Baru") : __("Ubah Aktivitas"),
-			size: "large",
-			fields: [
-				{ fieldname: "wbs_item", fieldtype: "Select", label: __("Item WBS"), reqd: 1, options: opsi_wbs, default: t.wbs_item || this.filter.wbs || opsi_wbs[0]?.value },
-				{ fieldname: "subject", fieldtype: "Data", label: __("Nama Aktivitas"), reqd: 1, default: t.subject },
-				{ fieldname: "col1", fieldtype: "Column Break" },
-				{ fieldname: "pj", fieldtype: "Select", label: __("Penanggung Jawab"), options: opsi_pj, default: t.pj || "",
-					description: d.personel.length ? __("Dari Tim Proyek (Penugasan Personel).") : __("Belum ada personel di Tim Proyek.") },
-				{ fieldname: "priority", fieldtype: "Select", label: __("Prioritas"), default: t.priority || "Medium",
-					options: Object.entries(KPA_PRIORITAS).map(([value, label]) => ({ value, label: __(label) })) },
-				{ fieldname: "jadwal_section", fieldtype: "Section Break", label: __("Jadwal") },
-				{ fieldname: "exp_start_date", fieldtype: "Date", label: __("Mulai"), reqd: 1, default: tanggal(t.exp_start_date) },
-				{ fieldname: "col2", fieldtype: "Column Break" },
-				{ fieldname: "exp_end_date", fieldtype: "Date", label: __("Selesai"), reqd: 1, default: tanggal(t.exp_end_date) },
-				{ fieldname: "col3", fieldtype: "Column Break" },
-				{ fieldname: "durasi", fieldtype: "HTML" },
-				{ fieldname: "pred_section", fieldtype: "Section Break" },
-				{ fieldname: "predecessor", fieldtype: "MultiSelectList", label: __("Setelah (Predecessor)"), options: opsi_pred,
-					default: (t.predecessor || []).map((x) => x.name), description: __("Aktivitas yang harus selesai lebih dulu.") },
-				{ fieldname: "progres_section", fieldtype: "Section Break", label: __("Cara Mengukur Progres") },
-				{ fieldname: "metode_progres", fieldtype: "Select", label: __("Metode"), default: t.metode_progres || "Volume",
-					options: [{ value: "Volume", label: __("Volume (realisasi ÷ target)") }, { value: "Tahapan", label: __("Tahapan (tahap selesai ÷ jumlah tahap)") }] },
-				{ fieldname: "col4", fieldtype: "Column Break" },
-				{ fieldname: "target_volume", fieldtype: "Float", label: __("Target Volume"), depends_on: "eval:doc.metode_progres=='Volume'", default: t.target_volume },
-				{ fieldname: "col5", fieldtype: "Column Break" },
-				{ fieldname: "satuan", fieldtype: "Data", label: __("Satuan"), depends_on: "eval:doc.metode_progres=='Volume'", default: t.satuan },
-				{ fieldname: "tahap_section", fieldtype: "Section Break", depends_on: "eval:doc.metode_progres=='Tahapan'" },
-				{ fieldname: "tahapan", fieldtype: "Small Text", label: __("Tahapan (satu per baris)"),
-					default: (t.tahapan || []).map((x) => x.nama_tahap).join("\n"),
-					description: __("Mis. Pondasi, Struktur, Dinding, Atap, Finishing.") },
-				{ fieldname: "desc_section", fieldtype: "Section Break" },
-				{ fieldname: "description", fieldtype: "Small Text", label: __("Keterangan"), default: t.description ? frappe.utils.html2text(t.description) : null },
-			],
+			size: "extra-large",
+			fields: [{ fieldname: "form", fieldtype: "HTML" }],
 			primary_action_label: __("Simpan"),
-			primary_action: (v) => {
-				dialog.hide();
-				this.call(
-					"simpan_aktivitas",
-					{
-						...v,
-						name: t.name || null,
-						predecessor: v.predecessor || [],
-						tahapan: (v.tahapan || "").split("\n"),
-					},
-					baru ? __("Aktivitas ditambahkan") : __("Aktivitas disimpan")
-				);
-			},
+			primary_action: () => simpan(),
 			secondary_action_label: __("Batal"),
 			secondary_action: () => dialog.hide(),
 		});
-		dialog.$wrapper.addClass("kpw-dialog kpa-dialog");
+		dialog.$wrapper.addClass("kpa-form-dialog");
+		const $f = dialog.fields_dict.form.$wrapper;
+		const baris = (label, isi, wajib) =>
+			`<div class="kpa-form-baris"><label class="kpa-form-label">${label}${wajib ? ' <span class="kpa-wajib">*</span>' : ""}</label><div class="kpa-form-isi">${isi}</div></div>`;
 
-		const tampil_durasi = () => {
-			const v = dialog.get_values(true) || {};
-			const hk = kpa_hari_kerja(v.exp_start_date, v.exp_end_date, this.libur);
-			dialog.fields_dict.durasi.$wrapper.html(`<div class="kpa-durasi"><div class="kpa-durasi-label">${__("Durasi")}</div>
-				<div class="kpa-durasi-nilai">${hk ? `${hk} ${__("hari kerja")}` : "—"}</div>
-				<div class="kpa-sub">${__("Mengikuti Project Calendar")}</div></div>`);
+		$f.html(`<div class="kpa-form">
+			<div class="kpa-form-kolom">
+				<div class="kpa-form-judul">${__("Pekerjaan")}</div>
+				${baris(__("Nama Aktivitas"), `<input class="form-control" name="subject" value="${kpa_esc(t.subject || "")}">`, true)}
+				${baris(__("Item WBS"), `<select class="form-control" name="wbs_item">${opsi(wbs_daun.map((w) => ({ value: w.name, label: `${w.kode} ${w.uraian}` })), awal_wbs)}</select>`)}
+				${baris(__("Prioritas"), `<select class="form-control" name="priority">${opsi(Object.entries(KPA_PRIORITAS).map(([value, label]) => ({ value, label: __(label) })), t.priority || "Medium")}</select>`)}
+				<div class="kpa-form-judul">${__("Jadwal")}</div>
+				<div class="kpa-form-baris">
+					<label class="kpa-form-label">${__("Mulai")} <span class="kpa-wajib">*</span></label>
+					<div class="kpa-form-isi kpa-form-dua">
+						<input type="date" class="form-control" name="exp_start_date" value="${tanggal(t.exp_start_date) || hari_ini}">
+						<label class="kpa-form-label kpa-form-label-dalam">${__("Selesai")} <span class="kpa-wajib">*</span></label>
+						<input type="date" class="form-control" name="exp_end_date" value="${tanggal(t.exp_end_date) || hari_ini}">
+					</div>
+				</div>
+				${baris("", `<div class="kpa-form-ket kpa-durasi-teks"></div>`)}
+				${baris(__("Predecessor"), `<select class="form-control" name="predecessor">${opsi(
+					[{ value: "", label: `— ${__("Tidak ada")} —` }, ...d.aktivitas.filter((x) => x.name !== t.name).map((x) => ({ value: x.name, label: `${x.kode_wbs ? `${x.kode_wbs} ` : ""}${x.subject}` }))],
+					pred_awal
+				)}</select>`)}
+			</div>
+			<div class="kpa-form-kolom">
+				<div class="kpa-form-judul">${__("Target & Cara Mengukur Progres")}</div>
+				${baris(__("Progres diukur dari"), `<select class="form-control" name="metode_progres">${opsi(
+					[{ value: "Volume", label: __("Volume pekerjaan (m2, m3, m1, ...)") }, { value: "Tahapan", label: __("Tahapan pekerjaan (pondasi, struktur, ...)") }],
+					t.metode_progres || "Volume"
+				)}</select><div class="kpa-form-ket">${__("Progres tidak diisi manual — dihitung dari Laporan Progres yang disetujui.")}</div>`)}
+				<div class="kpa-metode-volume">
+					${baris(__("Target Volume"), `<div class="kpa-form-dua kpa-form-volume">
+						<input type="number" step="any" min="0" class="form-control text-right" name="target_volume" value="${t.target_volume ?? ""}">
+						<input class="form-control" name="satuan" placeholder="${__("satuan")}" value="${kpa_esc(t.satuan || "")}">
+					</div>`)}
+				</div>
+				<div class="kpa-metode-tahapan">
+					${baris(__("Tahapan"), `<div class="kpa-tahap-list"></div>
+						<div class="kpa-tahap-tombol">
+							<button type="button" class="btn btn-default btn-sm" data-tahap="tambah">${frappe.utils.icon("add", "xs")} ${__("Tambah tahap")}</button>
+							<button type="button" class="btn btn-default btn-sm" data-tahap="contoh" data-contoh="bangunan">${__("Contoh: Bangunan")}</button>
+							<button type="button" class="btn btn-default btn-sm" data-tahap="contoh" data-contoh="instalasi">${__("Contoh: Instalasi")}</button>
+							<button type="button" class="btn btn-default btn-sm" data-tahap="contoh" data-contoh="umum">${__("Contoh: Persiapan / Umum")}</button>
+						</div>
+						<div class="kpa-tahap-total"></div>`)}
+				</div>
+				<div class="kpa-form-judul">${__("Penanggung Jawab & Catatan")}</div>
+				${baris(__("Penanggung Jawab"), `<select class="form-control" name="pj">${opsi(
+					[{ value: "", label: d.personel.length ? `— ${__("Pilih dari Tim Proyek")} —` : `— ${__("Belum ada personel di Tim Proyek")} —` },
+						...d.personel.map((p) => ({ value: p.employee, label: `${p.nama_personel} · ${p.jabatan}` }))],
+					t.pj || ""
+				)}</select>`)}
+				${baris(__("Catatan"), `<textarea class="form-control" name="description" rows="3">${kpa_esc(t.description ? frappe.utils.html2text(t.description) : "")}</textarea>`)}
+			</div>
+		</div>`);
+
+		const nilai = (name) => $f.find(`[name="${name}"]`).val();
+		const CONTOH = {
+			bangunan: [["Pondasi", 15], ["Struktur", 30], ["Dinding", 20], ["Atap", 15], ["Finishing", 20]],
+			instalasi: [["Persiapan & material", 10], ["Pemasangan", 60], ["Pengujian", 20], ["Serah terima", 10]],
+			umum: [["Persiapan", 20], ["Pelaksanaan", 60], ["Pemeriksaan & selesai", 20]],
+		};
+		let tahap = (t.tahapan || []).map((x) => ({ nama_tahap: x.nama_tahap, bobot: flt(x.bobot), selesai: x.selesai }));
+
+		const render_tahap = () => {
+			$f.find(".kpa-tahap-list").html(
+				tahap
+					.map(
+						(x, i) => `<div class="kpa-tahap-baris">
+							<input class="form-control" data-i="${i}" data-kolom="nama_tahap" placeholder="${__("Nama tahap")}" value="${kpa_esc(x.nama_tahap)}" ${x.selesai ? "disabled" : ""}>
+							<div class="kpa-tahap-bobot"><input type="number" min="0" max="100" step="any" class="form-control text-right" data-i="${i}" data-kolom="bobot" value="${x.bobot || ""}"><span>%</span></div>
+							${x.selesai
+								? `<span class="kpa-tahap-selesai" title="${__("Sudah dilaporkan selesai")}">${frappe.utils.icon("check", "xs")}</span>`
+								: `<button type="button" class="btn btn-xs btn-default kpa-ikon-btn" data-tahap="hapus" data-i="${i}" title="${__("Hapus")}">${frappe.utils.icon("close", "xs")}</button>`}
+						</div>`
+					)
+					.join("")
+			);
+			render_total();
+		};
+		const render_total = () => {
+			const total = tahap.reduce((s, x) => s + flt(x.bobot), 0);
+			const pas = Math.abs(total - 100) < 0.01;
+			$f.find(".kpa-tahap-total")
+				.toggleClass("kpa-ok", pas)
+				.toggleClass("kpa-oranye", !pas)
+				.text(pas ? __("Total bobot 100%") : __("Total bobot {0}% (harus 100%)", [format_number(total, null, total % 1 ? 2 : 0)]));
+		};
+		const render_metode = () => {
+			const tahapan = nilai("metode_progres") === "Tahapan";
+			$f.find(".kpa-metode-tahapan").toggle(tahapan);
+			$f.find(".kpa-metode-volume").toggle(!tahapan);
+		};
+		const render_durasi = () => {
+			const hk = kpa_hari_kerja(nilai("exp_start_date"), nilai("exp_end_date"), this.libur);
+			$f.find(".kpa-durasi-teks").html(hk ? __("Durasi {0} hari kerja (mengikuti Project Calendar)", [`<b>${hk}</b>`]) : "");
 		};
 		// Aktivitas baru: nama, target volume, & satuan awal dari item WBS yang dipilih.
-		const isi_dari_wbs = () => {
-			const w = d.wbs.find((x) => x.name === dialog.get_value("wbs_item"));
-			if (!w || !baru) return;
-			if (!dialog.get_value("subject")) dialog.set_value("subject", w.uraian);
-			if (!flt(dialog.get_value("target_volume"))) dialog.set_value("target_volume", w.volume);
-			if (!dialog.get_value("satuan")) dialog.set_value("satuan", w.satuan);
+		const isi_dari_wbs = (paksa) => {
+			if (!baru) return;
+			const w = d.wbs.find((x) => x.name === nilai("wbs_item"));
+			if (!w) return;
+			if (paksa || !nilai("subject")) $f.find('[name="subject"]').val(w.uraian);
+			if (paksa || !flt(nilai("target_volume"))) $f.find('[name="target_volume"]').val(w.volume || "");
+			if (paksa || !nilai("satuan")) $f.find('[name="satuan"]').val(w.satuan || "");
 		};
-		dialog.fields_dict.exp_start_date.df.onchange = tampil_durasi;
-		dialog.fields_dict.exp_end_date.df.onchange = tampil_durasi;
-		dialog.fields_dict.wbs_item.df.onchange = isi_dari_wbs;
-		isi_dari_wbs();
-		tampil_durasi();
+
+		$f.on("change", '[name="metode_progres"]', render_metode);
+		$f.on("change input", '[name="exp_start_date"], [name="exp_end_date"]', render_durasi);
+		$f.on("change", '[name="wbs_item"]', () => isi_dari_wbs(true));
+		$f.on("input", ".kpa-tahap-baris input", (e) => {
+			const $i = $(e.target);
+			const x = tahap[Number($i.attr("data-i"))];
+			if (!x) return;
+			x[$i.attr("data-kolom")] = $i.attr("data-kolom") === "bobot" ? flt($i.val()) : $i.val();
+			if ($i.attr("data-kolom") === "bobot") render_total();
+		});
+		$f.on("click", "[data-tahap]", (e) => {
+			const $b = $(e.currentTarget);
+			const aksi = $b.attr("data-tahap");
+			if (aksi === "tambah") tahap.push({ nama_tahap: "", bobot: 0 });
+			if (aksi === "hapus") tahap.splice(Number($b.attr("data-i")), 1);
+			if (aksi === "contoh") {
+				const selesai = tahap.filter((x) => x.selesai);
+				tahap = [...selesai, ...CONTOH[$b.attr("data-contoh")].filter(([n]) => !selesai.some((x) => x.nama_tahap === n)).map(([nama_tahap, bobot]) => ({ nama_tahap, bobot }))];
+			}
+			render_tahap();
+			if (aksi === "tambah") $f.find(".kpa-tahap-baris:last input:first").trigger("focus");
+		});
+
+		const simpan = () => {
+			const v = {
+				subject: (nilai("subject") || "").trim(),
+				wbs_item: nilai("wbs_item"),
+				priority: nilai("priority"),
+				exp_start_date: nilai("exp_start_date"),
+				exp_end_date: nilai("exp_end_date"),
+				predecessor: nilai("predecessor") ? [nilai("predecessor")] : [],
+				metode_progres: nilai("metode_progres"),
+				target_volume: flt(nilai("target_volume")),
+				satuan: nilai("satuan"),
+				pj: nilai("pj"),
+				description: nilai("description"),
+				tahapan: tahap.filter((x) => (x.nama_tahap || "").trim()),
+			};
+			const salah = [];
+			if (!v.subject) salah.push(__("Nama Aktivitas"));
+			if (!v.wbs_item) salah.push(__("Item WBS"));
+			if (!v.exp_start_date || !v.exp_end_date) salah.push(__("Jadwal Mulai & Selesai"));
+			if (salah.length) return frappe.msgprint(__("Lengkapi: {0}", [salah.join(", ")]));
+			if (v.exp_end_date < v.exp_start_date) return frappe.msgprint(__("Tanggal Selesai tidak boleh sebelum Mulai."));
+			if (v.metode_progres === "Tahapan") {
+				const total = v.tahapan.reduce((s, x) => s + flt(x.bobot), 0);
+				if (!v.tahapan.length) return frappe.msgprint(__("Tambahkan minimal satu tahap."));
+				if (Math.abs(total - 100) >= 0.01) return frappe.msgprint(__("Total bobot tahapan harus 100% (sekarang {0}%).", [format_number(total, null, 2)]));
+			} else if (!v.target_volume) {
+				return frappe.msgprint(__("Isi Target Volume."));
+			}
+			this.call("simpan_aktivitas", { ...v, name: t.name || null }, baru ? __("Aktivitas ditambahkan") : __("Aktivitas disimpan")).then(() => dialog.hide());
+		};
+
+		isi_dari_wbs(false);
+		render_tahap();
+		render_metode();
+		render_durasi();
 		dialog.show();
 	}
 
@@ -481,7 +585,7 @@ class HalamanAktivitas {
 				description: __("Sisa {0} {1} dari target.", [kpa_angka(sisa_volume), t.satuan || ""]) });
 		} else {
 			fields.push({ fieldname: "tahap", fieldtype: "MultiCheck", label: __("Tahap yang selesai"), reqd: 1, columns: 1,
-				options: tahap_sisa.map((x) => ({ label: x.nama_tahap, value: x.nama_tahap })) });
+				options: tahap_sisa.map((x) => ({ label: flt(x.bobot) ? `${x.nama_tahap} (${kpa_persen(x.bobot, 1)})` : x.nama_tahap, value: x.nama_tahap })) });
 		}
 		fields.push(
 			{ fieldname: "catatan", fieldtype: "Small Text", label: __("Catatan Pekerjaan") },

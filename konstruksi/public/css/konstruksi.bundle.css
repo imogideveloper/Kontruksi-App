@@ -3338,3 +3338,137 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	border-radius: 8px;
 	background: var(--subtle-fg, #f8f9fa);
 }
+
+/* Dialog Aktivitas Baru / Ubah (task_activity_management.js): dua kolom, judul section biru, label di kiri. */
+.kpa-form {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0 48px;
+}
+
+@media (max-width: 991px) {
+	.kpa-form {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.kpa-form-judul {
+	margin: 4px 0 16px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid var(--border-color);
+	font-size: var(--text-sm);
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--kpr-biru, #2f6fd1);
+}
+
+.kpa-form-kolom .kpa-form-judul:not(:first-child) {
+	margin-top: 20px;
+}
+
+.kpa-form-baris {
+	display: grid;
+	grid-template-columns: 160px minmax(0, 1fr);
+	gap: 16px;
+	align-items: start;
+	margin-bottom: 14px;
+}
+
+.kpa-form-label {
+	margin: 0;
+	padding-top: 7px;
+	font-weight: 600;
+	text-align: right;
+	color: var(--text-color);
+}
+
+.kpa-wajib {
+	color: var(--red-500, #e03636);
+}
+
+.kpa-form-isi {
+	min-width: 0;
+}
+
+.kpa-form-dua {
+	display: flex;
+	align-items: start;
+	gap: 12px;
+}
+
+.kpa-form-dua > input {
+	flex: 1;
+	min-width: 0;
+}
+
+.kpa-form-label-dalam {
+	flex-shrink: 0;
+}
+
+.kpa-form-volume > input[name="satuan"] {
+	flex: 0 0 110px;
+}
+
+.kpa-form-ket {
+	margin-top: 4px;
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+}
+
+.kpa-tahap-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.kpa-tahap-list:not(:empty) {
+	margin-bottom: 8px;
+}
+
+.kpa-tahap-baris {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 96px 28px;
+	gap: 6px;
+	align-items: center;
+}
+
+.kpa-tahap-bobot {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	color: var(--text-muted);
+}
+
+.kpa-tahap-selesai {
+	display: inline-flex;
+	justify-content: center;
+	color: var(--kpr-hijau, #15803d);
+}
+
+.kpa-tahap-selesai .icon {
+	stroke: currentColor;
+}
+
+.kpa-tahap-tombol {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.kpa-tahap-tombol .icon {
+	stroke: currentColor;
+}
+
+.kpa-tahap-total {
+	margin-top: 10px;
+	font-size: var(--text-sm);
+}
+
+.kpa-tahap-total.kpa-ok {
+	color: var(--kpr-hijau, #15803d);
+}
+
+.kpa-tahap-total.kpa-oranye {
+	color: var(--kpr-oranye, #c2410c);
+}
