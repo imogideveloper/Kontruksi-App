@@ -2,17 +2,13 @@
 // For license information, please see license.txt
 
 const RAB_METHOD = "konstruksi.konstruksi.doctype.rab_penawaran.rab_penawaran";
-// Sama dengan FIELD_HARGA_ITEM di rab_penawaran.py: dikunci setelah penawaran diajukan.
-const FIELD_HARGA_ITEM = ["kode_wbs", "uraian_pekerjaan", "satuan", "volume", "harga_satuan"];
 
 frappe.ui.form.on("RAB Penawaran", {
 	onload(frm) {
+		// Saran uraian dari RAB lain untuk kolom Uraian Pekerjaan di tabel item.
 		frappe.call(`${RAB_METHOD}.get_saran_uraian`).then((r) => {
-			frm.fields_dict.items.grid.update_docfield_property(
-				"uraian_pekerjaan",
-				"options",
-				r.message || []
-			);
+			frm.__saran_uraian = r.message || [];
+			render_rab_tree(frm);
 		});
 	},
 
@@ -23,12 +19,7 @@ frappe.ui.form.on("RAB Penawaran", {
 		}, __("Excel"));
 		if (!terkunci) frm.add_custom_button(__("Upload Excel"), () => upload_excel(frm), __("Excel"));
 
-		// Penawaran sudah diajukan: item & harga dikunci, Harga Satuan Pokok (biaya) tetap bisa diisi.
-		const grid = frm.fields_dict.items.grid;
-		FIELD_HARGA_ITEM.forEach((f) => grid.update_docfield_property(f, "read_only", terkunci ? 1 : 0));
-		grid.cannot_add_rows = terkunci;
-		grid.cannot_delete_rows = terkunci;
-		grid.refresh();
+		// Penawaran sudah diajukan: item & harga dikunci di tabel item, Harga Satuan Pokok (biaya) tetap bisa diisi.
 		if (terkunci) {
 			frm.dashboard.set_headline(
 				__("Penawaran sudah diajukan di Dokumen Tender: item & harga RAB dikunci. Harga Satuan Pokok (biaya) tetap bisa diubah."),
@@ -161,10 +152,12 @@ function upload_excel(frm) {
 }
 
 // ---------------------------------------------------------------------------
-// Tampilan item berkelompok per WBS level 1 (kode tanpa titik: 1, 2, 3, ...).
-// Data tetap di tabel `items`; tampilan ini hanya membaca dan membuka form baris untuk edit.
+// Tabel item RAB: satu-satunya tampilan item. Dikelompokkan per WBS level 1 (kode tanpa titik: 1, 2, 3, ...)
+// dengan subtotal, dan tiap sel bisa diketik langsung. Data tetap tersimpan di tabel anak `items` (disembunyikan).
 
 const TANPA_KELOMPOK = "__tanpa_kelompok__";
+const ITEM_DOCTYPE = "RAB Penawaran Item";
+const FIELD_ANGKA = ["volume", "harga_satuan", "harga_satuan_pokok"];
 
 function kelompokkan_item(items) {
 	const kelompok = [];
@@ -192,19 +185,56 @@ function format_rupiah(value) {
 	return format_currency(flt(value), "IDR", 0);
 }
 
-function format_volume(value) {
+function format_angka(value) {
 	const v = flt(value);
-	return format_number(v, null, Number.isInteger(v) ? 0 : 2);
+	return v ? format_number(v, null, Number.isInteger(v) ? 0 : 2) : "";
+}
+
+function hak_rab(frm) {
+	const bisa_ubah = Boolean(frm.perm?.[0]?.write) && frm.doc.docstatus === 0;
+	return {
+		ubah_harga: bisa_ubah && !harga_terkunci(frm),
+		lihat_biaya: Boolean(frm.perm?.[1]?.read),
+		ubah_biaya: bisa_ubah && Boolean(frm.perm?.[1]?.write),
+	};
+}
+
+// Kode WBS berikutnya: kelompok baru = angka tertinggi + 1; item dalam kelompok = <kelompok>.<nomor tertinggi + 1>.
+function kode_berikutnya(items, kelompok) {
+	if (!kelompok) {
+		const angka = items.map((i) => cint((i.kode_wbs || "").split(".")[0])).filter(Boolean);
+		return String((angka.length ? Math.max(...angka) : 0) + 1);
+	}
+	const nomor = items
+		.map((i) => (i.kode_wbs || "").trim())
+		.filter((k) => k.startsWith(`${kelompok}.`) && k.split(".").length === 2)
+		.map((k) => cint(k.split(".")[1]));
+	return `${kelompok}.${(nomor.length ? Math.max(...nomor) : 0) + 1}`;
 }
 
 function render_rab_tree(frm) {
 	const field = frm.fields_dict.rab_tree;
 	if (!field) return;
-	const state = (frm.__rab_tree = frm.__rab_tree || { buka: new Set(), cari: "", belum_harga: false });
+	const state = (frm.__rab_tree = frm.__rab_tree || { tutup: new Set(), cari: "", belum_harga: false });
 	const items = frm.doc.items || [];
 	const total = flt(frm.doc.total_sebelum_ppn);
 	const esc = frappe.utils.escape_html;
 	const cari = state.cari.toLowerCase();
+	const hak = hak_rab(frm);
+	const kolom = 9 + (hak.lihat_biaya ? 2 : 0);
+
+	// Sel input: bisa diketik bila boleh diubah; bila tidak, tampil sebagai teks.
+	const sel = (item, fieldname, kelas = "") => {
+		const angka = FIELD_ANGKA.includes(fieldname);
+		const nilai = angka ? format_angka(item[fieldname]) : item[fieldname] || "";
+		const boleh = fieldname === "harga_satuan_pokok" ? hak.ubah_biaya : hak.ubah_harga;
+		if (!boleh) return `<span class="rab-teks ${kelas}">${esc(nilai)}</span>`;
+		return `<input class="rab-input ${angka ? "rab-input-angka" : ""} ${kelas}" data-row="${item.name}" data-field="${fieldname}"
+			value="${esc(nilai)}" ${angka ? 'inputmode="decimal"' : ""} ${fieldname === "uraian_pekerjaan" ? 'list="rab-saran-uraian"' : ""}>`;
+	};
+	const persen_margin = (harga, biaya) =>
+		flt(harga) && flt(biaya) ? `${format_number(((flt(harga) - flt(biaya)) / flt(harga)) * 100, null, 1)}%` : "";
+	const sel_biaya = (isi) => (hak.lihat_biaya ? isi : "");
 
 	const cocok = (item) => {
 		if (state.belum_harga && flt(item.harga_satuan)) return false;
@@ -212,6 +242,10 @@ function render_rab_tree(frm) {
 		return `${item.uraian_pekerjaan || ""} ${item.spesifikasi || ""}`.toLowerCase().includes(cari);
 	};
 	const sedang_filter = Boolean(cari || state.belum_harga);
+	const aksi_hapus = (item) =>
+		hak.ubah_harga
+			? `<button class="rab-aksi rab-hapus" data-row="${item.name}" title="${__("Hapus baris")}">${frappe.utils.icon("delete", "xs")}</button>`
+			: "";
 
 	let rows = "";
 	kelompokkan_item(items).forEach((grup) => {
@@ -219,45 +253,67 @@ function render_rab_tree(frm) {
 		const induk_cocok = grup.induk && !state.belum_harga && cari && cocok(grup.induk);
 		if (sedang_filter && !anak.length && !induk_cocok) return;
 
-		const subtotal = grup.anak.reduce((s, i) => s + flt(i.jumlah_harga), flt(grup.induk?.jumlah_harga));
-		const terbuka = sedang_filter || state.buka.has(grup.key);
-		const judul = grup.induk ? esc(grup.induk.uraian_pekerjaan || "") : __("Tanpa Kode WBS");
-		const kode = grup.induk ? esc(grup.key) : "";
-		const induk_attr = grup.induk ? `data-row="${grup.induk.name}"` : "";
+		const semua = grup.induk ? [grup.induk, ...grup.anak] : grup.anak;
+		const subtotal = semua.reduce((s, i) => s + flt(i.jumlah_harga), 0);
+		const subbiaya = semua.reduce((s, i) => s + flt(i.jumlah_biaya), 0);
+		const terbuka = sedang_filter || !state.tutup.has(grup.key);
 
+		const judul = grup.induk
+			? sel(grup.induk, "uraian_pekerjaan", "rab-input-judul")
+			: `<span class="rab-teks rab-input-judul">${__("Tanpa Kode WBS")}</span>`;
 		rows += `<tr class="rab-grup ${terbuka ? "terbuka" : ""}" data-grup="${esc(grup.key)}">
-			<td class="rab-no">${kode}</td>
-			<td class="rab-uraian" title="${judul}">
-				<span class="rab-chevron">${frappe.utils.icon("right", "sm")}</span>
-				<span class="rab-judul" ${induk_attr}>${judul}</span>
-			</td>
-			<td class="rab-spek"><span class="rab-badge">${__("{0} item", [grup.anak.length])}</span></td>
+			<td>${grup.induk ? sel(grup.induk, "kode_wbs", "rab-input-kode") : ""}</td>
+			<td class="rab-uraian"><span class="rab-chevron">${frappe.utils.icon("right", "sm")}</span>${judul}</td>
+			<td><span class="rab-badge">${__("{0} item", [grup.anak.length])}</span></td>
 			<td></td><td></td><td></td>
 			<td class="rab-angka rab-tebal">${format_rupiah(subtotal)}</td>
 			<td class="rab-angka">${total ? format_number((subtotal / total) * 100, null, 2) : 0}%</td>
+			${sel_biaya(`<td class="rab-angka rab-tebal rab-biaya">${subbiaya ? format_rupiah(subbiaya) : ""}</td>
+				<td class="rab-angka rab-biaya">${persen_margin(subtotal, subbiaya)}</td>`)}
+			<td class="rab-aksi-sel">${
+				hak.ubah_harga && grup.induk
+					? `<button class="rab-aksi rab-tambah-anak" data-grup="${esc(grup.key)}" title="${__("Tambah item di kelompok ini")}">${frappe.utils.icon("add", "xs")}</button>`
+					: ""
+			}${grup.induk ? aksi_hapus(grup.induk) : ""}</td>
 		</tr>`;
 
 		if (!terbuka) return;
 		anak.forEach((item) => {
 			const level = Math.max((item.kode_wbs || "").split(".").length - 1, 1);
 			rows += `<tr class="rab-item ${flt(item.harga_satuan) ? "" : "rab-belum-harga"}" data-row="${item.name}">
-				<td class="rab-no">${esc(item.kode_wbs || "")}</td>
-				<td class="rab-uraian" style="padding-left: ${12 + level * 22}px">${esc(item.uraian_pekerjaan || "")}</td>
-				<td class="rab-spek">${esc(item.spesifikasi || "")}</td>
-				<td class="rab-tengah">${esc(item.satuan || "")}</td>
-				<td class="rab-angka">${format_volume(item.volume)}</td>
-				<td class="rab-angka">${format_rupiah(item.harga_satuan)}</td>
-				<td class="rab-angka">${format_rupiah(item.jumlah_harga)}</td>
-				<td class="rab-angka">${format_number(flt(item.bobot), null, 2)}%</td>
+				<td>${sel(item, "kode_wbs", "rab-input-kode")}</td>
+				<td class="rab-uraian" style="padding-left: ${8 + level * 18}px">${sel(item, "uraian_pekerjaan")}</td>
+				<td>${sel(item, "spesifikasi")}</td>
+				<td>${sel(item, "satuan", "rab-input-tengah")}</td>
+				<td>${sel(item, "volume")}</td>
+				<td>${sel(item, "harga_satuan")}</td>
+				<td class="rab-angka">${flt(item.jumlah_harga) ? format_rupiah(item.jumlah_harga) : ""}</td>
+				<td class="rab-angka">${flt(item.bobot) ? `${format_number(flt(item.bobot), null, 2)}%` : ""}</td>
+				${sel_biaya(`<td class="rab-biaya">${sel(item, "harga_satuan_pokok")}</td>
+					<td class="rab-angka rab-biaya">${persen_margin(item.jumlah_harga, item.jumlah_biaya)}</td>`)}
+				<td class="rab-aksi-sel">${aksi_hapus(item)}</td>
 			</tr>`;
 		});
 	});
 
 	if (!rows) {
-		rows = `<tr><td colspan="8" class="rab-kosong">${
-			items.length ? __("Tidak ada item yang cocok.") : __("Belum ada item. Tambah item atau upload Excel.")
+		rows = `<tr><td colspan="${kolom}" class="rab-kosong">${
+			items.length ? __("Tidak ada item yang cocok.") : __("Belum ada item. Klik + Kelompok untuk mulai, atau Excel → Upload Excel.")
 		}</td></tr>`;
 	}
+	const total_biaya = flt(frm.doc.total_biaya);
+	const kaki = items.length
+		? `<tfoot><tr>
+			<td></td><td class="rab-tebal">${__("Total sebelum PPN")}</td><td></td><td></td><td></td><td></td>
+			<td class="rab-angka rab-tebal">${format_rupiah(total)}</td><td class="rab-angka">100%</td>
+			${sel_biaya(`<td class="rab-angka rab-tebal rab-biaya">${total_biaya ? format_rupiah(total_biaya) : ""}</td>
+				<td class="rab-angka rab-tebal rab-biaya">${persen_margin(total, total_biaya)}</td>`)}
+			<td></td>
+		</tr></tfoot>`
+		: "";
+
+	const lebar = hak.lihat_biaya ? [6, 22, 13, 6, 7, 11, 12, 6, 11, 6] : [6, 27, 16, 6, 8, 13, 15, 9];
+	const fokus = simpan_fokus(field.$wrapper);
 
 	field.$wrapper.html(`
 		<div class="rab-tree">
@@ -273,34 +329,65 @@ function render_rab_tree(frm) {
 					<input type="checkbox" ${state.belum_harga ? "checked" : ""}> ${__("Hanya yang belum ada harga")}
 				</label>
 				${
-					harga_terkunci(frm)
-						? ""
-						: `<button class="btn btn-default btn-sm rab-tambah">${frappe.utils.icon("add", "sm")} ${__("Tambah Item")}</button>`
+					hak.ubah_harga
+						? `<button class="btn btn-default btn-sm rab-tambah-kelompok">${frappe.utils.icon("add", "sm")} ${__("Kelompok")}</button>`
+						: ""
 				}
 			</div>
-			<table class="rab-table">
-				<thead><tr>
-					<th class="rab-no">${__("No")}</th>
-					<th>${__("Uraian Pekerjaan")}</th>
-					<th class="rab-spek">${__("Spesifikasi")}</th>
-					<th class="rab-tengah">${__("Satuan")}</th>
-					<th class="rab-angka">${__("Volume")}</th>
-					<th class="rab-angka">${__("Harga Satuan")}</th>
-					<th class="rab-angka">${__("Jumlah Harga")}</th>
-					<th class="rab-angka">${__("Bobot")}</th>
-				</tr></thead>
-				<tbody>${rows}</tbody>
-			</table>
+			<div class="rab-table-wrap">
+				<table class="rab-table">
+					<colgroup>${lebar.map((w) => `<col style="width: ${w}%">`).join("")}<col style="width: 64px"></colgroup>
+					<thead><tr>
+						<th>${__("No")}</th>
+						<th>${__("Uraian Pekerjaan")}</th>
+						<th>${__("Spesifikasi")}</th>
+						<th class="rab-tengah">${__("Satuan")}</th>
+						<th class="rab-angka">${__("Volume")}</th>
+						<th class="rab-angka">${__("Harga Satuan")}</th>
+						<th class="rab-angka">${__("Jumlah Harga")}</th>
+						<th class="rab-angka">${__("Bobot")}</th>
+						${sel_biaya(`<th class="rab-angka rab-biaya">${__("Harga Pokok")}</th><th class="rab-angka rab-biaya">${__("Margin")}</th>`)}
+						<th></th>
+					</tr></thead>
+					<tbody>${rows}</tbody>
+					${kaki}
+				</table>
+			</div>
+			<datalist id="rab-saran-uraian">${(frm.__saran_uraian || []).map((s) => `<option value="${esc(s)}">`).join("")}</datalist>
+			${
+				hak.lihat_biaya
+					? `<div class="rab-catatan">${frappe.utils.icon("lock", "xs")} ${__("Kolom Harga Pokok & Margin hanya terlihat oleh Projects Manager dan tidak ikut tercetak.")}</div>`
+					: ""
+			}
 		</div>`);
 
-	const $w = field.$wrapper;
+	pulihkan_fokus(field.$wrapper, fokus);
+	pasang_event_rab(frm, field.$wrapper, state, items);
+}
+
+// Tabel dirender ulang tiap angka berubah; kursor dikembalikan ke sel yang sedang diisi.
+function simpan_fokus($w) {
+	const aktif = document.activeElement;
+	if (!aktif || !$w[0].contains(aktif) || !aktif.dataset?.row) return null;
+	return { row: aktif.dataset.row, field: aktif.dataset.field, pos: aktif.selectionStart };
+}
+
+function pulihkan_fokus($w, fokus) {
+	if (!fokus) return;
+	const input = $w.find(`.rab-input[data-row="${fokus.row}"][data-field="${fokus.field}"]`)[0];
+	if (!input) return;
+	input.focus();
+	if (fokus.pos != null) input.setSelectionRange(fokus.pos, fokus.pos);
+}
+
+function pasang_event_rab(frm, $w, state, items) {
 	const semua_grup = () => kelompokkan_item(items).map((g) => g.key);
 	$w.find(".rab-buka-semua").on("click", () => {
-		state.buka = new Set(semua_grup());
+		state.tutup.clear();
 		render_rab_tree(frm);
 	});
 	$w.find(".rab-tutup-semua").on("click", () => {
-		state.buka.clear();
+		state.tutup = new Set(semua_grup());
 		render_rab_tree(frm);
 	});
 	$w.find(".rab-cari input").on(
@@ -317,20 +404,68 @@ function render_rab_tree(frm) {
 		state.belum_harga = e.target.checked;
 		render_rab_tree(frm);
 	});
-	$w.find(".rab-tambah").on("click", () => {
-		const row = frm.add_child("items");
-		frm.refresh_field("items");
-		render_rab_tree(frm);
-		frm.fields_dict.items.grid.grid_rows_by_docname[row.name]?.show_form();
-	});
+
+	// Buka/tutup kelompok: klik baris kelompok di luar sel input & tombol.
 	$w.find("tr.rab-grup").on("click", function (e) {
-		if ($(e.target).closest(".rab-judul[data-row]").length) return;
+		if ($(e.target).closest("input, button").length) return;
 		const key = $(this).attr("data-grup");
-		state.buka.has(key) ? state.buka.delete(key) : state.buka.add(key);
+		state.tutup.has(key) ? state.tutup.delete(key) : state.tutup.add(key);
 		render_rab_tree(frm);
 	});
-	$w.find("tr.rab-item, .rab-judul[data-row]").on("click", function (e) {
+
+	// Simpan isian sel ke tabel item; angka dihitung ulang lewat event field (hitung_total).
+	$w.find(".rab-input")
+		// Angka tetap berformat lokal (mis. 7.500.000); flt() membacanya sesuai format angka sistem.
+		.on("focus", function () {
+			this.select();
+		})
+		.on("change", function () {
+			const { row, field } = this.dataset;
+			const nilai = FIELD_ANGKA.includes(field) ? flt(this.value) : this.value.trim();
+			frappe.model.set_value(ITEM_DOCTYPE, row, field, nilai);
+		})
+		.on("keydown", function (e) {
+			// Enter: pindah ke sel yang sama di baris berikutnya.
+			if (e.key !== "Enter") return;
+			e.preventDefault();
+			const sejenis = $w.find(`.rab-input[data-field="${this.dataset.field}"]`).toArray();
+			const berikut = sejenis[sejenis.indexOf(this) + 1];
+			$(this).trigger("change");
+			if (berikut) setTimeout(() => $w.find(`.rab-input[data-row="${berikut.dataset.row}"][data-field="${this.dataset.field}"]`).focus(), 50);
+		});
+
+	const tambah = (kode, induk) => {
+		const row = frm.add_child("items", { kode_wbs: kode });
+		frm.refresh_field("items");
+		if (induk) state.tutup.delete(induk);
+		frm.dirty();
+		render_rab_tree(frm);
+		frm.fields_dict.rab_tree.$wrapper.find(`.rab-input[data-row="${row.name}"][data-field="uraian_pekerjaan"]`).focus();
+	};
+	$w.find(".rab-tambah-kelompok").on("click", () => tambah(kode_berikutnya(items, null)));
+	$w.find(".rab-tambah-anak").on("click", function (e) {
 		e.stopPropagation();
-		frm.fields_dict.items.grid.grid_rows_by_docname[$(this).attr("data-row")]?.show_form();
+		const grup = $(this).attr("data-grup");
+		tambah(kode_berikutnya(items, grup), grup);
+	});
+
+	$w.find(".rab-hapus").on("click", function (e) {
+		e.stopPropagation();
+		const item = locals[ITEM_DOCTYPE][$(this).attr("data-row")];
+		if (!item) return;
+		const induk = !(item.kode_wbs || "").includes(".") && (item.kode_wbs || "").trim();
+		const pesan = induk
+			? __("Hapus judul kelompok <b>{0}</b>? Item di dalamnya tidak ikut terhapus (pindah ke Tanpa Kode WBS).", [
+					frappe.utils.escape_html(item.uraian_pekerjaan || item.kode_wbs),
+			  ])
+			: __("Hapus item <b>{0}</b>?", [frappe.utils.escape_html(item.uraian_pekerjaan || __("tanpa uraian"))]);
+		frappe.confirm(pesan, () => {
+			frm.doc.items = frm.doc.items.filter((i) => i.name !== item.name);
+			frm.doc.items.forEach((i, idx) => (i.idx = idx + 1));
+			frappe.model.clear_doc(ITEM_DOCTYPE, item.name);
+			frm.refresh_field("items");
+			frm.dirty();
+			hitung_total(frm);
+		});
 	});
 }

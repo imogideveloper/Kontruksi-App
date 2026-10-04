@@ -256,7 +256,7 @@ body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .
 	background-color: #fffaf0;
 }
 
-/* RAB Penawaran: tampilan item berkelompok per WBS (field rab_tree). */
+/* RAB Penawaran: tabel item tunggal (rab_penawaran.js) — berkelompok per WBS, tiap sel bisa diketik langsung. */
 .rab-tree .rab-toolbar {
 	display: flex;
 	flex-wrap: wrap;
@@ -278,12 +278,18 @@ body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .
 	cursor: pointer;
 }
 
-.rab-tree .rab-tambah {
+.rab-tree .rab-tambah-kelompok {
 	margin-left: auto;
+}
+
+.rab-tree .rab-table-wrap {
+	overflow-x: auto;
+	border: 1px solid var(--border-color);
 }
 
 .rab-tree .rab-table {
 	width: 100%;
+	min-width: 980px;
 	border-collapse: collapse;
 	table-layout: fixed;
 }
@@ -292,53 +298,85 @@ body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .
 	position: sticky;
 	top: 0;
 	z-index: 1;
+	padding: 10px 8px;
 	background: var(--konstruksi-active-bg);
 	color: var(--konstruksi-header-fg);
 	font-size: var(--text-xs);
 	font-weight: 600;
-	text-transform: uppercase;
 	letter-spacing: 0.03em;
-	padding: 10px 12px;
+	text-transform: uppercase;
 	white-space: nowrap;
 }
 
 .rab-tree .rab-table td {
-	padding: 10px 12px;
+	padding: 3px 8px;
 	border-bottom: 1px solid var(--border-color);
 	vertical-align: middle;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	height: 38px;
 }
-
-.rab-tree .rab-table th:nth-child(1) { width: 5%; }
-.rab-tree .rab-table th:nth-child(2) { width: 30%; }
-.rab-tree .rab-table th:nth-child(3) { width: 15%; }
-.rab-tree .rab-table th:nth-child(4) { width: 7%; }
-.rab-tree .rab-table th:nth-child(5) { width: 7%; }
-.rab-tree .rab-table th:nth-child(6) { width: 12%; }
-.rab-tree .rab-table th:nth-child(7) { width: 16%; }
-.rab-tree .rab-table th:nth-child(8) { width: 8%; }
 
 .rab-tree .rab-angka { text-align: right; }
 .rab-tree .rab-tengah { text-align: center; }
 .rab-tree .rab-tebal { font-weight: 600; }
+
+/* Sel input tampil seperti teks biasa; garis muncul saat diarahkan kursor, kotak biru saat diketik. */
+.rab-tree .rab-input {
+	width: 100%;
+	padding: 4px 6px;
+	border: 1px solid transparent;
+	border-radius: 4px;
+	background: transparent;
+	color: var(--text-color);
+	font-size: var(--text-base);
+	outline: none;
+	text-overflow: ellipsis;
+}
+
+.rab-tree .rab-input:hover {
+	border-color: var(--border-color);
+	background: var(--fg-color, #fff);
+}
+
+.rab-tree .rab-input:focus {
+	border-color: var(--konstruksi-active-accent);
+	background: var(--fg-color, #fff);
+	box-shadow: 0 0 0 2px rgba(60, 125, 209, 0.15);
+}
+
+.rab-tree .rab-input-angka { text-align: right; }
+.rab-tree .rab-input-tengah { text-align: center; }
+.rab-tree .rab-input-kode { font-variant-numeric: tabular-nums; }
+.rab-tree .rab-input-judul { font-weight: 600; }
+
+.rab-tree .rab-teks {
+	display: block;
+	padding: 4px 6px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.rab-tree td:has(.rab-input-angka) .rab-teks,
+.rab-tree td:has(.rab-teks):nth-child(n + 5) .rab-teks {
+	text-align: right;
+}
 
 .rab-tree tr.rab-grup {
 	background: var(--subtle-fg, #f8f9fb);
 	cursor: pointer;
 }
 
-.rab-tree tr.rab-grup td {
-	font-size: var(--text-md);
-	color: var(--text-color);
+.rab-tree tr.rab-grup .rab-uraian {
+	display: flex;
+	align-items: center;
 }
 
 .rab-tree tr.rab-grup .rab-chevron {
 	display: inline-flex;
-	vertical-align: middle;
-	margin-right: 6px;
-	color: var(--konstruksi-active-accent);
+	flex-shrink: 0;
+	margin-right: 4px;
 	transition: transform 0.15s;
 }
 
@@ -350,10 +388,6 @@ body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .
 	transform: rotate(90deg);
 }
 
-.rab-tree .rab-judul[data-row]:hover {
-	text-decoration: underline;
-}
-
 .rab-tree .rab-badge {
 	padding: 1px 8px;
 	border-radius: 10px;
@@ -362,22 +396,69 @@ body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .
 	font-size: var(--text-xs);
 }
 
-.rab-tree tr.rab-item {
-	cursor: pointer;
-}
-
 .rab-tree tr.rab-item:hover {
-	background: var(--konstruksi-active-bg);
+	background: #f6f9fe;
 }
 
-.rab-tree tr.rab-belum-harga td:nth-child(6) {
+/* Item tanpa harga: sel harga satuan diberi tanda merah tipis. */
+.rab-tree tr.rab-belum-harga td:nth-child(6) .rab-input,
+.rab-tree tr.rab-belum-harga td:nth-child(6) .rab-teks {
+	border-bottom: 2px solid var(--red-300, #f5a3a3);
+}
+
+.rab-tree .rab-biaya {
+	background-color: #fffaf0;
+}
+
+.rab-tree tfoot td {
+	border-top: 2px solid var(--border-color);
+	border-bottom: none;
+	background: var(--subtle-fg, #f8f9fb);
+}
+
+.rab-tree .rab-aksi-sel {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.rab-tree .rab-aksi {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	border: none;
+	border-radius: 6px;
+	background: transparent;
+	color: var(--text-muted);
+	opacity: 0;
+	transition: opacity 0.15s;
+}
+
+.rab-tree tr:hover .rab-aksi,
+.rab-tree .rab-aksi:focus {
+	opacity: 1;
+}
+
+.rab-tree .rab-aksi:hover {
+	background: var(--gray-100, #f3f3f3);
+}
+
+.rab-tree .rab-hapus:hover {
 	color: var(--red-500, #e03636);
 }
 
 .rab-tree .rab-kosong {
+	padding: 24px;
 	text-align: center;
 	color: var(--text-muted);
-	padding: 24px;
+	white-space: normal;
+}
+
+.rab-tree .rab-catatan {
+	margin-top: 8px;
+	font-size: var(--text-sm);
+	color: var(--text-muted);
 }
 
 /* List view: tombol Group & judul kelompok (list_group_by.bundle.js). */

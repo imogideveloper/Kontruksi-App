@@ -189,13 +189,14 @@
   {
    "fieldname": "rab_tree",
    "fieldtype": "HTML",
-   "label": "Item Pekerjaan (Berkelompok)"
+   "label": "Item Pekerjaan"
   },
   {
    "fieldname": "items_section",
    "fieldtype": "Section Break",
    "label": "Edit Item (Tabel)",
-   "collapsible": 1
+   "hidden": 1,
+   "description": "Disembunyikan: item diisi lewat tabel Item Pekerjaan di atas (rab_penawaran.js)."
   },
   {
    "fieldname": "items",
@@ -206,7 +207,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-06 15:00:00.000000",
+ "modified": "2026-10-06 17:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "RAB Penawaran",
