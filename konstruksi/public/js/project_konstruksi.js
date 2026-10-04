@@ -77,6 +77,7 @@
 				frm.add_custom_button(__("Tender"), () => frappe.set_route("Form", "Tender", frm.doc.tender), __("Buka"));
 			}
 			if (!frm.is_new()) {
+				frm.add_custom_button(__("Project Calendar"), () => frappe.set_route("project-calendar", frm.doc.name), __("Buka"));
 				muat_dashboard(frm);
 				muat_tim(frm);
 			}

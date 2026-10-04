@@ -2327,3 +2327,432 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 		text-align: right;
 	}
 }
+
+/* Project Calendar (page/project_calendar): kalender bulanan + panel Hari Kerja, Hari Libur, Agenda Mendatang. */
+.kpc {
+	--kpc-biru: #2f6fd1;
+	--kpc-biru-bg: #e8f1fd;
+	--kpc-merah: #dc2626;
+	--kpc-merah-bg: #fdecec;
+	--kpc-ungu: #7c3aed;
+	--kpc-ungu-bg: #f1ebfe;
+	--kpc-hijau: #15803d;
+	--kpc-hijau-bg: #e7f6ec;
+	--kpc-arsir: rgba(100, 116, 139, 0.09);
+	--kpc-garis: var(--border-color);
+	padding: 4px 0 24px;
+}
+
+[data-theme="dark"] .kpc {
+	--kpc-biru: #7aa7f0;
+	--kpc-biru-bg: rgba(47, 111, 209, 0.22);
+	--kpc-merah: #f28b8b;
+	--kpc-merah-bg: rgba(220, 38, 38, 0.2);
+	--kpc-ungu: #b794f6;
+	--kpc-ungu-bg: rgba(124, 58, 237, 0.22);
+	--kpc-hijau: #6fcf8f;
+	--kpc-hijau-bg: rgba(21, 128, 61, 0.22);
+	--kpc-arsir: rgba(148, 163, 184, 0.1);
+}
+
+.kpc-kosong {
+	padding: 60px 20px;
+	text-align: center;
+	color: var(--text-muted);
+}
+
+.kpc-head {
+	margin-bottom: 16px;
+}
+
+.kpc-crumb {
+	font-size: var(--text-sm);
+	font-weight: 500;
+	color: var(--kpc-biru) !important;
+}
+
+.kpc-sub {
+	margin: 2px 0 8px;
+	color: var(--text-muted);
+}
+
+.kpc-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.kpc-chip {
+	display: inline-flex;
+	align-items: center;
+	padding: 2px 10px;
+	border-radius: 999px;
+	background: var(--subtle-fg, #f3f3f3);
+	font-size: var(--text-xs);
+	color: var(--text-color);
+	white-space: nowrap;
+}
+
+.kpc-chip-blue { background: var(--kpc-biru-bg); color: var(--kpc-biru); }
+.kpc-chip-red { background: var(--kpc-merah-bg); color: var(--kpc-merah); }
+
+.kpc-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 320px;
+	gap: 16px;
+	align-items: start;
+}
+
+@media (max-width: 991px) {
+	.kpc-layout {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.kpc-card {
+	padding: 16px 18px;
+	border: 1px solid var(--border-color);
+	border-radius: 12px;
+	background: var(--fg-color, #fff);
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+}
+
+.kpc-side {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	min-width: 0;
+}
+
+.kpc-card-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: 10px;
+}
+
+.kpc-card-title {
+	font-size: var(--text-lg);
+	font-weight: 600;
+	color: var(--heading-color, var(--text-color));
+}
+
+.kpc-card-actions {
+	display: flex;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
+.kpc-count {
+	margin-left: 4px;
+	padding: 0 7px;
+	border-radius: 999px;
+	background: var(--subtle-fg, #f3f3f3);
+	font-size: var(--text-xs);
+	font-weight: 500;
+	color: var(--text-muted);
+	vertical-align: middle;
+}
+
+.kpc-note {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
+/* Navigasi bulan */
+.kpc-nav {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+
+.kpc-nav-judul {
+	min-width: 150px;
+	font-size: var(--text-xl);
+	font-weight: 600;
+	text-align: center;
+	color: var(--heading-color, var(--text-color));
+}
+
+.kpc-nav-btn {
+	padding: 4px 6px;
+}
+
+/* Grid bulan: 7 kolom, 6 baris */
+.kpc-grid {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	border-top: 1px solid var(--kpc-garis);
+	border-left: 1px solid var(--kpc-garis);
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.kpc-dow {
+	padding: 6px 4px;
+	border-right: 1px solid var(--kpc-garis);
+	border-bottom: 1px solid var(--kpc-garis);
+	background: var(--subtle-fg, #f7f7f7);
+	font-size: var(--text-sm);
+	font-weight: 500;
+	text-align: center;
+	color: var(--text-muted);
+}
+
+.kpc-day {
+	min-height: 104px;
+	min-width: 0;
+	padding: 6px;
+	border-right: 1px solid var(--kpc-garis);
+	border-bottom: 1px solid var(--kpc-garis);
+	cursor: pointer;
+	transition: background-color 0.12s;
+}
+
+.kpc-day:hover {
+	background-color: var(--kpc-biru-bg);
+}
+
+/* Hari tidak kerja mingguan: arsir diagonal */
+.kpc-day.kpc-off {
+	background-image: repeating-linear-gradient(135deg, var(--kpc-arsir) 0 6px, transparent 6px 12px);
+}
+
+.kpc-day.kpc-libur {
+	background-color: var(--kpc-merah-bg);
+}
+
+.kpc-day.kpc-luar-bulan .kpc-day-num,
+.kpc-day.kpc-luar-bulan .kpc-ev {
+	opacity: 0.45;
+}
+
+.kpc-day.kpc-luar-periode:not(.kpc-luar-bulan) .kpc-day-num {
+	color: var(--text-muted);
+}
+
+.kpc-day-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 4px;
+}
+
+.kpc-day-num {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 24px;
+	height: 22px;
+	padding: 0 6px;
+	border-radius: 999px;
+	font-size: var(--text-sm);
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.kpc-day.kpc-libur .kpc-day-num {
+	color: var(--kpc-merah);
+}
+
+.kpc-day.kpc-today .kpc-day-num {
+	background: var(--kpc-biru);
+	color: #fff;
+}
+
+.kpc-day-count {
+	min-width: 20px;
+	padding: 0 6px;
+	border-radius: 999px;
+	background: var(--subtle-fg, #eef0f2);
+	font-size: 11px;
+	line-height: 18px;
+	text-align: center;
+	color: var(--text-muted);
+}
+
+/* Isi sel: satu baris, dipotong dengan … (judul lengkap di tooltip) */
+.kpc-ev {
+	margin-top: 3px;
+	padding: 1px 6px;
+	border-radius: 4px;
+	font-size: 11px;
+	line-height: 17px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.kpc-ev-libur { background: var(--kpc-merah-bg); color: var(--kpc-merah); font-weight: 500; }
+.kpc-ev-milestone { background: var(--kpc-ungu-bg); color: var(--kpc-ungu); }
+.kpc-ev-agenda { background: var(--kpc-biru-bg); color: var(--kpc-biru); }
+.kpc-ev-penanda { background: var(--kpc-hijau-bg); color: var(--kpc-hijau); font-weight: 500; }
+.kpc-ev-milestone:hover,
+.kpc-ev-agenda:hover { filter: brightness(0.95); }
+
+.kpc-day.kpc-libur .kpc-ev-libur {
+	background: transparent;
+	padding-left: 0;
+}
+
+.kpc-ev-lebih {
+	margin-top: 2px;
+	font-size: 11px;
+	color: var(--text-muted);
+}
+
+/* Legenda */
+.kpc-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 16px;
+	margin-top: 12px;
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
+.kpc-legend span {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.kpc-dot {
+	display: inline-block;
+	width: 14px;
+	height: 10px;
+	border-radius: 3px;
+}
+
+.kpc-dot-libur { background: var(--kpc-merah); }
+.kpc-dot-milestone { background: var(--kpc-ungu); }
+.kpc-dot-agenda { background: var(--kpc-biru); }
+.kpc-dot-penanda { background: var(--kpc-hijau); }
+.kpc-dot-count { background: var(--subtle-fg, #eef0f2); border: 1px solid var(--border-color); }
+.kpc-dot-off { background-image: repeating-linear-gradient(135deg, rgba(100, 116, 139, 0.45) 0 2px, transparent 2px 4px); border: 1px solid var(--border-color); }
+
+/* Panel Hari Kerja */
+.kpc-hk-row {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 4px;
+	margin-bottom: 10px;
+}
+
+.kpc-hk {
+	padding: 6px 0;
+	border: 1px solid var(--border-color);
+	border-radius: 6px;
+	background: var(--fg-color, #fff);
+	font-size: var(--text-sm);
+	font-weight: 500;
+	color: var(--text-muted);
+	cursor: pointer;
+}
+
+.kpc-hk.kpc-hk-on {
+	border-color: var(--kpc-biru);
+	background: var(--kpc-biru);
+	color: #fff;
+}
+
+.kpc-hk:disabled {
+	cursor: default;
+	opacity: 0.8;
+}
+
+/* Daftar (hari libur, agenda) */
+.kpc-list {
+	display: flex;
+	flex-direction: column;
+	max-height: 340px;
+	overflow-y: auto;
+	margin: 0 -6px;
+}
+
+.kpc-list-dialog {
+	max-height: none;
+	margin-top: 12px;
+}
+
+.kpc-li {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 7px 6px;
+	border-radius: 6px;
+}
+
+.kpc-li-klik {
+	cursor: pointer;
+}
+
+.kpc-li-klik:hover {
+	background: var(--subtle-fg, #f5f5f5);
+}
+
+.kpc-li-lewat {
+	opacity: 0.55;
+}
+
+.kpc-li-dot {
+	flex-shrink: 0;
+	width: 8px;
+	height: 8px;
+	margin-top: 6px;
+	border-radius: 999px;
+}
+
+.kpc-li-isi {
+	flex: 1;
+	min-width: 0;
+}
+
+.kpc-li-judul {
+	font-size: var(--text-sm);
+	font-weight: 500;
+	color: var(--text-color);
+}
+
+.kpc-li-sub {
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+}
+
+.kpc-li-hapus {
+	flex-shrink: 0;
+	padding: 2px;
+	border: 0;
+	border-radius: 4px;
+	background: transparent;
+	color: var(--text-muted);
+	opacity: 0;
+	cursor: pointer;
+}
+
+.kpc-li:hover .kpc-li-hapus {
+	opacity: 1;
+}
+
+.kpc-li-hapus:hover {
+	background: var(--kpc-merah-bg);
+	color: var(--kpc-merah);
+}
+
+@media (max-width: 767px) {
+	.kpc-day {
+		min-height: 64px;
+		padding: 3px;
+	}
+
+	.kpc-ev {
+		font-size: 10px;
+		padding: 0 3px;
+	}
+
+	.kpc-li-hapus {
+		opacity: 1;
+	}
+}

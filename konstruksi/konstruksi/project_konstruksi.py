@@ -82,6 +82,10 @@ def get_or_create_project(kontrak_project):
 	)
 	# ID Project = ID kontrak, bukan seri PROJ-####, supaya mudah ditelusuri.
 	project.insert(set_name=kontrak.name)
+	# Kalender proyek (hari kerja Senin–Sabtu + libur nasional) langsung tersedia.
+	from konstruksi.konstruksi.project_calendar import pastikan_kalender
+
+	pastikan_kalender(project.name)
 	return project.name
 
 
@@ -96,6 +100,10 @@ def sinkron_project(kontrak):
 	data.update({"status_proyek": status, "status": STATUS_ERPNEXT.get(status, "Open")})
 	# set_value, bukan save: validasi Project ERPNext (costing, email, dsb.) tidak perlu jalan untuk penyalinan ini.
 	frappe.db.set_value("Project", name, data)
+	# Periode kalender proyek ikut diperluas bila tanggal bertambah (mis. addendum waktu).
+	from konstruksi.konstruksi.project_calendar import pastikan_kalender
+
+	pastikan_kalender(name)
 	beri_tahu_form("Project", name)
 
 

@@ -32,3 +32,4 @@ konstruksi.patches.v1_0.buat_biaya_personel #to-time-timesheet
 konstruksi.patches.v1_0.buat_tim_proyek #gaji-bulanan
 konstruksi.patches.v1_0.buat_biaya_personel #biaya-bulanan
 konstruksi.patches.v1_0.buat_biaya_personel #expense-claim-project
+konstruksi.patches.v1_0.buat_kalender_project
