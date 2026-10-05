@@ -7,6 +7,7 @@ const FIELD_TIDAK_RELEVAN = ["is_pos", "is_debit_note", "apply_tds", "scan_barco
 function rapikan_invoice_konstruksi(frm) {
 	const aktif = Boolean(frm.doc.jenis_tagihan);
 	frm.page.wrapper.toggleClass(KELAS_SI_KONSTRUKSI, aktif);
+	pindahkan_edit_posting(frm, aktif);
 	if (!aktif) return;
 
 	frm.toggle_display(FIELD_TIDAK_RELEVAN, false);
@@ -20,6 +21,21 @@ function rapikan_invoice_konstruksi(frm) {
 
 	// Nama customer panjang tetap bisa dibaca utuh saat kursor diarahkan.
 	frm.fields_dict.customer?.$input?.attr("title", frm.doc.customer || "");
+}
+
+// Checkbox "Edit Posting Date and Time" dipindah ke bawah "Is Return (Credit Note)" (kolom checkbox). Objek form
+// dipakai ulang untuk semua Sales Invoice, jadi posisi aslinya dicatat dan dikembalikan untuk invoice biasa.
+function pindahkan_edit_posting(frm, aktif) {
+	const edit = frm.fields_dict.set_posting_time?.$wrapper;
+	const is_return = frm.fields_dict.is_return?.$wrapper;
+	if (!edit?.length || !is_return?.length) return;
+	if (!frm.__kpsi_posisi_edit) frm.__kpsi_posisi_edit = { induk: edit.parent(), sebelum: edit.prev() };
+	if (aktif) {
+		edit.insertAfter(is_return);
+	} else {
+		const { induk, sebelum } = frm.__kpsi_posisi_edit;
+		sebelum.length ? edit.insertAfter(sebelum) : edit.prependTo(induk);
+	}
 }
 
 frappe.ui.form.on("Sales Invoice", {
