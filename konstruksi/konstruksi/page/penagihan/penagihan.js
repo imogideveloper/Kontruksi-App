@@ -234,24 +234,26 @@ class HalamanPenagihan {
 		const inv = um.invoice;
 		let aksi;
 		if (inv) {
-			aksi = `${kpg_status_inv(inv)} <a class="btn btn-default btn-sm" href="/app/sales-invoice/${encodeURIComponent(inv.name)}">${kpg_esc(inv.name)}</a>`;
+			aksi = `${kpg_status_inv(inv)} <a class="btn btn-default btn-xs" href="/app/sales-invoice/${encodeURIComponent(inv.name)}">${kpg_esc(inv.name)}</a>`;
 			if (inv.docstatus === 1 && flt(inv.outstanding_amount) > 0.5) aksi += ` ${this.tombol_bayar(inv.name, "semua", __("Catat Pembayaran"))}`;
 		} else if (!k.jaminan_um) aksi = `<span class="kpbs-var kpbs-var-mundur" title="${__("Isi & tandai Jaminan Uang Muka di Kontrak Project")}">${__("Jaminan uang muka belum diserahkan")}</span>`;
-		else if (d.bisa_buat) aksi = `<button class="btn btn-primary btn-sm" data-kpg="tagih-um">${frappe.utils.icon("receipt", "xs")} ${__("Buat Tagihan Uang Muka")}</button>`;
+		else if (d.bisa_buat) aksi = `<button class="btn btn-primary btn-xs" data-kpg="tagih-um">${frappe.utils.icon("receipt", "xs")} ${__("Buat Tagihan Uang Muka")}</button>`;
 		else aksi = "";
 		const dasar = k.um_nilai
 			? __("{0}% × nilai kontrak awal {1} (sebelum addendum)", [format_number(k.um_persen, null, 2), kpg_rp(k.nilai_kontrak_awal)])
 			: __("{0}% × nilai kontrak", [format_number(k.um_persen, null, 2)]);
 		return `<div class="kptl-card kpbs-tabel-kartu">
 			<div class="kpbs-tabel-judul">${__("Uang Muka {0}%", [format_number(k.um_persen, null, 2)])}
-				<span class="kptl-sub-kecil">${dasar}</span><span class="kpg-aksi-kanan">${aksi}</span></div>
+				<span class="kptl-sub-kecil">${dasar}</span></div>
 			<div class="kptl-tabel-wrap"><table class="kptl-tabel kpg-tabel">
 				<thead><tr><th class="text-right">${__("Nilai Uang Muka (bruto)")}</th><th class="text-right">DPP</th><th class="text-right">${__("PPN")}</th>
-					<th class="text-right">${__("PPh Final")}</th><th class="text-right">${__("Total Tagihan")}</th><th class="text-right">${__("Sisa Piutang")}</th></tr></thead>
+					<th class="text-right">${__("PPh Final")}</th><th class="text-right">${__("Total Tagihan")}</th><th class="text-right">${__("Sisa Piutang")}</th>
+					<th class="text-right">${__("Status / Aksi")}</th></tr></thead>
 				<tbody><tr>
 					<td class="text-right">${kpg_rp(x.bruto)}</td><td class="text-right">${kpg_rp(x.dpp)}</td><td class="text-right">${kpg_rp(x.ppn)}</td>
 					<td class="text-right kptl-merah">−${kpg_rp(x.pph)}</td><td class="text-right"><b>${kpg_rp(inv ? inv.total : x.total)}</b></td>
 					<td class="text-right">${inv && inv.docstatus === 1 ? kpg_rp(inv.outstanding_amount) : "—"}</td>
+					<td class="text-right kpg-aksi">${aksi}</td>
 				</tr></tbody></table></div>
 		</div>`;
 	}
