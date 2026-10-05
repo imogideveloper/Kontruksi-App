@@ -358,10 +358,17 @@ def get_laporan_milestone(project, name):
 			fields=["parent", "nama_tahap"], order_by="idx asc",
 		):
 			tahap.setdefault(r.parent, []).append(r.nama_tahap)
+	# Bobot tahap per aktivitas (untuk pratinjau progres setelah revisi di dialog).
+	bobot_tahap = {}
+	for b in frappe.get_all(
+		"Tahapan Aktivitas", filters={"parent": ("in", list(tasks)), "parenttype": "Task"}, fields=["parent", "nama_tahap", "bobot"]
+	):
+		bobot_tahap.setdefault(b.parent, {})[b.nama_tahap] = flt(b.bobot)
 	for r in rows:
 		t = tasks[r.task]
 		r.update({"aktivitas": t.subject, "kode_wbs": kode.get(t.wbs_item, ""), "metode": t.metode_progres or "Volume",
-			"satuan": t.satuan, "target_volume": t.target_volume, "progres_aktivitas": t.progress, "tahap": tahap.get(r.name, [])})
+			"satuan": t.satuan, "target_volume": t.target_volume, "realisasi_volume": t.realisasi_volume,
+			"progres_aktivitas": t.progress, "tahap": tahap.get(r.name, []), "bobot_tahap": bobot_tahap.get(r.task, {})})
 	return rows
 
 

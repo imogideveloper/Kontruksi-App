@@ -4044,3 +4044,81 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpm2-dialog-batal .frappe-control[data-fieldname="alasan"] select {
 	max-width: 520px;
 }
+
+/* Tabel revisi di dialog Batalkan Status Tercapai: dikelompokkan per aktivitas. */
+.kpm2-dialog-batal .kpm2-revisi {
+	width: 100%;
+	min-width: 900px;
+	table-layout: fixed;
+	border-collapse: separate;
+	border-spacing: 0;
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.kpm2-dialog-batal .kpm2-revisi th {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	padding: 10px 12px;
+	background: var(--konstruksi-active-bg);
+	color: var(--konstruksi-header-fg);
+	font-size: var(--text-sm);
+	font-weight: 600;
+}
+
+.kpm2-dialog-batal .kpm2-revisi td {
+	padding: 10px 12px;
+	border-top: 1px solid var(--border-color);
+	font-size: var(--text-sm);
+	vertical-align: top;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.kpm2-dialog-batal .kpm2-rv-grup td {
+	background: var(--subtle-fg, #f3f4f6);
+	vertical-align: middle;
+}
+
+.kpm2-dialog-batal .kpm2-rv-grup .kpw-badge {
+	margin-left: 6px;
+}
+
+.kpm2-dialog-batal .kpm2-rv-progres {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.kpm2-dialog-batal .kpm2-rv-laporan td:nth-child(2) {
+	padding-left: 4px;
+}
+
+.kpm2-dialog-batal .kpm2-rv-cek {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	font-weight: normal;
+	cursor: pointer;
+}
+
+.kpm2-dialog-batal .kpm2-rv-isian {
+	display: none;
+}
+
+.kpm2-dialog-batal .kpm2-rv-isian .kpm2-rv-cek {
+	display: flex;
+	margin-bottom: 4px;
+}
+
+.kpm2-dialog-batal .kpm2-revisi-wrap {
+	max-height: 380px;
+	overflow: auto;
+}
+
+.kpm2-dialog-batal .kpm2-rv-ringkas {
+	margin-top: 10px;
+	font-size: var(--text-sm);
+}
