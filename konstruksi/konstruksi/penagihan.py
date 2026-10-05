@@ -106,6 +106,8 @@ def invoice_baru(k, jenis, items, keterangan, milestone=None, pajak=None):
 			"company": k.company, "customer": k.customer, "project": k.project, "posting_date": today(),
 			"jenis_tagihan": jenis, "kontrak_project": k.kontrak, "milestone_termin": milestone,
 			"remarks": keterangan,
+			# Nominal tagihan sudah dibulatkan per rupiah dari kontrak: tanpa pembulatan tambahan ERPNext.
+			"disable_rounded_total": 1,
 		}
 	)
 	if k.cost_center:
