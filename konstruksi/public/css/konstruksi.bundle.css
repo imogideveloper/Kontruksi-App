@@ -5752,3 +5752,18 @@ body[data-route^="List/Hasil Tender"] .frappe-list .level-left > .list-row-col:l
 .body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .sidebar-header :is(.title-container, .drop-icon) {
 	display: none !important;
 }
+
+/* Sidebar Konstruksi: menu yang disorot kursor (belum diklik) diberi blok warna — nada lebih muda dari menu aktif,
+   tanpa garis aksen kiri, supaya tetap beda dengan menu yang sedang dibuka. */
+.body-sidebar[data-title="Konstruksi"] .standard-sidebar-item:not(.active-sidebar):has(a.item-anchor:not(.section-break)) {
+	transition: background-color 0.15s ease;
+}
+
+.body-sidebar[data-title="Konstruksi"] .standard-sidebar-item:not(.active-sidebar):has(a.item-anchor:not(.section-break)):is(:hover, :focus-within) {
+	background-color: color-mix(in srgb, var(--konstruksi-active-bg) 65%, transparent) !important;
+	border-radius: var(--konstruksi-block-radius) !important;
+}
+
+.body-sidebar[data-title="Konstruksi"] .standard-sidebar-item:not(.active-sidebar):has(a.item-anchor:not(.section-break)):is(:hover, :focus-within) :is(.sidebar-item-label, .sidebar-item-icon, .sidebar-item-icon .icon) {
+	color: var(--konstruksi-active-fg) !important;
+}
