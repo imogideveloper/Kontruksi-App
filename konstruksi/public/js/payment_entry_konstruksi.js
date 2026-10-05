@@ -95,14 +95,16 @@ function pindahkan_bukti_transfer(frm, aktif) {
 	}
 }
 
-// Cheque/Reference No hanya untuk pembayaran cek / giro. Cara lain (transfer, dsb.) field disembunyikan & tidak wajib;
+// Cheque/Reference No & Date hanya untuk pembayaran cek / giro. Cara lain (transfer, dsb.) field disembunyikan & tidak wajib;
 // server mengisinya otomatis dengan nomor Payment Entry (penagihan.isi_referensi_pembayaran).
 const WAJIB_REFERENSI_ASLI = "eval:(doc.paid_from_account_type == 'Bank' || doc.paid_to_account_type == 'Bank')";
 function atur_referensi_cek(frm, aktif) {
 	const cek = !aktif || /cheque|cek|giro/i.test(frm.doc.mode_of_payment || "");
-	frm.set_df_property("reference_no", "mandatory_depends_on", cek ? WAJIB_REFERENSI_ASLI : "");
-	if (!cek) frm.set_df_property("reference_no", "reqd", 0);
-	frm.toggle_display("reference_no", cek);
+	["reference_no", "reference_date"].forEach((field) => {
+		frm.set_df_property(field, "mandatory_depends_on", cek ? WAJIB_REFERENSI_ASLI : "");
+		if (!cek) frm.set_df_property(field, "reqd", 0);
+		frm.toggle_display(field, cek);
+	});
 }
 
 // Label tanpa akhiran mata uang ("Paid Amount", bukan "Paid Amount (IDR)") untuk penerimaan tagihan proyek.
