@@ -16,6 +16,8 @@ Termin (milestone Tercapai):
 Invoice dibuat Draft — diperiksa / dilampiri dokumen lalu di-submit dari form Sales Invoice.
 """
 
+import re
+
 import frappe
 from frappe import _
 from frappe.utils import add_days, flt, getdate, today
@@ -405,6 +407,27 @@ def lengkapi_pembayaran(pe, inv):
 		or frappe.db.get_value("Project", inv.project, "cost_center")
 		or frappe.get_cached_value("Company", inv.company, "cost_center")
 	)
+
+
+CARA_BAYAR_CEK = re.compile(r"cheque|cek|giro", re.I)
+
+
+def pembayaran_proyek(pe):
+	"""Payment Entry ini menerima pembayaran invoice tagihan proyek (jenis_tagihan terisi)?"""
+	nama = [r.reference_name for r in pe.get("references") or [] if r.reference_doctype == "Sales Invoice" and r.reference_name]
+	return bool(nama) and bool(frappe.db.exists("Sales Invoice", {"name": ("in", nama), "jenis_tagihan": ("is", "set")}))
+
+
+def isi_referensi_pembayaran(doc, method=None):
+	"""Payment Entry before_validate: ERPNext mewajibkan Reference No & Date untuk setiap transaksi rekening bank. Untuk
+	penerimaan tagihan proyek nomor itu hanya wajib bila dibayar dengan cek / giro; selain itu (transfer, dsb.) diisi
+	otomatis nomor Payment Entry ini, tanggalnya = tanggal posting."""
+	if doc.reference_no and doc.reference_date:
+		return
+	if CARA_BAYAR_CEK.search(doc.mode_of_payment or "") or not pembayaran_proyek(doc):
+		return
+	doc.reference_date = doc.reference_date or doc.posting_date
+	doc.reference_no = doc.reference_no or (doc.name if doc.name and not doc.name.startswith("new-") else doc.mode_of_payment or "Transfer")
 
 
 @frappe.whitelist()

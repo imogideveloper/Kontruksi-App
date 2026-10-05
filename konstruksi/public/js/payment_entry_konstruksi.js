@@ -40,6 +40,7 @@ function rapikan_pembayaran_konstruksi(frm) {
 		frm.__kppe_aktif = aktif;
 		frm.page.wrapper.toggleClass(KELAS_PE_KONSTRUKSI, aktif);
 		pindahkan_bukti_transfer(frm, aktif);
+		atur_referensi_cek(frm, aktif);
 		frm.events.set_dynamic_labels?.(frm);
 		if (!aktif) {
 			if (frm.__kppe_headline) frm.dashboard.clear_headline();
@@ -94,6 +95,16 @@ function pindahkan_bukti_transfer(frm, aktif) {
 	}
 }
 
+// Cheque/Reference No hanya untuk pembayaran cek / giro. Cara lain (transfer, dsb.) field disembunyikan & tidak wajib;
+// server mengisinya otomatis dengan nomor Payment Entry (penagihan.isi_referensi_pembayaran).
+const WAJIB_REFERENSI_ASLI = "eval:(doc.paid_from_account_type == 'Bank' || doc.paid_to_account_type == 'Bank')";
+function atur_referensi_cek(frm, aktif) {
+	const cek = !aktif || /cheque|cek|giro/i.test(frm.doc.mode_of_payment || "");
+	frm.set_df_property("reference_no", "mandatory_depends_on", cek ? WAJIB_REFERENSI_ASLI : "");
+	if (!cek) frm.set_df_property("reference_no", "reqd", 0);
+	frm.toggle_display("reference_no", cek);
+}
+
 // Label tanpa akhiran mata uang ("Paid Amount", bukan "Paid Amount (IDR)") untuk penerimaan tagihan proyek.
 function pasang_label_tanpa_mata_uang(frm) {
 	if (frm.__kppe_label) return;
@@ -112,5 +123,8 @@ frappe.ui.form.on("Payment Entry", {
 	refresh(frm) {
 		pasang_label_tanpa_mata_uang(frm);
 		rapikan_pembayaran_konstruksi(frm);
+	},
+	mode_of_payment(frm) {
+		atur_referensi_cek(frm, Boolean(frm.__kppe_aktif));
 	},
 });

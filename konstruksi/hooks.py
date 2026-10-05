@@ -203,6 +203,10 @@ doc_events = {
 		"on_submit": "konstruksi.konstruksi.penagihan.sinkron_milestone",
 		"on_cancel": "konstruksi.konstruksi.penagihan.sinkron_milestone",
 	},
+	# Penerimaan tagihan proyek: No. referensi bank hanya wajib untuk cek / giro.
+	"Payment Entry": {
+		"before_validate": "konstruksi.konstruksi.penagihan.isi_referensi_pembayaran",
+	},
 	# Progres item WBS mengikuti Task yang terhubung.
 	"Task": {
 		"validate": "konstruksi.konstruksi.aktivitas.hitung_task",
