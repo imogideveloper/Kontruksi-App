@@ -181,9 +181,8 @@ class HalamanMilestone {
 					}
 				} else if (ditagih) {
 					tombol.push(`<a class="btn btn-xs btn-default" href="/app/sales-invoice/${encodeURIComponent(m.sales_invoice)}">${frappe.utils.icon("file-text", "xs")} ${kpm2_esc(m.sales_invoice)}</a>`);
-				} else {
-					tombol.push(`<button class="btn btn-xs btn-primary" data-kpm2="tagih" data-name="${kpm2_esc(m.name)}" title="${__("Buat Sales Invoice termin ini (draft)")}">${frappe.utils.icon("receipt", "xs")} ${__("Buat Tagihan")}</button>`);
 				}
+				// Pembuatan invoice termin hanya dari halaman Penagihan (tim finance).
 				return `<tr>
 					<td class="kpw-kode">${m.urutan}</td>
 					<td class="kpa-wrap"><a class="kpa-judul" data-kpm2="ubah" data-name="${kpm2_esc(m.name)}">${kpm2_esc(m.nama_milestone)}</a>
@@ -278,11 +277,6 @@ class HalamanMilestone {
 			case "tercapai":
 			case "dokumen":
 				return this.dialog_tercapai(m, jenis === "dokumen");
-			case "tagih":
-				return frappe
-					.call({ method: "konstruksi.konstruksi.penagihan.buat_tagihan_termin", args: { project: this.project, milestone: name },
-						freeze: true, freeze_message: __("Membuat invoice termin…") })
-					.then((r) => r.message && frappe.set_route("Form", "Sales Invoice", r.message));
 			case "batalkan":
 				return this.dialog_batalkan(m);
 			case "hapus":
