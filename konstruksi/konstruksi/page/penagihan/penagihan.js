@@ -98,8 +98,10 @@ class HalamanPenagihan {
 					<td class="kptl-potong">${kpg_esc(r.customer || "—")}</td>
 					<td class="text-right">${kpg_rp(r.nilai_kontrak)}</td>
 					<td>${progres(r.progres_tagih)}</td>
-					<td><span class="kpbs-var kpbs-var-${warna_um[r.uang_muka] || "sesuai"}">${__(r.uang_muka)}</span></td>
-					<td>${badge_termin(r)}</td>
+					<td class="kpg-sel-tagih">${r.uang_muka_total ? `<span class="kpg-nominal">${kpg_rp(r.uang_muka_total)}</span>` : ""}
+						<span class="kpbs-var kpbs-var-${warna_um[r.uang_muka] || "sesuai"}">${__(r.uang_muka)}</span></td>
+					<td class="kpg-sel-tagih">${r.termin_total_tagih ? `<span class="kpg-nominal">${kpg_rp(r.termin_total_tagih)}</span>` : ""}
+						${badge_termin(r)}</td>
 					<td class="text-right">${kpg_rp(r.diterima)}</td>
 					<td class="text-right">${r.piutang > 0.5 ? `<b>${kpg_rp(r.piutang)}</b>` : kpg_rp(0)}</td>
 					<td class="text-right">${r.retensi_ditahan > 0.5 ? kpg_rp(r.retensi_ditahan) : "—"}</td>

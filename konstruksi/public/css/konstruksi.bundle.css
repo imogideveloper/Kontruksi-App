@@ -5645,3 +5645,12 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	min-width: 38px;
 	text-align: right;
 }
+
+/* Penagihan — daftar proyek: nominal tagihan uang muka / termin + badge status dalam satu baris. */
+.kpg .kpg-sel-tagih {
+	white-space: nowrap;
+}
+
+.kpg .kpg-sel-tagih .kpg-nominal {
+	margin-right: 6px;
+}

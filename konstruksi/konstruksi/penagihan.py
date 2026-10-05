@@ -462,7 +462,9 @@ def get_daftar():
 			p.uang_muka = "Draft"
 		else:
 			p.uang_muka = "Lunas" if flt(um.outstanding_amount) <= 0.5 else "Belum dibayar"
+		p.uang_muka_total = flt(um.rounded_total or um.grand_total) if um else 0
 		termin = [x for x in submitted if extra[x.name].jenis_tagihan == "Termin"]
+		p.termin_total_tagih = sum(x.total for x in termin)
 		p.termin_total = frappe.db.count("Milestone Termin", {"project": p.name})
 		p.termin_ditagih = len({extra[x.name].milestone_termin for x in termin if extra[x.name].milestone_termin})
 		bruto_termin = sum(flt(extra[x.name].nilai_bruto) for x in termin)
