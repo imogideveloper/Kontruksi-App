@@ -359,6 +359,7 @@ def buat_pembayaran(project, invoice, bagian="termin"):
 	pe = get_payment_entry("Sales Invoice", invoice, party_amount=jumlah)
 	pe.project = project
 	cara_bayar_bank(pe)
+	lengkapi_pembayaran(pe, inv)
 	pe.remarks = (
 		_("Penerimaan retensi {0}").format(inv.name) if bagian == "retensi" else _("Penerimaan {0} {1}").format(inv.jenis_tagihan or "", inv.name)
 	)
@@ -379,6 +380,30 @@ def cara_bayar_bank(pe):
 	pe.paid_to = mop[0].default_account
 	pe.paid_to_account_type, pe.paid_to_account_currency = frappe.get_cached_value(
 		"Account", pe.paid_to, ["account_type", "account_currency"]
+	)
+
+
+def lengkapi_pembayaran(pe, inv):
+	"""Isian Payment Entry yang bisa diambil dari invoice / master: kontak customer, rekening bank customer &
+	perusahaan (rekening perusahaan sekaligus jadi Account Paid To), cost center."""
+	from erpnext.accounts.doctype.bank_account.bank_account import get_default_company_bank_account, get_party_bank_account
+	from erpnext.accounts.party import get_default_contact
+
+	pe.contact_person = pe.contact_person or inv.contact_person or get_default_contact("Customer", inv.customer)
+	if pe.contact_person and not pe.contact_email:
+		pe.contact_email = inv.contact_email or frappe.db.get_value("Contact", pe.contact_person, "email_id")
+	pe.party_bank_account = pe.party_bank_account or get_party_bank_account("Customer", inv.customer)
+	pe.bank_account = pe.bank_account or get_default_company_bank_account(inv.company, "Customer", inv.customer)
+	akun_bank = pe.bank_account and frappe.db.get_value("Bank Account", pe.bank_account, "account")
+	if akun_bank:
+		pe.paid_to = akun_bank
+		pe.paid_to_account_type, pe.paid_to_account_currency = frappe.get_cached_value(
+			"Account", akun_bank, ["account_type", "account_currency"]
+		)
+	pe.cost_center = (
+		inv.cost_center
+		or frappe.db.get_value("Project", inv.project, "cost_center")
+		or frappe.get_cached_value("Company", inv.company, "cost_center")
 	)
 
 
