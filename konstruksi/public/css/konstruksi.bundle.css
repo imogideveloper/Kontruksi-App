@@ -5492,3 +5492,32 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpsi .form-section:is([data-fieldname="section_break_43"], [data-fieldname="totals_section"], [data-fieldname="section_break_pxwz"]) .frappe-control[data-fieldtype="Currency"] :is(.like-disabled-input, .form-control) {
 	background-color: var(--konstruksi-active-bg) !important;
 }
+
+/* Sales Invoice tagihan proyek: ringkasan angka di bawah tabel pajak berasal dari 3 section (section_break_43,
+   totals_section, section_break_pxwz) — jarak & garis antar-section dihilangkan supaya jarak antar kotak angka sama
+   (hanya jarak antar-field, var(--konstruksi-field-gap)). */
+.kpsi .form-section:is([data-fieldname="section_break_43"], [data-fieldname="totals_section"], [data-fieldname="section_break_pxwz"]) {
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+	border-bottom: none !important;
+}
+
+.kpsi .form-section:is([data-fieldname="section_break_43"], [data-fieldname="totals_section"], [data-fieldname="section_break_pxwz"]) > .section-body {
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+	margin-top: 0 !important;
+	margin-bottom: 0 !important;
+}
+
+.kpsi .form-section[data-fieldname="section_break_43"] > .section-body {
+	padding-top: 12px !important;
+}
+
+.kpsi .form-section[data-fieldname="section_break_pxwz"] {
+	padding-bottom: 12px !important;
+	border-bottom: 1px solid var(--border-color) !important;
+}
+
+.kpsi .form-section:is([data-fieldname="section_break_43"], [data-fieldname="totals_section"], [data-fieldname="section_break_pxwz"]) .form-column > form > .frappe-control > .form-group {
+	margin-bottom: var(--konstruksi-field-gap) !important;
+}
