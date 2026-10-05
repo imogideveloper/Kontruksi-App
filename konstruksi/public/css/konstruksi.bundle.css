@@ -5547,3 +5547,32 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kppe .form-section[data-fieldname="payment_amounts_section"] > .section-head {
 	display: none !important;
 }
+
+/* Payment Entry penerimaan proyek: angka di bawah tabel Payment References (Total Allocated, Unallocated, Difference)
+   disusun satu tumpukan di kanan, nilai rata kanan, tepi kanannya sejajar kolom Allocated (tabel dikurangi kolom
+   pensil 36px) — sama seperti ringkasan Sales Invoice proyek. */
+@media (min-width: 768px) {
+	.kppe .form-section[data-fieldname="section_break_34"] .section-body {
+		flex-direction: column;
+		align-items: flex-end;
+		padding-right: 36px;
+	}
+
+	.kppe .form-section[data-fieldname="section_break_34"] .section-body > .form-column {
+		flex: 0 0 auto;
+		width: 50%;
+		max-width: 50%;
+	}
+
+	.kppe .form-section[data-fieldname="section_break_34"] .section-body > .form-column:not(:has(.frappe-control:not(.hide-control))) {
+		display: none !important;
+	}
+}
+
+.kppe .form-section[data-fieldname="section_break_34"] .frappe-control[data-fieldtype="Currency"] :is(.control-value, input) {
+	text-align: right;
+}
+
+.kppe .form-section[data-fieldname="section_break_34"] .frappe-control[data-fieldtype="Button"] {
+	text-align: right;
+}
