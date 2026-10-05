@@ -165,7 +165,6 @@ class HalamanTimeline {
 	render_gantt_kerangka() {
 		const skala = [["hari", __("Hari")], ["minggu", __("Minggu")], ["bulan", __("Bulan")], ["tahun", __("Tahun")], ["pas", __("Pas")]];
 		const status = ["Belum Mulai", "Berjalan", "Terlambat", "Selesai"];
-		const semua_tutup = this.data.kelompok.every((g) => this.tertutup.has(g.kode));
 		this.$body.find(".kptl-isi").html(`
 			<div class="kptl-toolbar">
 				<div class="btn-group kptl-skala">${skala
@@ -183,8 +182,11 @@ class HalamanTimeline {
 						<label class="kptl-menu-cek"><input type="checkbox" data-kptl="filter-kritis" ${this.hanya_kritis ? "checked" : ""}> ${__("Hanya jalur kritis")}</label>
 					</div>
 				</div>
+				<div class="btn-group kptl-buka-tutup">
+					<button class="btn btn-default btn-sm" data-kptl="buka-semua" title="${__("Tampilkan semua aktivitas (detail)")}">${frappe.utils.icon("down", "xs")} ${__("Buka semua")}</button>
+					<button class="btn btn-default btn-sm" data-kptl="tutup-semua" title="${__("Tampilkan kelompok WBS saja (ringkasan)")}">${frappe.utils.icon("right", "xs")} ${__("Tutup semua")}</button>
+				</div>
 				<div class="kptl-toolbar-kanan">
-					<button class="btn btn-default btn-sm" data-kptl="tutup-semua" title="${semua_tutup ? __("Buka semua kelompok") : __("Tutup semua kelompok")}">${frappe.utils.icon(semua_tutup ? "chevrons-down" : "chevrons-up", "xs")}</button>
 					<button class="btn btn-default btn-sm" data-kptl="hari-ini">${frappe.utils.icon("calendar", "xs")} ${__("Hari ini")}</button>
 					<div class="dropdown">
 						<button class="btn btn-default btn-sm" data-toggle="dropdown">${frappe.utils.icon("sliders-horizontal", "xs")} ${__("Tampilan")}</button>
@@ -501,11 +503,12 @@ class HalamanTimeline {
 				this.tertutup.has(kode) ? this.tertutup.delete(kode) : this.tertutup.add(kode);
 				return this.render_gantt();
 			}
-			case "tutup-semua": {
-				const semua = this.data.kelompok.every((g) => this.tertutup.has(g.kode));
-				this.tertutup = semua ? new Set() : new Set(this.data.kelompok.map((g) => g.kode));
-				return this.render_gantt_kerangka();
-			}
+			case "buka-semua":
+				this.tertutup = new Set();
+				return this.render_gantt();
+			case "tutup-semua":
+				this.tertutup = new Set(this.data.kelompok.map((g) => g.kode));
+				return this.render_gantt();
 			case "filter-status": {
 				const s = $el.attr("data-status");
 				e.target.checked ? this.filter_status.add(s) : this.filter_status.delete(s);
