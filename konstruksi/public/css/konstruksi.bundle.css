@@ -5576,3 +5576,8 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kppe .form-section[data-fieldname="section_break_34"] .frappe-control[data-fieldtype="Button"] {
 	text-align: right;
 }
+
+/* Sales Invoice tagihan proyek: judul section "Payment Terms" (jadwal pembayaran di tab Payments) disembunyikan. */
+.kpsi .form-section[data-fieldname="payment_schedule_section"] > .section-head {
+	display: none !important;
+}
