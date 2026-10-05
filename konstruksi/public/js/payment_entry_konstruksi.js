@@ -5,7 +5,8 @@
 const KELAS_PE_KONSTRUKSI = "kppe";
 const FIELD_PE_TIDAK_RELEVAN = [
 	"naming_series", "book_advance_payments_in_separate_party_account", "get_outstanding_invoices",
-	"get_outstanding_orders", "taxes_and_charges_section", "section_break_60",
+	"get_outstanding_orders", "taxes_and_charges_section", "section_break_60", "paid_from_account_currency",
+	"paid_to_account_currency",
 ];
 
 // Info invoice proyek yang dirujuk (dicache per invoice).
