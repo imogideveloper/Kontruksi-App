@@ -9,6 +9,9 @@ import { toPng } from "html-to-image";
 const LABEL_CAPTURE = __("Capture seluruh halaman (PNG)");
 // Batas aman kanvas browser (sisi maks. ±16.000 px, luas maks. ±200 juta piksel).
 const SISI_MAKS = 16000;
+// Gambar yang gagal dimuat (404, domain luar tanpa CORS mis. avatar Gravatar) diganti piksel transparan supaya
+// capture tidak batal.
+const GAMBAR_PENGGANTI = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
 const LUAS_MAKS = 200e6;
 
 function nama_file() {
@@ -113,6 +116,7 @@ async function capture_halaman() {
 			pixelRatio: rasio,
 			backgroundColor: latar,
 			cacheBust: true,
+			imagePlaceholder: GAMBAR_PENGGANTI,
 			style: { margin: "0", transform: "none" },
 			// Elemen sementara / overlay tidak ikut digambar.
 			filter: (node) => {
@@ -130,7 +134,10 @@ async function capture_halaman() {
 		frappe.show_alert({ message: __("Gambar tersimpan: {0} ({1}×{2} px)", [a.download, Math.round(w * rasio), Math.round(h * rasio)]), indicator: "green" });
 	} catch (e) {
 		console.error(e);
-		frappe.msgprint({ title: __("Capture gagal"), message: __("Halaman tidak bisa dijadikan gambar: {0}", [e?.message || e]), indicator: "red" });
+		// Error pemuatan gambar / font berupa Event (bukan Error): tampilkan sumbernya supaya jelas.
+		const sumber = e?.target?.src || e?.target?.href || e?.target?.currentSrc;
+		const pesan = e instanceof Event ? __("gagal memuat {0}", [sumber || e.type]) : e?.message || String(e);
+		frappe.msgprint({ title: __("Capture gagal"), message: __("Halaman tidak bisa dijadikan gambar: {0}", [frappe.utils.escape_html(pesan)]), indicator: "red" });
 	} finally {
 		pulihkan_sidebar();
 		pulihkan_scroll();
