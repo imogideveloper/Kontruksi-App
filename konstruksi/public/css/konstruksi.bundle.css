@@ -5462,7 +5462,17 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 @media (min-width: 768px) {
 	.kpsi .form-section[data-fieldname="section_break_43"] .section-body {
 		flex-direction: row;
+		flex-wrap: nowrap;
 		justify-content: space-between;
 		align-items: flex-start;
+	}
+
+	/* Kolom kosong (Total Taxes versi mata uang perusahaan disembunyikan) tidak ikut memakan tempat. */
+	.kpsi .form-section[data-fieldname="section_break_43"] .section-body > .form-column:not(:has(.frappe-control:not(.hide-control))) {
+		display: none !important;
+	}
+
+	.kpsi .form-section[data-fieldname="section_break_43"] .section-body > .form-column:has([data-fieldname="total_taxes_and_charges"]) {
+		margin-left: auto;
 	}
 }
