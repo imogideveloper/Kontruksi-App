@@ -5408,3 +5408,9 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	text-overflow: clip;
 	line-height: 1.4;
 }
+
+/* Sales Invoice tagihan proyek: tombol Download / Upload (bulk edit) di bawah tabel Items disembunyikan. */
+.kpsi .frappe-control[data-fieldname="items"] .grid-download,
+.kpsi .frappe-control[data-fieldname="items"] .grid-upload {
+	display: none !important;
+}
