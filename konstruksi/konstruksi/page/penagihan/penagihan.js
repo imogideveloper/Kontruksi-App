@@ -132,7 +132,6 @@ class HalamanPenagihan {
 				<a class="kptl-crumb" href="/app/project/${encodeURIComponent(p.name)}">${kpg_esc(p.name)} · ${kpg_esc(p.project_name)}</a>
 				<span class="kpbs-sub">${__("Tagihan uang muka & termin ke {0} · kontrak {1}", [kpg_esc(k.customer), kpg_esc(k.nomor_kontrak || k.kontrak)])}</span>
 			</div></div>
-			${this.html_alur()}
 			<div class="kpbs-kartu-baris kpg-kartu-baris">
 				${kartu("abu", __("Nilai Kontrak"), kpg_rp(r.nilai_kontrak), __("Termasuk PPN {0}%", [format_number(k.ppn, null, 0)]))}
 				${kartu("hijau", __("Sudah Ditagih"), kpg_rp(r.ditagih), __("Uang muka + {0} termin ({1} nilai kontrak)", [d.alur.termin_ditagih, kpg_persen(r.persen_ditagih)]))}
@@ -140,6 +139,7 @@ class HalamanPenagihan {
 				${kartu(r.piutang ? "oranye" : "abu", __("Piutang"), kpg_rp(r.piutang), __("Belum dibayar, di luar retensi"))}
 				${kartu(r.retensi_sisa > 0.5 ? (r.retensi_lewat ? "merah" : "oranye") : "abu", __("Retensi Ditahan"), kpg_rp(r.retensi_sisa), retensi_sub)}
 			</div>
+			${this.html_alur()}
 			<div class="kpg-layar">${this.html_layar()}</div>`);
 	}
 

@@ -5388,3 +5388,8 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	background: var(--kptl-berjalan);
 	color: #fff;
 }
+
+/* Penagihan: kartu ringkasan di atas, alur (navigasi layar) tepat di atas isi layar. */
+.kpg .kpg-kartu-baris {
+	margin-bottom: 14px;
+}
