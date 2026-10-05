@@ -5658,9 +5658,23 @@ body[data-route^="List/Hasil Tender"] .frappe-list .list-subject {
 	min-width: 150px;
 }
 
-body[data-route^="List/Hasil Tender"] .frappe-list .list-row-col:is([data-fieldname="nama_project"], [data-fieldname="pemberi_kerja"]) {
-	flex: 1 1 190px !important;
-	min-width: 190px;
+body[data-route^="List/Hasil Tender"] .frappe-list .list-row-col[data-fieldname="nama_project"] {
+	flex: 1 1 170px !important;
+	min-width: 170px;
+}
+
+/* Pemberi Kerja tidak dipotong: lebih lebar & boleh turun baris. */
+body[data-route^="List/Hasil Tender"] .frappe-list .list-row-col[data-fieldname="pemberi_kerja"] {
+	flex: 1 1 240px !important;
+	min-width: 240px;
+	white-space: normal !important;
+	overflow: visible !important;
+	text-overflow: clip !important;
+}
+
+body[data-route^="List/Hasil Tender"] .frappe-list .kpht-utuh {
+	white-space: normal;
+	line-height: 1.35;
 }
 
 body[data-route^="List/Hasil Tender"] .frappe-list .list-row-col:is([data-fieldname="hps"], [data-fieldname="penawaran_kita"]) {
