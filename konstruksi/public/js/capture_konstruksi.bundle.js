@@ -1,12 +1,12 @@
-// Capture Halaman: simpan SELURUH isi halaman desk yang sedang dibuka sebagai PNG — termasuk bagian yang harus
-// di-scroll (tabel lebar, Gantt, daftar panjang), bukan screenshot layar. Tersedia di menu ⋯ setiap halaman
-// (form, list, report, halaman custom) dan shortcut Ctrl+Shift+Alt+S.
+// Capture Halaman: simpan SELURUH UI desk yang sedang dibuka (sidebar kiri + halaman) sebagai PNG — termasuk bagian
+// yang harus di-scroll (tabel lebar, Gantt, daftar panjang), bukan screenshot layar. Tombol ikon kamera di header
+// setiap halaman (form, list, report, halaman custom) dan shortcut Ctrl+Shift+Alt+S.
 //
-// Cara kerja: area halaman (tanpa sidebar) diperbesar sementara — setiap elemen yang bisa di-scroll dibuka penuh —
-// lalu dirender ke gambar dengan html-to-image, kemudian gaya aslinya dikembalikan.
+// Cara kerja: seluruh <body> diperbesar sementara — setiap elemen yang bisa di-scroll dibuka penuh dan sidebar
+// dipanjangkan setinggi isi — lalu dirender ke gambar dengan html-to-image, kemudian gaya aslinya dikembalikan.
 import { toPng } from "html-to-image";
 
-const LABEL_CAPTURE = __("Capture Halaman (PNG)");
+const LABEL_CAPTURE = __("Capture seluruh halaman (PNG)");
 // Batas aman kanvas browser (sisi maks. ±16.000 px, luas maks. ±200 juta piksel).
 const SISI_MAKS = 16000;
 const LUAS_MAKS = 200e6;
@@ -47,18 +47,35 @@ function buka_area_scroll(akar) {
 		asli.reverse().forEach(([el, style]) => (style == null ? el.removeAttribute("style") : el.setAttribute("style", style)));
 }
 
+// Sidebar kiri (fixed / setinggi layar) dipanjangkan setinggi isi halaman supaya ikut tergambar penuh.
+function panjangkan_sidebar(tinggi) {
+	const asli = [];
+	document.querySelectorAll(".body-sidebar-container, .body-sidebar, .body-sidebar-placeholder").forEach((el) => {
+		asli.push([el, el.getAttribute("style")]);
+		el.style.setProperty("height", `${tinggi}px`, "important");
+		el.style.setProperty("max-height", "none", "important");
+		if (getComputedStyle(el).position === "fixed") el.style.setProperty("position", "absolute", "important");
+	});
+	return () => asli.reverse().forEach(([el, style]) => (style == null ? el.removeAttribute("style") : el.setAttribute("style", style)));
+}
+
 async function capture_halaman() {
-	const akar = frappe.container?.page;
-	if (!akar) return frappe.msgprint(__("Tidak ada halaman yang bisa di-capture."));
+	const akar = document.body;
+	if (!frappe.container?.page) return frappe.msgprint(__("Tidak ada halaman yang bisa di-capture."));
 	frappe.show_alert({ message: __("Membuat gambar halaman…"), indicator: "blue" });
 	document.activeElement?.blur?.();
 	$(".dropdown-menu.show").removeClass("show");
-	const pulihkan = buka_area_scroll(akar);
+	const scroll_awal = [window.scrollX, window.scrollY];
+	window.scrollTo(0, 0);
+	const pulihkan_scroll = buka_area_scroll(akar);
+	let pulihkan_sidebar = () => {};
 	try {
 		// Tunggu layout menyesuaikan sebelum diukur.
 		await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-		const w = Math.ceil(akar.scrollWidth);
-		const h = Math.ceil(akar.scrollHeight);
+		pulihkan_sidebar = panjangkan_sidebar(Math.max(document.documentElement.scrollHeight, akar.scrollHeight));
+		await new Promise((r) => requestAnimationFrame(r));
+		const w = Math.ceil(Math.max(akar.scrollWidth, document.documentElement.scrollWidth));
+		const h = Math.ceil(Math.max(akar.scrollHeight, document.documentElement.scrollHeight));
 		const rasio = Math.max(Math.min(window.devicePixelRatio || 1, 2, SISI_MAKS / w, SISI_MAKS / h, Math.sqrt(LUAS_MAKS / (w * h))), 0.25);
 		const latar = getComputedStyle(document.body).backgroundColor || "#ffffff";
 		const data_url = await toPng(akar, {
@@ -71,7 +88,9 @@ async function capture_halaman() {
 			// Elemen sementara / overlay tidak ikut digambar.
 			filter: (node) =>
 				!(node instanceof HTMLElement) ||
-				!node.matches?.(".tooltip, .popover, .desk-alert, .alert-container, .kptl-k-tip, .frappe-toast"),
+				!node.matches?.(
+					".tooltip, .popover, .desk-alert, .alert-container, .kptl-k-tip, .frappe-toast, #all-symbols, #build-events-overlay, .splash, .modal-backdrop"
+				),
 		});
 		const a = document.createElement("a");
 		a.href = data_url;
@@ -82,30 +101,33 @@ async function capture_halaman() {
 		console.error(e);
 		frappe.msgprint({ title: __("Capture gagal"), message: __("Halaman tidak bisa dijadikan gambar: {0}", [e?.message || e]), indicator: "red" });
 	} finally {
-		pulihkan();
+		pulihkan_sidebar();
+		pulihkan_scroll();
+		window.scrollTo(...scroll_awal);
 	}
 }
 
-function pasang_menu(page) {
-	if (!page?.add_menu_item || page.__capture_konstruksi) return;
-	page.add_menu_item(LABEL_CAPTURE, capture_halaman, true);
+// Tombol ikon kamera di grup ikon header halaman.
+function pasang_tombol(page) {
+	if (!page?.add_action_icon || page.__capture_konstruksi) return;
+	page.add_action_icon("camera", capture_halaman, "konstruksi-capture-btn", LABEL_CAPTURE);
 	page.__capture_konstruksi = true;
 }
 
 $(document).on("app_ready", () => {
-	// Menu ⋯ dibuat ulang (clear_menu) tiap refresh halaman/form; tambahkan lagi item Capture sesudahnya.
+	// Grup ikon header dikosongkan (clear_icons) oleh sebagian halaman saat refresh; pasang lagi sesudahnya.
 	const proto = frappe.ui.Page?.prototype;
 	if (proto && !proto.__capture_dipatch) {
-		const clear_asli = proto.clear_menu;
-		proto.clear_menu = function (...args) {
+		const clear_asli = proto.clear_icons;
+		proto.clear_icons = function (...args) {
 			clear_asli.apply(this, args);
 			this.__capture_konstruksi = false;
-			pasang_menu(this);
+			pasang_tombol(this);
 		};
 		proto.__capture_dipatch = true;
 	}
-	$(document).on("page-change", () => setTimeout(() => pasang_menu(frappe.container?.page?.page), 0));
-	setTimeout(() => pasang_menu(frappe.container?.page?.page), 0);
+	$(document).on("page-change", () => setTimeout(() => pasang_tombol(frappe.container?.page?.page), 0));
+	setTimeout(() => pasang_tombol(frappe.container?.page?.page), 0);
 	frappe.ui.keys.add_shortcut({
 		shortcut: "alt+shift+ctrl+s",
 		action: () => capture_halaman(),
