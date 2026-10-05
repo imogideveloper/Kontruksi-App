@@ -5451,3 +5451,8 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpsi .form-section:is([data-fieldname="section_break_43"], [data-fieldname="totals_section"], [data-fieldname="section_break_pxwz"]) .frappe-control[data-fieldtype="Currency"] :is(.control-value, input) {
 	text-align: right;
 }
+
+/* Sales Invoice tagihan proyek: judul section "Totals" disembunyikan (field di dalamnya tetap tampil). */
+.kpsi .form-section[data-fieldname="totals_section"] > .section-head {
+	display: none !important;
+}
