@@ -5729,3 +5729,19 @@ body[data-route^="List/Hasil Tender"] .frappe-list .level-left > .list-row-col:l
 	height: 32px !important;
 	stroke-width: 1.5;
 }
+
+/* Sidebar Konstruksi mode ringkas: ikon membesar halus saat disorot (hover / fokus keyboard). */
+.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .standard-sidebar-item .sidebar-item-icon {
+	transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+	transform-origin: center;
+}
+
+.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .standard-sidebar-item:is(:hover, :focus-within) .sidebar-item-icon {
+	transform: scale(1.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .standard-sidebar-item .sidebar-item-icon {
+		transition: none;
+	}
+}
