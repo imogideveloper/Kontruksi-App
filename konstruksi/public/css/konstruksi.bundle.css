@@ -4020,3 +4020,27 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	font-weight: normal;
 	white-space: nowrap;
 }
+
+/* Dialog Batalkan Status Tercapai (extra-large): teks satu baris; bila layar sempit, tabel revisi digeser horizontal. */
+.kpm2-dialog-batal .kpa-peringatan,
+.kpm2-dialog-batal .kpm2-revisi-ket {
+	white-space: normal;
+}
+
+.kpm2-dialog-batal .kpm2-revisi th,
+.kpm2-dialog-batal .kpm2-revisi td {
+	white-space: nowrap;
+}
+
+.kpm2-dialog-batal .kpm2-revisi .kpa-sub {
+	white-space: nowrap;
+}
+
+.kpm2-dialog-batal .kpm2-revisi td:first-child,
+.kpm2-dialog-batal .kpm2-revisi th:first-child {
+	width: 36px;
+}
+
+.kpm2-dialog-batal .frappe-control[data-fieldname="alasan"] select {
+	max-width: 520px;
+}

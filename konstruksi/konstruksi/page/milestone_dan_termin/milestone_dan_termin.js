@@ -460,6 +460,7 @@ class HalamanMilestone {
 		];
 		const dialog = new frappe.ui.Dialog({
 			title: __("Batalkan Status Tercapai — {0}", [m.nama_milestone]),
+			size: "extra-large",
 			fields: [
 				{ fieldname: "info", fieldtype: "HTML", options: `<div class="kpa-peringatan">${__(
 					"Milestone akan kembali berstatus Rencana / Terlambat dan termin {0} tidak bisa ditagih sampai ditandai tercapai lagi. Pembatalan dicatat di riwayat milestone.",
@@ -511,9 +512,9 @@ class HalamanMilestone {
 							return `<tr data-baris="${i}">
 								<td><input type="checkbox" data-pilih="${i}"></td>
 								<td>${kpm2_tgl(x.tanggal)}<div class="kpa-sub">${kpm2_esc(x.name)}${x.status === "Direvisi" ? ` · ${__("pernah direvisi")}` : ""}</div></td>
-								<td class="kpa-wrap"><b>${kpm2_esc(x.aktivitas)}</b><div class="kpa-sub">${kpm2_esc(x.kode_wbs)} · ${__("progres {0}", [kpm2_persen(flt(x.progres_aktivitas).toFixed(1))])}</div></td>
+								<td><b>${kpm2_esc(x.aktivitas)}</b><div class="kpa-sub">${kpm2_esc(x.kode_wbs)} · ${__("progres {0}", [kpm2_persen(flt(x.progres_aktivitas).toFixed(1))])}</div></td>
 								<td class="text-right">${kerja}</td>
-								<td class="kpa-wrap">${kpm2_esc(x.nama_pelapor || x.owner)}</td>
+								<td>${kpm2_esc(x.nama_pelapor || x.owner)}</td>
 								<td>${isian}</td>
 							</tr>`;
 						})
