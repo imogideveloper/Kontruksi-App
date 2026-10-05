@@ -5394,12 +5394,13 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	margin-bottom: 14px;
 }
 
-/* Sales Invoice tagihan proyek (kpsi, sales_invoice_konstruksi.js): label Customer lebih ringkas supaya nama
-   customer yang panjang tidak terpotong; nama item jasa di tabel item boleh turun baris. */
+/* Sales Invoice tagihan proyek (kpsi, sales_invoice_konstruksi.js): label tetap selebar label lain (simetris); kolom
+   pertama section atas (Customer) dilebarkan supaya nama customer panjang tidak terpotong — kolom checkbox di kanan
+   cukup sempit. Nama item jasa di tabel item boleh turun baris. */
 @media (min-width: 768px) {
-	.kpsi .form-layout .frappe-control[data-fieldname="customer"] > .form-group {
-		grid-template-columns: 96px minmax(0, 1fr) !important;
-	}
+	.kpsi .form-section[data-fieldname="customer_section"] > .section-body > .form-column:nth-child(1) { flex: 0 0 44%; max-width: 44%; }
+	.kpsi .form-section[data-fieldname="customer_section"] > .section-body > .form-column:nth-child(2) { flex: 0 0 34%; max-width: 34%; }
+	.kpsi .form-section[data-fieldname="customer_section"] > .section-body > .form-column:nth-child(3) { flex: 0 0 22%; max-width: 22%; }
 }
 
 .kpsi .frappe-control[data-fieldname="items"] .grid-static-col[data-fieldname="item_code"] .static-area {
