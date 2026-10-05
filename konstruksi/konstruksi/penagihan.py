@@ -358,6 +358,7 @@ def get_penagihan(project):
 @frappe.whitelist()
 def buat_pembayaran(project, invoice, bagian="termin"):
 	"""Payment Entry (belum disimpan) untuk invoice proyek: bagian 'termin' = sisa di luar retensi, 'retensi' = sisa retensi,
+	'otomatis' = termin dulu lalu retensi (uang muka: seluruh sisa),
 	'semua' = seluruh sisa piutang. Dikembalikan ke form untuk dilengkapi (rekening, tanggal, referensi)."""
 	from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
 
@@ -366,6 +367,10 @@ def buat_pembayaran(project, invoice, bagian="termin"):
 		frappe.throw(_("Invoice tidak valid untuk proyek ini."))
 	x = lengkapi_invoice(frappe._dict(name=inv.name, docstatus=1, rounded_total=inv.rounded_total, grand_total=inv.grand_total,
 		outstanding_amount=inv.outstanding_amount, nilai_retensi=inv.nilai_retensi), {})
+	if bagian == "otomatis":
+		# Dari form Sales Invoice (Create → Payment): uang muka = seluruh sisa; termin = bagian termin dulu, retensi
+		# baru setelah bagian termin lunas.
+		bagian = "semua" if inv.jenis_tagihan != "Termin" else "termin" if x.sisa_termin > 0.5 else "retensi"
 	jumlah = {"termin": x.sisa_termin, "retensi": x.retensi_sisa}.get(bagian, flt(inv.outstanding_amount))
 	if jumlah <= 0:
 		frappe.throw(_("Tidak ada sisa {0} pada invoice ini.").format(_("retensi") if bagian == "retensi" else _("tagihan")))

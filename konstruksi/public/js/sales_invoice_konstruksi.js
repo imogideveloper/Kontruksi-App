@@ -29,6 +29,7 @@ function rapikan_invoice_konstruksi(frm) {
 	if (frm.doc.currency === erpnext.get_currency(frm.doc.company)) frm.toggle_display(FIELD_MATA_UANG_PERUSAHAAN, false);
 
 	tampilkan_persen_pajak(frm);
+	pasang_pembayaran_proyek(frm);
 
 	// Nama customer panjang tetap bisa dibaca utuh saat kursor diarahkan.
 	frm.fields_dict.customer?.$input?.attr("title", frm.doc.customer || "");
@@ -81,6 +82,25 @@ function pindahkan_jadwal_bayar(frm, aktif) {
 		sebelum.length ? jadwal.insertAfter(sebelum) : jadwal.prependTo(induk);
 	}
 	setTimeout(() => (frm.layout?.tabs || []).forEach((t) => t.refresh?.()), 0);
+}
+
+// Create → Payment pada invoice proyek: Payment Entry dari penagihan.buat_pembayaran (bagian termin tanpa retensi
+// dulu, retensi setelah termin lunas; uang muka seluruh sisa) — bukan seluruh outstanding seperti bawaan ERPNext.
+function pasang_pembayaran_proyek(frm) {
+	if (!frm.cscript || frm.cscript.__kpsi_bayar) return;
+	const asli = frm.cscript.make_payment_entry?.bind(frm.cscript);
+	frm.cscript.make_payment_entry = function () {
+		if (!this.frm.doc.jenis_tagihan || !this.frm.doc.project) return asli?.();
+		return frappe
+			.call({ method: "konstruksi.konstruksi.penagihan.buat_pembayaran", args: { project: this.frm.doc.project, invoice: this.frm.doc.name, bagian: "otomatis" },
+				freeze: true, freeze_message: __("Menyiapkan pembayaran…") })
+			.then((r) => {
+				if (!r.message) return;
+				const doc = frappe.model.sync(r.message)[0];
+				frappe.set_route("Form", doc.doctype, doc.name);
+			});
+	};
+	frm.cscript.__kpsi_bayar = true;
 }
 
 // Label tanpa akhiran mata uang ("Rate", bukan "Rate (IDR)"): ERPNext menambahkannya lewat frm.set_currency_labels;
