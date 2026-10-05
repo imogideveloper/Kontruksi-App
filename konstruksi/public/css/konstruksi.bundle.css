@@ -5542,3 +5542,8 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 		padding-right: 0 !important;
 	}
 }
+
+/* Payment Entry penerimaan proyek: judul section "Amount" disembunyikan (field di dalamnya tetap tampil). */
+.kppe .form-section[data-fieldname="payment_amounts_section"] > .section-head {
+	display: none !important;
+}
