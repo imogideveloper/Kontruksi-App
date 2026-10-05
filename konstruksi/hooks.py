@@ -26,7 +26,7 @@ app_license = "mit"
 
 # include js, css files in header of desk.html
 app_include_css = "konstruksi.bundle.css"
-app_include_js = ["list_group_by.bundle.js", "sinkron_form.bundle.js", "form_konstruksi.bundle.js", "sidebar_konstruksi.bundle.js", "capture_konstruksi.bundle.js"]
+app_include_js = ["list_group_by.bundle.js", "sinkron_form.bundle.js", "form_konstruksi.bundle.js", "sidebar_konstruksi.bundle.js", "capture_konstruksi.bundle.js", "report_konstruksi.bundle.js"]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/konstruksi/css/konstruksi.css"
