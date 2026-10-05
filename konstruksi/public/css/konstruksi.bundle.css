@@ -5698,3 +5698,33 @@ body[data-route^="List/Hasil Tender"] .frappe-list .level-left > .list-row-col:l
 	flex: 0 0 110px !important;
 	margin-right: 0;
 }
+
+/* Sidebar Konstruksi mode ringkas (ikon saja, tombol ‹ di bawah sidebar / Ctrl+/): sedikit lebih lebar, scrollbar
+   disembunyikan (tetap bisa digulir) supaya tidak menutupi ikon, ikon lebih besar & berada di tengah. */
+.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] {
+	width: 60px;
+	padding-left: 6px;
+	padding-right: 6px;
+}
+
+.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .body-sidebar-top {
+	scrollbar-width: none;
+}
+
+.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .body-sidebar-top::-webkit-scrollbar {
+	display: none;
+}
+
+.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .standard-sidebar-item .item-anchor {
+	height: 38px;
+	justify-content: center;
+}
+
+.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .standard-sidebar-item .sidebar-item-icon {
+	padding: 8px;
+}
+
+.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .standard-sidebar-item .sidebar-item-icon :is(svg, .icon) {
+	width: 20px !important;
+	height: 20px !important;
+}
