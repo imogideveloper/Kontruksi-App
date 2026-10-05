@@ -111,7 +111,9 @@ class HalamanWBS {
 								: r.rab ? "" : ` · ${__("RAB Penawaran tidak ditemukan")}`
 					  }</td>`;
 				return `<tr class="kpw-baris-proyek" data-kpw="buka" data-project="${kpw_esc(r.name)}">
-					<td><div class="kpw-proyek-nama">${kpw_esc(r.project_name)}</div><div class="kpw-proyek-id">${kpw_esc(r.name)}${r.customer ? ` · ${kpw_esc(r.customer)}` : ""}</div></td>
+					<td class="kpw-kode">${kpw_esc(r.name)}</td>
+					<td><div class="kpw-proyek-nama">${kpw_esc(r.project_name)}</div></td>
+					<td class="kpw-klien" title="${kpw_esc(r.customer || "")}">${r.customer ? kpw_esc(r.customer) : '<span class="kpw-strip">—</span>'}</td>
 					<td>${r.status_proyek ? `<span class="kpw-badge">${kpw_esc(__(r.status_proyek))}</span>` : ""}</td>
 					${isi_wbs}
 					<td class="text-right"><span class="kpw-buka">${__("Buka")} ${frappe.utils.icon("right", "xs")}</span></td>
@@ -129,10 +131,10 @@ class HalamanWBS {
 			<div class="kpr-card kpw-tabel-card">
 				<div class="kpw-tabel-wrap">
 					<table class="kpw-tabel kpw-tabel-daftar">
-						<colgroup><col><col style="width:120px"><col style="width:80px"><col style="width:150px"><col style="width:150px">
+						<colgroup><col style="width:130px"><col><col style="width:200px"><col style="width:120px"><col style="width:80px"><col style="width:150px"><col style="width:150px">
 							<col style="width:190px"><col style="width:150px"><col style="width:80px"></colgroup>
 						<thead><tr>
-							<th>${__("Proyek")}</th><th>${__("Status")}</th><th class="text-right">${__("Item")}</th>
+							<th>${__("ID Proyek")}</th><th>${__("Nama Proyek")}</th><th>${__("Klien")}</th><th>${__("Status")}</th><th class="text-right">${__("Item")}</th>
 							<th class="text-right">${__("Nilai WBS")}</th><th class="text-right">${__("Nilai Kontrak")}</th>
 							<th>${__("Kesesuaian")}</th><th>${__("Progres")}</th><th></th>
 						</tr></thead>

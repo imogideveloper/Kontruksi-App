@@ -4107,3 +4107,15 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
+
+/* WBS, daftar proyek: ID, nama, klien di kolom terpisah. */
+.kpw:not(.kpa) .kpw-tabel-daftar {
+	min-width: 1260px;
+}
+
+.kpw .kpw-tabel-daftar .kpw-kode,
+.kpw .kpw-klien {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
