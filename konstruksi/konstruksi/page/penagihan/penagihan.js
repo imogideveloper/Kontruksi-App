@@ -253,7 +253,6 @@ class HalamanPenagihan {
 					<td class="text-right kptl-merah">−${kpg_rp(x.pph)}</td><td class="text-right"><b>${kpg_rp(inv ? inv.total : x.total)}</b></td>
 					<td class="text-right">${inv && inv.docstatus === 1 ? kpg_rp(inv.outstanding_amount) : "—"}</td>
 				</tr></tbody></table></div>
-			<div class="kptl-sub-kecil kpg-catatan-kartu">${__("Dokumen pendukung: Jaminan Uang Muka, Surat Permohonan Pembayaran Uang Muka, Faktur Pajak uang muka, Berita Acara Pembayaran — lampirkan di invoice. Uang muka dipotong proporsional ({0}%) di setiap termin.", [format_number(k.um_persen, null, 2)])}</div>
 		</div>`;
 	}
 
