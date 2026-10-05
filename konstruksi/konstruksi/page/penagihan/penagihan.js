@@ -400,9 +400,15 @@ class HalamanPenagihan {
 					: x.sisa > 0.5 ? `<span class="kptl-sub-kecil" title="${__("Bagian termin invoice ini belum lunas")}">${__("Lunasi termin dulu")}</span>` : ""}</td>
 			</tr>`)
 			.join("");
+		// Terima sekaligus: retensi semua termin yang bagian terminnya sudah lunas → satu Payment Entry.
+		const siap = rows.filter((x) => x.sisa > 0.5 && x.sisa_termin <= 0.5);
+		const tombol_semua = siap.length && d.bisa_bayar
+			? `<span class="kpg-aksi-kanan"><button class="btn btn-primary btn-xs" data-kpg="bayar-retensi-semua">${frappe.utils.icon("banknote", "xs")}
+				${__("Catat Penerimaan Semua Retensi")} (${siap.length} · ${kpg_rp(siap.reduce((a, x) => a + flt(x.sisa), 0))})</button></span>`
+			: "";
 		return `<div class="kptl-card kpbs-tabel-kartu">
 			<div class="kpbs-tabel-judul">${__("Retensi {0}%", [format_number(k.retensi_persen, null, 2)])}
-				<span class="kptl-sub-kecil">${__("Ditahan pemberi kerja dari tiap termin, wajib ditagih kembali setelah masa pemeliharaan berakhir ({0}).", [kpg_tgl(k.akhir_pemeliharaan)])}</span></div>
+				<span class="kptl-sub-kecil">${__("Ditahan pemberi kerja dari tiap termin, wajib ditagih kembali setelah masa pemeliharaan berakhir ({0}).", [kpg_tgl(k.akhir_pemeliharaan)])}</span>${tombol_semua}</div>
 			<div class="kptl-tabel-wrap"><table class="kptl-tabel kpg-tabel">
 				<colgroup><col style="width:56px"><col><col style="width:170px"><col style="width:140px"><col style="width:120px"><col style="width:140px"><col style="width:140px"><col style="width:110px"><col style="width:220px"></colgroup>
 				<thead><tr><th>${__("Termin")}</th><th>${__("Milestone")}</th><th>${__("Invoice")}</th><th class="text-right">${__("Retensi")}</th><th>${__("Jatuh Tempo")}</th>
@@ -434,6 +440,14 @@ class HalamanPenagihan {
 				return frappe
 					.call({ method: KPG_API + "buat_pembayaran", args: { project: this.project, invoice: $el.attr("data-invoice"), bagian: $el.attr("data-bagian") },
 						freeze: true, freeze_message: __("Menyiapkan pembayaran…") })
+					.then((r) => {
+						if (!r.message) return;
+						const doc = frappe.model.sync(r.message)[0];
+						frappe.set_route("Form", doc.doctype, doc.name);
+					});
+			case "bayar-retensi-semua":
+				return frappe
+					.call({ method: KPG_API + "buat_pembayaran_retensi_semua", args: { project: this.project }, freeze: true, freeze_message: __("Menyiapkan penerimaan retensi…") })
 					.then((r) => {
 						if (!r.message) return;
 						const doc = frappe.model.sync(r.message)[0];

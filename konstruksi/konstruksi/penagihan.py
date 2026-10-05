@@ -418,6 +418,38 @@ def buat_pembayaran(project, invoice, bagian="termin"):
 	return pe
 
 
+@frappe.whitelist()
+def buat_pembayaran_retensi_semua(project):
+	"""Satu Payment Entry (belum disimpan) untuk menerima sisa retensi semua invoice termin proyek sekaligus —
+	hanya invoice yang bagian terminnya sudah lunas. Tiap invoice jadi satu baris referensi."""
+	from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
+
+	frappe.has_permission("Payment Entry", "create", throw=True)
+	daftar = []
+	for x in invoice_aktif({"project": project, "jenis_tagihan": "Termin", "docstatus": 1}):
+		x = lengkapi_invoice(x, {})
+		if x.retensi_sisa > 0.5 and x.sisa_termin <= 0.5:
+			daftar.append(x)
+	if not daftar:
+		frappe.throw(_("Tidak ada retensi yang bisa diterima (retensi sudah lunas, atau bagian termin invoicenya belum lunas)."))
+	daftar.sort(key=lambda x: (str(x.posting_date), x.name))
+	pe = get_payment_entry("Sales Invoice", daftar[0].name, party_amount=daftar[0].retensi_sisa)
+	for x in daftar[1:]:
+		lain = get_payment_entry("Sales Invoice", x.name, party_amount=x.retensi_sisa)
+		for ref in lain.references:
+			pe.append("references", ref.as_dict(no_default_fields=True))
+	total = sum(x.retensi_sisa for x in daftar)
+	pe.paid_amount = pe.received_amount = total
+	pe.base_paid_amount = pe.base_received_amount = total
+	pe.set_amounts()
+	pe.project = project
+	inv = frappe.get_doc("Sales Invoice", daftar[0].name)
+	cara_bayar_bank(pe)
+	lengkapi_pembayaran(pe, inv)
+	pe.remarks = _("Penerimaan retensi {0} termin: {1}").format(len(daftar), ", ".join(x.name for x in daftar))
+	return pe
+
+
 def cara_bayar_bank(pe):
 	"""Mode of Payment default untuk penerimaan proyek: Mode of Payment tipe Bank pertama yang punya rekening default
 	di company ini; rekening itu dipakai sebagai Account Paid To. Bila belum ada, dibiarkan (diisi user)."""
