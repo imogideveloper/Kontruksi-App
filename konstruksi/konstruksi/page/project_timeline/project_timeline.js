@@ -284,13 +284,25 @@ class HalamanTimeline {
 				</div></div>`);
 		}
 		if (this.opsi.milestone && d.milestone.length) {
-			baris.push(`<div class="kptl-row kptl-row-khusus">
+			// Milestone berdekatan dibagi ke 2 lajur supaya label T-nya tidak bertumpuk.
+			const LEBAR_LABEL = 46;
+			const akhir_lajur = [-Infinity, -Infinity];
+			const ms = d.milestone
+				.map((m) => ({ ...m, kiri: x(m.tanggal_target) + px / 2 }))
+				.sort((a, b) => a.kiri - b.kiri)
+				.map((m) => {
+					let lajur = m.kiri - akhir_lajur[0] >= LEBAR_LABEL ? 0 : m.kiri - akhir_lajur[1] >= LEBAR_LABEL ? 1 : akhir_lajur[0] <= akhir_lajur[1] ? 0 : 1;
+					akhir_lajur[lajur] = m.kiri;
+					return { ...m, lajur };
+				});
+			const dua_lajur = ms.some((m) => m.lajur === 1);
+			baris.push(`<div class="kptl-row kptl-row-khusus ${dua_lajur ? "kptl-row-ms2" : ""}">
 				<div class="kptl-label"><b>${__("Milestone / Termin")}</b></div>
-				<div class="kptl-track">${d.milestone
+				<div class="kptl-track">${ms
 					.map((m) => {
 						const warna = { Tercapai: "hijau", Terlambat: "merah" }[m.status] || "ungu";
 						const info = `T${m.urutan} ${m.nama_milestone}\n${__("Target")}: ${kptl_teks_tgl(m.tanggal_target)}${m.tanggal_tercapai ? `\n${__("Tercapai")}: ${kptl_teks_tgl(m.tanggal_tercapai)}` : ""}\n${__("Bobot")}: ${kptl_persen(m.bobot, 2)} · ${format_currency(m.nilai_termin, "IDR", 0)}\n${__(m.status)}`;
-						return `<div class="kptl-ms kptl-ms-${warna}" style="left:${x(m.tanggal_target) + px / 2}px" title="${kptl_esc(info)}" data-kptl="milestone"><i></i><span>T${m.urutan}</span></div>`;
+						return `<div class="kptl-ms kptl-ms-${warna} kptl-ms-lajur${m.lajur}" style="left:${m.kiri}px" title="${kptl_esc(info)}" data-kptl="milestone"><i></i><span>T${m.urutan}</span></div>`;
 					})
 					.join("")}</div></div>`);
 		}
@@ -299,11 +311,14 @@ class HalamanTimeline {
 			if (!akt.length) return;
 			const tutup = this.tertutup.has(g.kode);
 			const prog = Math.min(flt(g.progres), 100);
+			const telat = g.aktivitas.filter((a) => a.status_tampil === "Terlambat").length;
 			baris.push(`<div class="kptl-row kptl-row-grup" data-kptl="grup" data-kode="${kptl_esc(g.kode)}">
 				<div class="kptl-label"><span class="kptl-toggle">${frappe.utils.icon(tutup ? "right" : "down", "xs")}</span>
 					<span class="kptl-kode">${kptl_esc(g.kode)}</span><b class="kptl-potong" title="${kptl_esc(g.uraian)}">${kptl_esc(g.uraian)}</b>
 					<span class="kptl-sub-kecil">${kptl_persen(prog)}</span></div>
-				<div class="kptl-track">${g.mulai ? `<div class="kptl-bar-grup" style="left:${x(g.mulai)}px;width:${w(g.mulai, g.selesai)}px" title="${kptl_esc(g.uraian)}: ${kptl_teks_tgl(g.mulai)} – ${kptl_teks_tgl(g.selesai)} · ${kptl_persen(prog)}"><div style="width:${prog}%"></div></div>` : ""}</div>
+				<div class="kptl-track">${g.mulai ? `<div class="kptl-bar-grup ${telat ? "kptl-bar-grup-telat" : ""}" style="left:${x(g.mulai)}px;width:${w(g.mulai, g.selesai)}px"
+						title="${kptl_esc(g.uraian)}: ${kptl_teks_tgl(g.mulai)} – ${kptl_teks_tgl(g.selesai)} · ${kptl_persen(prog)}${telat ? ` · ${__("{0} aktivitas terlambat", [telat])}` : ""}"><div style="width:${prog}%"></div></div>
+					${this.opsi.label ? `<span class="kptl-bar-label kptl-grup-tgl" style="left:${x(g.mulai) + w(g.mulai, g.selesai) + 6}px">${kptl_teks_tgl(g.mulai).slice(0, 6)} – ${kptl_teks_tgl(g.selesai).slice(0, 6)}${telat ? ` · <b class="kptl-merah">${__("{0} terlambat", [telat])}</b>` : ""}</span>` : ""}` : ""}</div>
 			</div>`);
 			if (tutup) return;
 			akt.forEach((a) => {
@@ -332,7 +347,8 @@ class HalamanTimeline {
 		for (let t = new Date(awal.getFullYear(), awal.getMonth() + 1, 1); t <= akhir; t = new Date(t.getFullYear(), t.getMonth() + 1, 1)) {
 			latar.push(`<div class="kptl-garis-bulan" style="left:${x(kptl_iso(t))}px"></div>`);
 		}
-		if (this.opsi.libur && px >= 3) {
+		// Arsir hari libur hanya di skala Hari / Minggu (di skala lebih rapat jadi terlalu ramai).
+		if (this.opsi.libur && ["hari", "minggu"].includes(this.skala)) {
 			const libur = new Set(d.libur);
 			for (let t = new Date(awal); t <= akhir; t = new Date(t.getTime() + KPTL_HARI_MS)) {
 				const iso = kptl_iso(t);

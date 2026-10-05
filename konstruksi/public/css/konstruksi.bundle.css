@@ -4822,3 +4822,24 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 		overflow: visible;
 	}
 }
+
+/* Timeline: milestone 2 lajur, tanda kelompok terlambat, label rentang kelompok. */
+.kptl-row.kptl-row-ms2 {
+	height: 56px;
+}
+
+.kptl-ms.kptl-ms-lajur1 {
+	top: 31px;
+}
+
+.kptl-row-ms2 .kptl-ms.kptl-ms-lajur0 {
+	top: 7px;
+}
+
+.kptl-bar-grup.kptl-bar-grup-telat {
+	box-shadow: 0 0 0 2px var(--fg-color, #fff), 0 0 0 3px var(--kptl-terlambat);
+}
+
+.kptl-grup-tgl {
+	top: 13px;
+}

@@ -47,13 +47,41 @@ function buka_area_scroll(akar) {
 		asli.reverse().forEach(([el, style]) => (style == null ? el.removeAttribute("style") : el.setAttribute("style", style)));
 }
 
-// Sidebar kiri (fixed / setinggi layar) dipanjangkan setinggi isi halaman supaya ikut tergambar penuh.
+// Ikon Frappe berupa <svg><use href="#icon-..."> yang merujuk sprite tersembunyi (#all-symbols); sprite itu tidak ikut
+// tergambar, jadi isi simbolnya disalin sementara ke tiap ikon. Mengembalikan fungsi pemulih.
+function inline_ikon(akar) {
+	const asli = [];
+	akar.querySelectorAll("svg use").forEach((use) => {
+		const href = use.getAttribute("href") || use.getAttribute("xlink:href") || "";
+		const simbol = href.startsWith("#") && document.getElementById(href.slice(1));
+		const svg = use.closest("svg");
+		if (!simbol || !svg) return;
+		asli.push([svg, svg.innerHTML, svg.getAttribute("viewBox")]);
+		if (!svg.getAttribute("viewBox") && simbol.getAttribute("viewBox")) svg.setAttribute("viewBox", simbol.getAttribute("viewBox"));
+		// Atribut gaya di <symbol> (stroke, fill, …) dibawa lewat <g> pembungkus.
+		const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+		[...simbol.attributes].forEach((a) => !["id", "viewBox", "xmlns"].includes(a.name) && !a.name.startsWith("xmlns:") && g.setAttribute(a.name, a.value));
+		g.innerHTML = simbol.innerHTML;
+		use.replaceWith(g);
+	});
+	return () =>
+		asli.reverse().forEach(([svg, html, viewbox]) => {
+			svg.innerHTML = html;
+			viewbox == null ? svg.removeAttribute("viewBox") : svg.setAttribute("viewBox", viewbox);
+		});
+}
+
+// Sidebar kiri (fixed / setinggi layar) dipanjangkan setinggi isi halaman supaya ikut tergambar penuh,
+// termasuk warna latarnya.
 function panjangkan_sidebar(tinggi) {
 	const asli = [];
+	const latar = getComputedStyle(document.querySelector(".body-sidebar") || document.body).backgroundColor;
 	document.querySelectorAll(".body-sidebar-container, .body-sidebar, .body-sidebar-placeholder").forEach((el) => {
 		asli.push([el, el.getAttribute("style")]);
 		el.style.setProperty("height", `${tinggi}px`, "important");
+		el.style.setProperty("min-height", `${tinggi}px`, "important");
 		el.style.setProperty("max-height", "none", "important");
+		if (latar && latar !== "rgba(0, 0, 0, 0)") el.style.setProperty("background-color", latar, "important");
 		if (getComputedStyle(el).position === "fixed") el.style.setProperty("position", "absolute", "important");
 	});
 	return () => asli.reverse().forEach(([el, style]) => (style == null ? el.removeAttribute("style") : el.setAttribute("style", style)));
@@ -67,6 +95,7 @@ async function capture_halaman() {
 	$(".dropdown-menu.show").removeClass("show");
 	const scroll_awal = [window.scrollX, window.scrollY];
 	window.scrollTo(0, 0);
+	const pulihkan_ikon = inline_ikon(akar);
 	const pulihkan_scroll = buka_area_scroll(akar);
 	let pulihkan_sidebar = () => {};
 	try {
@@ -86,11 +115,13 @@ async function capture_halaman() {
 			cacheBust: true,
 			style: { margin: "0", transform: "none" },
 			// Elemen sementara / overlay tidak ikut digambar.
-			filter: (node) =>
-				!(node instanceof HTMLElement) ||
-				!node.matches?.(
-					".tooltip, .popover, .desk-alert, .alert-container, .kptl-k-tip, .frappe-toast, #all-symbols, #build-events-overlay, .splash, .modal-backdrop"
-				),
+			filter: (node) => {
+				if (!(node instanceof HTMLElement)) return true;
+				// Hanya UI Frappe: anak langsung <body> selain sidebar & area utama (mis. tombol ekstensi browser,
+				// splash, sprite ikon) tidak ikut digambar.
+				if (node.parentElement === document.body && !node.matches(".main-section, .body-sidebar-container")) return false;
+				return !node.matches(".tooltip, .popover, .desk-alert, .alert-container, .kptl-k-tip, .frappe-toast, .modal-backdrop");
+			},
 		});
 		const a = document.createElement("a");
 		a.href = data_url;
@@ -103,6 +134,7 @@ async function capture_halaman() {
 	} finally {
 		pulihkan_sidebar();
 		pulihkan_scroll();
+		pulihkan_ikon();
 		window.scrollTo(...scroll_awal);
 	}
 }
