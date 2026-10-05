@@ -153,6 +153,9 @@ def get_timeline(project):
 		t.status_tampil = status_tampil(t)
 		t.predecessor = dep.get(t.name, [])
 	kritis = jalur_kritis(tasks, dep, libur)
+	from konstruksi.konstruksi.baseline import baseline_per_task
+
+	nama_baseline, baseline = baseline_per_task(project)
 
 	laporan = []
 	if nama:
@@ -191,6 +194,7 @@ def get_timeline(project):
 				"status_tampil": t.status_tampil, "pj_nama": t.pj_nama, "pj_jabatan": t.pj_jabatan, "durasi_hk": t.durasi_hk,
 				"kritis": t.name in kritis, "predecessor": t.predecessor, "metode_progres": t.metode_progres,
 				"realisasi_volume": t.realisasi_volume, "target_volume": t.target_volume, "satuan": t.satuan,
+				"baseline_mulai": baseline.get(t.name, (None, None))[0], "baseline_selesai": baseline.get(t.name, (None, None))[1],
 			} for t in ak],
 		})
 
@@ -206,6 +210,7 @@ def get_timeline(project):
 		"project": {"name": doc.name, "project_name": doc.project_name, "mulai": str(mulai) if mulai else None,
 			"selesai": str(selesai) if selesai else None, "akhir_pemeliharaan": doc.get("akhir_pemeliharaan")},
 		"kelompok": hasil_kelompok,
+		"baseline": nama_baseline,
 		"milestone": milestone,
 		"libur": sorted(str(d) for d in libur if mulai and selesai and add_days(mulai, -60) <= d <= add_days(selesai, 120)),
 		"kurva_s": titik,

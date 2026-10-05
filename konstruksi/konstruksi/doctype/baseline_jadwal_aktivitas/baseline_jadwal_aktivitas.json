@@ -1,0 +1,86 @@
+{
+ "actions": [],
+ "creation": "2026-10-10 10:00:00.000000",
+ "modified": "2026-10-10 10:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "module": "Konstruksi",
+ "links": [],
+ "states": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "name": "Baseline Jadwal Aktivitas",
+ "istable": 1,
+ "permissions": [],
+ "fields": [
+  {
+   "fieldname": "task",
+   "fieldtype": "Link",
+   "label": "Aktivitas",
+   "options": "Task",
+   "in_list_view": 1,
+   "columns": 2,
+   "read_only": 1
+  },
+  {
+   "fieldname": "kode_wbs",
+   "fieldtype": "Data",
+   "label": "Kode WBS",
+   "in_list_view": 1,
+   "columns": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "subject",
+   "fieldtype": "Data",
+   "label": "Nama Aktivitas",
+   "in_list_view": 1,
+   "columns": 3,
+   "read_only": 1
+  },
+  {
+   "fieldname": "mulai",
+   "fieldtype": "Date",
+   "label": "Mulai",
+   "in_list_view": 1,
+   "columns": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "selesai",
+   "fieldtype": "Date",
+   "label": "Selesai",
+   "in_list_view": 1,
+   "columns": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "durasi_hk",
+   "fieldtype": "Int",
+   "label": "Durasi (hk)",
+   "in_list_view": 1,
+   "columns": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "bobot",
+   "fieldtype": "Float",
+   "label": "Bobot (%)",
+   "precision": "4",
+   "in_list_view": 1,
+   "columns": 1,
+   "read_only": 1
+  }
+ ],
+ "field_order": [
+  "task",
+  "kode_wbs",
+  "subject",
+  "mulai",
+  "selesai",
+  "durasi_hk",
+  "bobot"
+ ]
+}

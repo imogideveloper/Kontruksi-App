@@ -165,6 +165,18 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "git-compare",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Baseline Schedule",
+   "link_to": "baseline-schedule",
+   "link_type": "Page",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
    "label": "Konfigurasi",
@@ -282,6 +294,18 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": "lock",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Baseline Jadwal",
+   "link_to": "Baseline Jadwal",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
    "icon": "list",
    "indent": 0,
    "keep_closed": 0,
@@ -388,7 +412,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-10 09:00:00.000000",
+ "modified": "2026-10-11 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Konstruksi",

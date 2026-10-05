@@ -26,6 +26,7 @@ const KPTL_INFO_LEGENDA = {
 	belum: [__("Belum mulai"), __("Belum ada laporan progres yang disetujui (0%) dan tanggal selesai rencana belum lewat. Bukan masalah selama tanggal mulainya belum tiba.")],
 	grup: [__("Kelompok WBS"), __("Ringkasan item WBS level 1. Panjang batang = rentang semua aktivitas di dalamnya; bagian gelap = progres kelompok (tertimbang nilai pekerjaan). Garis tepi merah = ada aktivitas terlambat di kelompok ini.")],
 	kritis: [__("Jalur kritis ⚡"), __("Aktivitas tanpa kelonggaran waktu: bila mundur 1 hari, penerusnya — dan akhir proyek — ikut mundur. Bukan tanda bermasalah, tetapi harus dijaga tepat waktu. Aktifkan lewat Tampilan → Tandai jalur kritis.")],
+	baseline: [__("Baseline"), __("Batang tipis abu di bawah aktivitas = jadwal menurut baseline utama (snapshot di menu Baseline Schedule). Batang aktivitas yang bergeser ke kanan dari batang abu berarti jadwalnya mundur dari baseline.")],
 	milestone: [__("Milestone ◆"), __("Target milestone / termin penagihan (T1, T2, …) di tanggal targetnya. Hijau = tercapai, merah = lewat target belum tercapai, ungu = rencana. Klik untuk membuka Milestone & Termin.")],
 	hariini: [__("Hari ini"), __("Garis merah = tanggal hari ini. Batang di kiri garis yang belum hijau berarti pekerjaan yang seharusnya sudah berjalan / selesai.")],
 	mulai: [__("Mulai pelaksanaan"), __("Awal masa pelaksanaan kontrak (mulai kerja / SPMK) dari Kontrak Project.")],
@@ -59,7 +60,7 @@ class HalamanTimeline {
 		this.hanya_kritis = false;
 		this.tertutup = new Set();
 		// Jalur kritis bawaan tidak ditandai (aktifkan lewat Tampilan / filter "Hanya jalur kritis").
-		this.opsi = { label: true, kritis: false, libur: true, milestone: true };
+		this.opsi = { label: true, kritis: false, libur: true, milestone: true, baseline: true };
 		this.field_project = page.add_field({
 			fieldname: "project",
 			fieldtype: "Link",
@@ -208,7 +209,7 @@ class HalamanTimeline {
 					<div class="dropdown">
 						<button class="btn btn-default btn-sm" data-toggle="dropdown">${frappe.utils.icon("sliders-horizontal", "xs")} ${__("Tampilan")}</button>
 						<div class="dropdown-menu dropdown-menu-right kptl-menu">
-							${[["label", __("Label aktivitas di batang")], ["kritis", __("Tandai jalur kritis")], ["libur", __("Arsir hari libur")], ["milestone", __("Baris milestone")]]
+							${[["label", __("Label aktivitas di batang")], ["kritis", __("Tandai jalur kritis")], ["baseline", __("Batang baseline")], ["libur", __("Arsir hari libur")], ["milestone", __("Baris milestone")]]
 								.map(([k, l]) => `<label class="kptl-menu-cek"><input type="checkbox" data-kptl="opsi" data-opsi="${k}" ${this.opsi[k] ? "checked" : ""}> ${l}</label>`)
 								.join("")}
 						</div>
@@ -223,6 +224,7 @@ class HalamanTimeline {
 				<span class="kptl-legenda-item" data-kptl="legenda" data-info="belum"><i class="kptl-l kptl-l-belum"></i>${__("Belum mulai")}</span>
 				<span class="kptl-legenda-item" data-kptl="legenda" data-info="grup"><i class="kptl-l kptl-l-grup"></i>${__("Kelompok WBS")}</span>
 				<span class="kptl-legenda-item" data-kptl="legenda" data-info="kritis"><i class="kptl-l kptl-l-kritis"></i>⚡ ${__("Jalur kritis")}</span>
+				${this.data.baseline ? `<span class="kptl-legenda-item" data-kptl="legenda" data-info="baseline"><i class="kptl-l kptl-l-baseline"></i>${__("Baseline")}</span>` : ""}
 				<span class="kptl-legenda-item" data-kptl="legenda" data-info="milestone"><i class="kptl-l-diamond"></i>${__("Milestone")}</span>
 				<span class="kptl-legenda-item" data-kptl="legenda" data-info="hariini"><i class="kptl-l-hariini"></i>${__("Hari ini")}</span>
 				<span class="kptl-legenda-item" data-kptl="legenda" data-info="mulai"><i class="kptl-l-periode kptl-l-mulai"></i>${__("Mulai")}</span>
@@ -359,6 +361,8 @@ class HalamanTimeline {
 							${prog_a > 0 && warna !== "selesai" ? `<div class="kptl-bar-isi" style="width:${prog_a}%"></div>` : ""}
 							${lebar_bar >= 34 ? `<span class="kptl-bar-persen">${kptl_persen(prog_a, 0)}</span>` : ""}
 						</div>
+						${this.opsi.baseline && a.baseline_mulai && a.baseline_selesai ? `<div class="kptl-bar-baseline" style="left:${x(a.baseline_mulai)}px;width:${w(a.baseline_mulai, a.baseline_selesai)}px"
+							title="${__("Baseline")}: ${kptl_teks_tgl(a.baseline_mulai)} – ${kptl_teks_tgl(a.baseline_selesai)}"></div>` : ""}
 						${this.opsi.kritis && a.kritis ? `<span class="kptl-kritis-ikon" style="left:${x(a.mulai) + lebar_bar + 4}px" title="${__("Jalur kritis: mundur 1 hari = proyek ikut mundur")}">⚡</span>` : ""}
 						${this.opsi.label ? `<span class="kptl-bar-label" style="left:${x(a.mulai) + lebar_bar + (this.opsi.kritis && a.kritis ? 20 : 6)}px">${kptl_esc(a.subject)}</span>` : ""}` : ""}
 					</div></div>`);

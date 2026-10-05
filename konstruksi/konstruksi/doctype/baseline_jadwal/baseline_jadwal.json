@@ -1,0 +1,161 @@
+{
+ "actions": [],
+ "creation": "2026-10-10 10:00:00.000000",
+ "modified": "2026-10-10 10:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "module": "Konstruksi",
+ "links": [],
+ "states": [],
+ "sort_field": "tanggal",
+ "sort_order": "DESC",
+ "name": "Baseline Jadwal",
+ "autoname": "BSL-.YYYY.-.####",
+ "naming_rule": "Expression (old style)",
+ "title_field": "nama_baseline",
+ "show_title_field_in_link": 1,
+ "search_fields": "nama_baseline,project",
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "export": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "delete": 1,
+   "write": 1
+  },
+  {
+   "role": "Projects Manager",
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "export": 1,
+   "email": 1,
+   "share": 1,
+   "create": 1,
+   "delete": 1,
+   "write": 1
+  },
+  {
+   "role": "Projects User",
+   "read": 1,
+   "report": 1,
+   "print": 1
+  }
+ ],
+ "fields": [
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "nama_project",
+   "fieldtype": "Data",
+   "label": "Nama Project",
+   "fetch_from": "project.project_name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "nama_baseline",
+   "fieldtype": "Data",
+   "label": "Nama Baseline",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_bsl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tanggal",
+   "fieldtype": "Datetime",
+   "label": "Disimpan Pada",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "periode_mulai",
+   "fieldtype": "Date",
+   "label": "Mulai Pelaksanaan",
+   "read_only": 1
+  },
+  {
+   "fieldname": "periode_selesai",
+   "fieldtype": "Date",
+   "label": "Batas Selesai",
+   "read_only": 1
+  },
+  {
+   "fieldname": "keterangan",
+   "fieldtype": "Small Text",
+   "label": "Keterangan",
+   "description": "Mis. sesuai lampiran kontrak / Addendum No. 1 perpanjangan waktu."
+  },
+  {
+   "fieldname": "section_aktivitas",
+   "fieldtype": "Section Break",
+   "label": "Aktivitas"
+  },
+  {
+   "fieldname": "jumlah_aktivitas",
+   "fieldtype": "Int",
+   "label": "Jumlah Aktivitas",
+   "read_only": 1
+  },
+  {
+   "fieldname": "aktivitas",
+   "fieldtype": "Table",
+   "label": "Jadwal Aktivitas",
+   "options": "Baseline Jadwal Aktivitas",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_milestone",
+   "fieldtype": "Section Break",
+   "label": "Milestone"
+  },
+  {
+   "fieldname": "jumlah_milestone",
+   "fieldtype": "Int",
+   "label": "Jumlah Milestone",
+   "read_only": 1
+  },
+  {
+   "fieldname": "milestone",
+   "fieldtype": "Table",
+   "label": "Target Milestone",
+   "options": "Baseline Jadwal Milestone",
+   "read_only": 1
+  }
+ ],
+ "field_order": [
+  "project",
+  "nama_project",
+  "nama_baseline",
+  "column_break_bsl",
+  "tanggal",
+  "periode_mulai",
+  "periode_selesai",
+  "keterangan",
+  "section_aktivitas",
+  "jumlah_aktivitas",
+  "aktivitas",
+  "section_milestone",
+  "jumlah_milestone",
+  "milestone"
+ ]
+}
