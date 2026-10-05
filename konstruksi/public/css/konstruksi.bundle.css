@@ -5816,3 +5816,234 @@ body[data-route^="List/Tender"] .frappe-list .level-left > .list-row-col:last-ch
 	flex: 0 0 150px !important;
 	margin-right: 0;
 }
+
+/* ===== Neraca Saldo (page/neraca_saldo, kelas kpns-*) ===== */
+.kpns {
+	padding: 4px 0 24px;
+}
+
+.kpns-ringkasan {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px;
+	margin-bottom: 12px;
+}
+
+.kpns-jenis {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+@media (max-width: 991px) {
+	.kpns-ringkasan, .kpns-jenis {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.kpns-kartu {
+	background: var(--card-bg, #fff);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-md);
+	padding: 14px 18px;
+	box-shadow: var(--shadow-xs, none);
+}
+
+.kpns-label {
+	font-size: var(--text-xs);
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+
+.kpns-nilai {
+	font-size: 22px;
+	font-weight: 700;
+	color: var(--text-color);
+	margin-top: 4px;
+	font-variant-numeric: tabular-nums;
+}
+
+.kpns-nilai-kecil {
+	font-size: var(--text-lg);
+	font-weight: 600;
+	margin-top: 4px;
+	font-variant-numeric: tabular-nums;
+}
+
+.kpns-dk {
+	font-size: var(--text-xs);
+	font-weight: 600;
+	color: var(--text-muted);
+	margin-left: 2px;
+}
+
+.kpns-sub {
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+	margin-top: 2px;
+}
+
+.kpns-kartu-ok {
+	border-color: rgba(21, 128, 61, 0.35);
+	background: rgba(21, 128, 61, 0.06);
+}
+
+.kpns-kartu-ok .kpns-nilai {
+	color: var(--kptl-selesai, #15803d);
+}
+
+.kpns-kartu-salah {
+	border-color: rgba(197, 48, 48, 0.4);
+	background: rgba(197, 48, 48, 0.06);
+}
+
+.kpns-kartu-salah .kpns-nilai {
+	color: var(--kptl-terlambat, #c53030);
+}
+
+.kpns-kartu-jenis {
+	padding: 10px 16px;
+	border-left: 3px solid var(--konstruksi-active-accent);
+}
+
+.kpns-tabel-kartu {
+	padding: 0;
+	overflow: hidden;
+}
+
+.kpns-tabel-judul {
+	display: flex;
+	align-items: center;
+	padding: 12px 18px;
+	font-weight: 600;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.kpns-aksi {
+	margin-left: auto;
+	display: inline-flex;
+	gap: 6px;
+	font-weight: normal;
+}
+
+.kpns-tabel-wrap {
+	overflow: auto;
+	max-height: calc(100vh - 240px);
+}
+
+.kpns-tabel {
+	width: 100%;
+	min-width: 980px;
+	border-collapse: separate;
+	border-spacing: 0;
+	font-variant-numeric: tabular-nums;
+}
+
+.kpns-tabel col.kpns-k {
+	width: 140px;
+}
+
+.kpns-tabel thead th {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	background: var(--konstruksi-active-bg);
+	color: var(--konstruksi-header-fg, var(--konstruksi-active-fg));
+	font-size: var(--text-sm);
+	font-weight: 600;
+	padding: 8px 14px;
+	white-space: nowrap;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.kpns-tabel thead tr:nth-child(2) th {
+	top: 35px;
+}
+
+.kpns-tabel thead th.kpns-grup {
+	text-align: center;
+	border-left: 1px solid rgba(47, 87, 146, 0.18);
+}
+
+.kpns-tabel td {
+	padding: 7px 14px;
+	font-size: var(--text-sm);
+	border-bottom: 1px solid var(--border-color);
+	white-space: nowrap;
+}
+
+.kpns-tabel td:nth-child(2), .kpns-tabel td:nth-child(4), .kpns-tabel td:nth-child(6),
+.kpns-tabel thead tr:nth-child(2) th:nth-child(1), .kpns-tabel thead tr:nth-child(2) th:nth-child(3), .kpns-tabel thead tr:nth-child(2) th:nth-child(5) {
+	border-left: 1px solid var(--border-color);
+}
+
+.kpns-akun {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	white-space: normal;
+}
+
+.kpns-toggle, .kpns-toggle-kosong {
+	display: inline-flex;
+	width: 18px;
+	flex: 0 0 18px;
+	justify-content: center;
+	cursor: pointer;
+	color: var(--text-muted);
+}
+
+.kpns-nomor {
+	font-family: var(--font-family-monospace, monospace);
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+}
+
+.kpns-group td {
+	font-weight: 600;
+}
+
+.kpns-group.kpns-level-0 td {
+	background: color-mix(in srgb, var(--konstruksi-active-bg) 70%, transparent);
+	color: var(--konstruksi-active-fg);
+}
+
+.kpns-group.kpns-level-1 td {
+	background: color-mix(in srgb, var(--konstruksi-active-bg) 35%, transparent);
+}
+
+.kpns-daun a.kpns-nama {
+	color: var(--text-color);
+	cursor: pointer;
+}
+
+.kpns-daun a.kpns-nama:hover {
+	color: var(--konstruksi-active-accent);
+	text-decoration: underline;
+}
+
+.kpns-daun:hover td {
+	background: var(--subtle-fg, #f8f9fa);
+}
+
+.kpns-nol {
+	color: var(--gray-400, #c0c6cc);
+}
+
+.kpns-total td {
+	font-weight: 700;
+	border-top: 2px solid var(--text-color);
+	border-bottom: none;
+	background: var(--subtle-fg, #f8f9fa);
+	position: sticky;
+	bottom: 0;
+}
+
+.kpns-kosong, .kpns-muat {
+	text-align: center;
+	color: var(--text-muted);
+	padding: 32px 0;
+}

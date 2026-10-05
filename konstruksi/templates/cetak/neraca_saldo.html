@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Neraca Saldo</title>
+<style>
+{{ d.font | safe }}
+/* Margin halaman PDF (dibaca Frappe dari .print-format). */
+.print-format { margin-top: 10mm; margin-bottom: 10mm; margin-left: 0mm; margin-right: 0mm; padding: 0; }
+html, body { margin: 0; padding: 0; background: #fff; }
+.skn { font-family: "SKI Sans", "Liberation Sans", sans-serif; color: #1b1f1e; font-size: 8.5pt; line-height: 1.4; padding: 0 40px; }
+.skn table { width: 100%; border-collapse: collapse; }
+.skn td, .skn th { padding: 0; vertical-align: top; }
+.skn-mono { font-family: "SKI Mono", "Liberation Mono", monospace; white-space: nowrap; }
+.skn-r { text-align: right; }
+.skn-kecil { color: #6b6f6a; font-size: 7.5pt; line-height: 1.5; }
+.skn-label { font-size: 6.5pt; letter-spacing: 2px; color: #6b6f6a; margin-bottom: 3px; }
+.skn-bar { height: 6px; background: #1b1f1e; border-bottom: 3px solid #b5441f; margin: 0 -40px 18px; }
+.skn-company { font-family: "SKI Condensed", "Liberation Sans Narrow", sans-serif; font-weight: 700; font-size: 15pt; line-height: 1.1; margin-bottom: 3px; }
+.skn-judul { font-family: "SKI Condensed", "Liberation Sans Narrow", sans-serif; font-weight: 700; font-size: 26pt; line-height: 1; letter-spacing: 1px; }
+.skn-sub { font-size: 6.5pt; letter-spacing: 2px; color: #6b6f6a; margin-top: 5px; }
+.skn-garis { border-top: 2px solid #1b1f1e; border-bottom: 1px solid #1b1f1e; height: 2px; margin: 12px 0; }
+.skn-info td { padding-right: 16px !important; }
+.skn-info .skn-nilai { font-size: 9pt; font-weight: 600; }
+.skn-ring { margin: 10px 0 12px; }
+.skn-ring td { padding-right: 8px !important; }
+.skn-kotak { border: 1px solid #d8d3c8; padding: 7px 10px; }
+.skn-kotak .skn-angka { font-family: "SKI Mono", monospace; font-weight: 500; font-size: 10pt; margin-top: 1px; white-space: nowrap; }
+.skn-ok { border-color: #15803d; color: #15803d; }
+.skn-salah { border-color: #b5441f; color: #b5441f; }
+.skn-tabel thead { display: table-header-group; }
+.skn-tabel tr { page-break-inside: avoid; }
+.skn-tabel th { font-weight: 600; font-size: 7pt; letter-spacing: 1px; color: #1b1f1e; padding: 6px 6px !important; border-bottom: 1px solid #1b1f1e; white-space: nowrap; }
+.skn-tabel thead tr:first-child th { border-top: 2px solid #1b1f1e; border-bottom: 1px solid #d8d3c8; text-align: center; }
+.skn-tabel thead tr:first-child th:first-child { text-align: left; }
+.skn-tabel td { padding: 4px 6px !important; border-bottom: 1px solid #ece8de; font-size: 8pt; }
+.skn-tabel .k-uang { width: 108px; }
+.skn-g0 td { font-weight: 700; background: #f1ede4; }
+.skn-g1 td { font-weight: 600; background: #f8f6f1; }
+.skn-g2 td { font-weight: 600; }
+.skn-nomor { color: #8a8d88; font-size: 7pt; margin-right: 4px; }
+.skn-total td { font-weight: 700; border-top: 2px solid #1b1f1e; border-bottom: 2px solid #1b1f1e; padding: 6px !important; }
+.skn-ttd { margin-top: 18px; page-break-inside: avoid; }
+.skn-ttd td { width: 30%; text-align: center; }
+.skn-ttd td.skn-jarak { width: 40%; }
+.skn-ttd-ruang { height: 36px; }
+.skn-ttd-garis { border-top: 1px solid #1b1f1e; }
+.skn-ttd-nama { font-weight: 600; font-size: 8pt; margin-top: 3px; }
+.skn-kaki { margin-top: 16px; border-top: 1px solid #d8d3c8; padding-top: 6px; color: #8a8d88; font-size: 6.5pt; letter-spacing: 2px; }
+</style>
+</head>
+<body>
+<div class="print-format">
+<div class="skn">
+	<div class="skn-bar"></div>
+	<table>
+		<tr>
+			<td>
+				<div class="skn-company">{{ d.company.nama }}</div>
+				{%- for baris in d.company.alamat %}<div class="skn-kecil">{{ baris }}</div>{% endfor %}
+				{%- if d.company.npwp %}<div class="skn-kecil">NPWP {{ d.company.npwp }}</div>{% endif %}
+			</td>
+			<td class="skn-r">
+				<div class="skn-judul">NERACA SALDO</div>
+				<div class="skn-sub">TRIAL BALANCE · DICETAK {{ d.tanggal_cetak | upper }}</div>
+			</td>
+		</tr>
+	</table>
+	<div class="skn-garis"></div>
+
+	<table class="skn-info">
+		<tr>
+			<td><div class="skn-label">PERIODE</div><div class="skn-nilai">{{ d.periode }}</div></td>
+			<td><div class="skn-label">TAHUN FISKAL</div><div class="skn-nilai">{{ d.data.fiscal_year }}</div></td>
+			<td><div class="skn-label">PROYEK</div><div class="skn-nilai">{{ d.project or "Semua proyek" }}</div></td>
+			<td><div class="skn-label">COST CENTER</div><div class="skn-nilai">{{ d.cost_center or "Semua" }}</div></td>
+		</tr>
+	</table>
+
+	<table class="skn-ring">
+		<tr>
+			<td><div class="skn-kotak"><div class="skn-label">TOTAL MUTASI DEBIT</div><div class="skn-angka">{{ d.total.debit }}</div></div></td>
+			<td><div class="skn-kotak"><div class="skn-label">TOTAL MUTASI KREDIT</div><div class="skn-angka">{{ d.total.credit }}</div></div></td>
+			{%- for x in d.per_jenis %}
+			<td><div class="skn-kotak"><div class="skn-label">{{ x.label | upper }}</div><div class="skn-angka">{{ x.teks }} {{ x.posisi }}</div></div></td>
+			{%- endfor %}
+			<td><div class="skn-kotak {{ 'skn-ok' if d.data.seimbang else 'skn-salah' }}"><div class="skn-label">STATUS</div>
+				<div class="skn-angka">{{ "SEIMBANG ✓" if d.data.seimbang else "SELISIH " ~ d.angka(d.data.selisih) }}</div></div></td>
+		</tr>
+	</table>
+
+	<table class="skn-tabel">
+		<thead>
+			<tr><th rowspan="2">AKUN</th><th colspan="2">SALDO AWAL</th><th colspan="2">MUTASI</th><th colspan="2">SALDO AKHIR</th></tr>
+			<tr><th class="k-uang skn-r">DEBIT</th><th class="k-uang skn-r">KREDIT</th><th class="k-uang skn-r">DEBIT</th>
+				<th class="k-uang skn-r">KREDIT</th><th class="k-uang skn-r">DEBIT</th><th class="k-uang skn-r">KREDIT</th></tr>
+		</thead>
+		<tbody>
+			{%- for r in d.data.rows %}
+			<tr class="{{ ('skn-g' ~ ([r.indent, 2] | min)) if r.group else '' }}">
+				<td style="padding-left: {{ 6 + r.indent * 14 }}px !important">{% if r.nomor %}<span class="skn-nomor">{{ r.nomor }}</span>{% endif %}{{ r.nama }}</td>
+				<td class="skn-r skn-mono">{{ r.teks.opening_debit }}</td>
+				<td class="skn-r skn-mono">{{ r.teks.opening_credit }}</td>
+				<td class="skn-r skn-mono">{{ r.teks.debit }}</td>
+				<td class="skn-r skn-mono">{{ r.teks.credit }}</td>
+				<td class="skn-r skn-mono">{{ r.teks.closing_debit }}</td>
+				<td class="skn-r skn-mono">{{ r.teks.closing_credit }}</td>
+			</tr>
+			{%- else %}
+			<tr><td colspan="7" class="skn-kecil" style="padding:12px 6px !important">Tidak ada transaksi pada periode ini.</td></tr>
+			{%- endfor %}
+			<tr class="skn-total">
+				<td>TOTAL</td>
+				<td class="skn-r skn-mono">{{ d.total.opening_debit }}</td>
+				<td class="skn-r skn-mono">{{ d.total.opening_credit }}</td>
+				<td class="skn-r skn-mono">{{ d.total.debit }}</td>
+				<td class="skn-r skn-mono">{{ d.total.credit }}</td>
+				<td class="skn-r skn-mono">{{ d.total.closing_debit }}</td>
+				<td class="skn-r skn-mono">{{ d.total.closing_credit }}</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<table class="skn-ttd">
+		<tr>
+			<td>
+				<div class="skn-kecil">Disiapkan oleh</div>
+				<div class="skn-ttd-ruang"></div>
+				<div class="skn-ttd-garis"></div>
+				<div class="skn-ttd-nama">{{ d.pencetak }}</div>
+				<div class="skn-kecil">Staf Akuntansi</div>
+			</td>
+			<td class="skn-jarak"></td>
+			<td>
+				<div class="skn-kecil">{% if d.company.kota %}{{ d.company.kota }}, {% endif %}{{ d.tanggal_cetak }}</div>
+				<div class="skn-ttd-ruang"></div>
+				<div class="skn-ttd-garis"></div>
+				<div class="skn-ttd-nama">&nbsp;</div>
+				<div class="skn-kecil">Manajer Keuangan</div>
+			</td>
+		</tr>
+	</table>
+	<div class="skn-kaki">{{ d.company.nama }} · NERACA SALDO {{ d.periode | upper }}</div>
+</div>
+</div>
+</body>
+</html>
