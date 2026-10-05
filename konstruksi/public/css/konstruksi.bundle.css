@@ -5194,3 +5194,23 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
+
+/* Tabel deviasi: tanggal berlebar tetap & angka tabular supaya kolom tanggal lurus antar baris. */
+.kpbs-rentang {
+	display: inline-flex;
+	align-items: baseline;
+}
+
+.kpbs-tgl {
+	display: inline-block;
+	min-width: 84px;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.kpbs-sd {
+	display: inline-block;
+	width: 18px;
+	text-align: center;
+	color: var(--text-muted);
+}

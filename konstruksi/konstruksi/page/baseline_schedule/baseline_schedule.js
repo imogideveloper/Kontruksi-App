@@ -19,6 +19,9 @@ const kpbs_tgl = (s) => {
 	const [y, m, d] = String(s).slice(0, 10).split("-").map(Number);
 	return `${String(d).padStart(2, "0")} ${KPBS_BULAN[m - 1]} ${y}`;
 };
+// Rentang tanggal rata: mulai & selesai di kotak berlebar tetap (angka tabular) supaya "–" segaris antar baris.
+const kpbs_rentang = (a, b) =>
+	a ? `<span class="kpbs-rentang"><span class="kpbs-tgl">${kpbs_tgl(a)}</span><span class="kpbs-sd">–</span><span class="kpbs-tgl">${kpbs_tgl(b)}</span></span>` : '<span class="kpw-strip">—</span>';
 const kpbs_persen = (v, dp = 1) => `${format_number(flt(v), null, flt(v) % 1 ? dp : 0)}%`;
 // Varians hari: + = mundur (merah), − = maju (hijau), 0 = sesuai.
 const kpbs_var = (v) => {
@@ -174,8 +177,8 @@ class HalamanBaseline {
 				return `<tr class="${a.status !== "ada" ? "kpbs-baris-" + a.status : ""}">
 					<td class="kptl-mono">${kpbs_esc(a.kode_wbs)}</td>
 					<td class="kptl-potong"><a class="kpbs-nama" data-kpbs="task" data-name="${kpbs_esc(a.task)}" title="${kpbs_esc(a.subject)}">${kpbs_esc(a.subject)}</a> ${ket}</td>
-					<td>${a.baseline_mulai ? `${kpbs_tgl(a.baseline_mulai)} – ${kpbs_tgl(a.baseline_selesai)}` : '<span class="kpw-strip">—</span>'}</td>
-					<td>${a.mulai ? `${kpbs_tgl(a.mulai)} – ${kpbs_tgl(a.selesai)}` : '<span class="kpw-strip">—</span>'}</td>
+					<td>${kpbs_rentang(a.baseline_mulai, a.baseline_selesai)}</td>
+					<td>${kpbs_rentang(a.mulai, a.selesai)}</td>
 					<td>${kpbs_var(a.var_mulai)}</td>
 					<td>${kpbs_var(a.var_selesai)}</td>
 					<td class="text-right">${a.status === "dihapus" ? "—" : kpbs_persen(a.progres)}</td>
@@ -185,8 +188,8 @@ class HalamanBaseline {
 		const baris_ms = d.milestone
 			.map((m) => `<tr class="${["baru", "dihapus"].includes(m.status) ? "kpbs-baris-" + m.status : ""}">
 				<td class="kptl-potong"><b>${kpbs_esc(m.nama)}</b> ${m.status === "baru" ? `<span class="kpbs-var kpbs-var-baru">${__("Baru")}</span>` : m.status === "dihapus" ? `<span class="kpbs-var kpbs-var-hapus">${__("Dihapus")}</span>` : ""}</td>
-				<td>${kpbs_tgl(m.baseline)}</td>
-				<td>${kpbs_tgl(m.sekarang)}</td>
+				<td><span class="kpbs-tgl">${kpbs_tgl(m.baseline)}</span></td>
+				<td><span class="kpbs-tgl">${kpbs_tgl(m.sekarang)}</span></td>
 				<td>${kpbs_var(m.varians)}</td>
 				<td>${m.status && !["baru", "dihapus"].includes(m.status) ? `<span class="kptl-chip">${__(m.status)}</span>` : ""}</td>
 			</tr>`)
