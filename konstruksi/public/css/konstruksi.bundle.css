@@ -5635,3 +5635,10 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpg .kpg-sel-tagih .kpg-nominal {
 	margin-right: 6px;
 }
+
+/* Kartu ringkasan list (Hasil Tender): keterangan kecil di bawah angka (mis. win rate). */
+.kpm-kartu .kpm-sub {
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+	margin-top: 2px;
+}

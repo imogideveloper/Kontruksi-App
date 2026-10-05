@@ -135,3 +135,25 @@ def sinkron_dari_tender(tender, method=None):
 		},
 	)
 	beri_tahu_form("Hasil Tender", name)
+
+
+@frappe.whitelist()
+def get_ringkasan_list():
+	"""Kartu di atas list Hasil Tender (jumlah per hasil, win rate, nilai dimenangkan) & Kontrak Project per tender."""
+	rows = frappe.get_list("Hasil Tender", fields=["name", "hasil", "harga_pemenang", "penawaran_kita"], limit_page_length=0)
+	per_hasil = {}
+	for r in rows:
+		per_hasil[r.hasil] = per_hasil.get(r.hasil, 0) + 1
+	selesai = per_hasil.get("Menang", 0) + per_hasil.get("Kalah", 0)
+	kontrak = {
+		k.tender: k.name
+		for k in frappe.get_all("Kontrak Project", filters={"tender": ("in", [r.name for r in rows] or [""])}, fields=["name", "tender"])
+	}
+	return {
+		"total": len(rows),
+		"per_hasil": per_hasil,
+		"win_rate": round(per_hasil.get("Menang", 0) / selesai * 100, 1) if selesai else None,
+		"nilai_menang": sum(flt(r.harga_pemenang or r.penawaran_kita) for r in rows if r.hasil == "Menang"),
+		"kontrak": kontrak,
+		"perusahaan": frappe.defaults.get_user_default("Company"),
+	}
