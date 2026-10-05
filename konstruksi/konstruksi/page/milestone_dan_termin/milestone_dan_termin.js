@@ -162,10 +162,9 @@ class HalamanMilestone {
 					ket_target = __("{0} hari lagi", [m.selisih_hari]);
 				}
 				let ket_status = "";
+				// Invoice yang sudah terbentuk tampil di kolom Aksi; di sini hanya penanda yang belum ditagih.
 				if (m.status === "Tercapai") {
-					ket_status = m.sales_invoice
-						? `<a href="/app/sales-invoice/${encodeURIComponent(m.sales_invoice)}">${__("Ditagih")}: ${kpm2_esc(m.sales_invoice)}</a>`
-						: `<span class="kpa-oranye">${__("Belum ditagih")}</span>`;
+					ket_status = m.sales_invoice ? "" : `<span class="kpa-oranye">${__("Belum ditagih")}</span>`;
 				} else if (manual && d.bisa_ubah) {
 					ket_status = `<a class="kpm2-tautkan" data-kpm2="ubah" data-name="${kpm2_esc(m.name)}">${__("Belum ditautkan ke WBS — klik")} ${frappe.utils.icon("pencil", "xs")}</a>`;
 				}
