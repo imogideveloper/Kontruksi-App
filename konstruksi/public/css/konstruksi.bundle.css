@@ -5642,3 +5642,45 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	color: var(--text-muted);
 	margin-top: 2px;
 }
+
+/* List Hasil Tender (10 kolom): tiap kolom diberi lebar sesuai isinya (tidak dibagi rata sehingga terpotong);
+   bila layar kurang lebar, list digeser ke samping. Project & Pemberi Kerja mengisi sisa lebar. */
+body[data-route^="List/Hasil Tender"] .frappe-list .result {
+	overflow-x: auto;
+}
+
+body[data-route^="List/Hasil Tender"] .frappe-list :is(.list-row-head, .list-row-container) {
+	min-width: 1460px;
+}
+
+body[data-route^="List/Hasil Tender"] .frappe-list .list-subject {
+	flex: 0 0 150px !important;
+	min-width: 150px;
+}
+
+body[data-route^="List/Hasil Tender"] .frappe-list .list-row-col:is([data-fieldname="nama_project"], [data-fieldname="pemberi_kerja"]) {
+	flex: 1 1 190px !important;
+	min-width: 190px;
+}
+
+body[data-route^="List/Hasil Tender"] .frappe-list .list-row-col:is([data-fieldname="hps"], [data-fieldname="penawaran_kita"]) {
+	flex: 0 0 150px !important;
+}
+
+body[data-route^="List/Hasil Tender"] .frappe-list .list-row-col[data-fieldname="pemenang"] {
+	flex: 0 0 180px !important;
+}
+
+body[data-route^="List/Hasil Tender"] .frappe-list .list-row-col[data-fieldname="selisih_persen"] {
+	flex: 0 0 150px !important;
+}
+
+body[data-route^="List/Hasil Tender"] .frappe-list .list-row-col:is([data-fieldname="tanggal_pengumuman"], [data-fieldname="kontrak"]) {
+	flex: 0 0 120px !important;
+}
+
+/* Kolom status (Hasil) paling kanan. */
+body[data-route^="List/Hasil Tender"] .frappe-list .level-left > .list-row-col:last-child {
+	flex: 0 0 110px !important;
+	margin-right: 0;
+}
