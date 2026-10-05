@@ -4,7 +4,7 @@
  "docstatus": 0,
  "doctype": "Page",
  "idx": 0,
- "modified": "2026-10-11 10:00:00.000000",
+ "modified": "2026-10-05 20:13:59.875861",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "penagihan",
@@ -13,12 +13,6 @@
  "roles": [
   {
    "role": "System Manager"
-  },
-  {
-   "role": "Projects Manager"
-  },
-  {
-   "role": "Projects User"
   },
   {
    "role": "Accounts Manager"

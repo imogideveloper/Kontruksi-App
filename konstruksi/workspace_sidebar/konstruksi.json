@@ -21,6 +21,15 @@
   {
    "child": 0,
    "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Tender & Kontrak",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
    "icon": "gavel",
    "indent": 0,
    "keep_closed": 0,
@@ -31,7 +40,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "calculator",
    "indent": 0,
@@ -43,7 +52,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "clipboard-check",
    "indent": 0,
@@ -55,7 +64,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "trophy",
    "indent": 0,
@@ -67,7 +76,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "signature",
    "indent": 0,
@@ -79,7 +88,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "file-pen-line",
    "indent": 0,
@@ -93,6 +102,15 @@
   {
    "child": 0,
    "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Perencanaan & Pelaksanaan",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
    "icon": "folder-kanban",
    "indent": 0,
    "keep_closed": 0,
@@ -103,7 +121,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "calendar",
    "indent": 0,
@@ -115,7 +133,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "network",
    "indent": 0,
@@ -127,7 +145,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "list-checks",
    "indent": 0,
@@ -139,7 +157,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "flag",
    "indent": 0,
@@ -151,7 +169,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "chart-gantt",
    "indent": 0,
@@ -163,7 +181,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "git-compare",
    "indent": 0,
@@ -177,6 +195,15 @@
   {
    "child": 0,
    "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Keuangan",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
    "icon": "receipt",
    "indent": 0,
    "keep_closed": 0,
@@ -187,13 +214,61 @@
    "type": "Link"
   },
   {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "file-text",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Sales Invoice",
+   "link_to": "Sales Invoice",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "banknote",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Payment Entry",
+   "link_to": "Payment Entry",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
    "child": 0,
    "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
-   "label": "Konfigurasi",
+   "label": "SDM Proyek",
    "show_arrow": 0,
    "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "contact",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Data Personel",
+   "link_to": "Employee",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "users",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Penugasan Personel",
+   "link_to": "Penugasan Personel",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
   },
   {
    "child": 1,
@@ -232,28 +307,13 @@
    "type": "Link"
   },
   {
-   "child": 1,
+   "child": 0,
    "collapsible": 1,
-   "icon": "calendar-x",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Holiday List",
-   "link_to": "Holiday List",
-   "link_type": "DocType",
+   "label": "Data Proyek",
    "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 1,
-   "collapsible": 1,
-   "icon": "calendar-clock",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Event",
-   "link_to": "Event",
-   "link_type": "DocType",
-   "show_arrow": 0,
-   "type": "Link"
+   "type": "Section Break"
   },
   {
    "child": 1,
@@ -318,11 +378,11 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "file-text",
+   "icon": "calendar-x",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Sales Invoice",
-   "link_to": "Sales Invoice",
+   "label": "Holiday List",
+   "link_to": "Holiday List",
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
@@ -330,14 +390,23 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "banknote",
+   "icon": "calendar-clock",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Payment Entry",
-   "link_to": "Payment Entry",
+   "label": "Event",
+   "link_to": "Event",
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Konfigurasi",
+   "show_arrow": 0,
+   "type": "Section Break"
   },
   {
    "child": 1,
@@ -390,30 +459,6 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "contact",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Data Personel",
-   "link_to": "Employee",
-   "link_type": "DocType",
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 1,
-   "collapsible": 1,
-   "icon": "users",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Penugasan Personel",
-   "link_to": "Penugasan Personel",
-   "link_type": "DocType",
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 1,
-   "collapsible": 1,
    "icon": "briefcase",
    "indent": 0,
    "keep_closed": 0,
@@ -448,7 +493,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-12 09:00:00.000000",
+ "modified": "2026-10-13 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Konstruksi",
