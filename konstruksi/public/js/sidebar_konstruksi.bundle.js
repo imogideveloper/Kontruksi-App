@@ -36,3 +36,16 @@ function pasang_kunci_sidebar() {
 		}
 	};
 }
+
+// Mode ringkas: tooltip judul group (Section Break) dimatikan. Elemen group membungkus menu-menu di dalamnya, sehingga
+// tooltip judul group ikut muncul bersama tooltip menu yang disorot (dua tooltip sekaligus).
+function matikan_tooltip_group() {
+	$(".body-sidebar .sidebar-item-container.section-item").each(function () {
+		const $el = $(this);
+		if ($el.attr("data-toggle") !== "tooltip") return;
+		$el.tooltip?.("dispose");
+		$el.removeAttr("data-toggle").removeAttr("title").removeAttr("data-original-title");
+	});
+}
+$(document).on("sidebar-expand sidebar_setup", () => setTimeout(matikan_tooltip_group, 0));
+$(document).on("app_ready", () => setTimeout(matikan_tooltip_group, 50));

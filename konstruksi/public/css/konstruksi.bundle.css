@@ -5745,3 +5745,10 @@ body[data-route^="List/Hasil Tender"] .frappe-list .level-left > .list-row-col:l
 		transition: none;
 	}
 }
+
+/* Sidebar Konstruksi mode ringkas: hanya ikon — label, shortcut (Ctrl+K), kontrol, dan judul header disembunyikan
+   (sidebar 68px lebih lebar dari bawaan sehingga huruf pertama label sempat terlihat). */
+.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .standard-sidebar-item .item-anchor > :not(.sidebar-item-icon),
+.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .sidebar-header :is(.title-container, .drop-icon) {
+	display: none !important;
+}
