@@ -358,10 +358,28 @@ def buat_pembayaran(project, invoice, bagian="termin"):
 		frappe.throw(_("Tidak ada sisa {0} pada invoice ini.").format(_("retensi") if bagian == "retensi" else _("tagihan")))
 	pe = get_payment_entry("Sales Invoice", invoice, party_amount=jumlah)
 	pe.project = project
+	cara_bayar_bank(pe)
 	pe.remarks = (
 		_("Penerimaan retensi {0}").format(inv.name) if bagian == "retensi" else _("Penerimaan {0} {1}").format(inv.jenis_tagihan or "", inv.name)
 	)
 	return pe
+
+
+def cara_bayar_bank(pe):
+	"""Mode of Payment default untuk penerimaan proyek: Mode of Payment tipe Bank pertama yang punya rekening default
+	di company ini; rekening itu dipakai sebagai Account Paid To. Bila belum ada, dibiarkan (diisi user)."""
+	mop = frappe.db.sql(
+		"""select m.name, a.default_account from `tabMode of Payment` m join `tabMode of Payment Account` a on a.parent = m.name
+		where m.enabled = 1 and m.type = 'Bank' and a.company = %s and ifnull(a.default_account, '') != '' order by m.name limit 1""",
+		pe.company, as_dict=True,
+	)
+	if not mop:
+		return
+	pe.mode_of_payment = mop[0].name
+	pe.paid_to = mop[0].default_account
+	pe.paid_to_account_type, pe.paid_to_account_currency = frappe.get_cached_value(
+		"Account", pe.paid_to, ["account_type", "account_currency"]
+	)
 
 
 @frappe.whitelist()

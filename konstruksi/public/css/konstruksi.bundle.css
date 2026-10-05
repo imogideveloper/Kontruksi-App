@@ -5521,3 +5521,24 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpsi .form-section:is([data-fieldname="section_break_43"], [data-fieldname="totals_section"], [data-fieldname="section_break_pxwz"]) .form-column > form > .frappe-control > .form-group {
 	margin-bottom: var(--konstruksi-field-gap) !important;
 }
+
+/* Payment Entry penerimaan tagihan proyek (kppe, payment_entry_konstruksi.js): nilai field read-only hitam
+   (konsisten) dan kolom tombol edit (pensil) tabel sempit — sama seperti Sales Invoice proyek. */
+.kppe .form-layout .like-disabled-input,
+.kppe .form-layout .like-disabled-input a,
+.kppe .form-layout .form-control:disabled,
+.kppe .form-layout .form-control[readonly] {
+	color: var(--text-color) !important;
+	-webkit-text-fill-color: var(--text-color);
+	opacity: 1;
+}
+
+@media (min-width: 768px) {
+	.kppe .form-grid .grid-row > .row > .col:last-child:not([class*="col-xs-"]) {
+		flex: 0 0 36px !important;
+		max-width: 36px !important;
+		min-width: 36px !important;
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+	}
+}
