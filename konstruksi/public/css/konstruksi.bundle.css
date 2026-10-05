@@ -5582,3 +5582,12 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpsi .form-section[data-fieldname="payment_schedule_section"] > .section-head {
 	display: none !important;
 }
+
+/* Sales Invoice tagihan proyek: keterangan jadwal pembayaran (mis. "Retensi 5% (dibayar setelah masa pemeliharaan)")
+   boleh turun baris, tidak terpotong "…". */
+.kpsi .frappe-control[data-fieldname="payment_schedule"] .grid-static-col[data-fieldname="description"] .static-area {
+	white-space: normal;
+	overflow: visible;
+	text-overflow: clip;
+	line-height: 1.4;
+}

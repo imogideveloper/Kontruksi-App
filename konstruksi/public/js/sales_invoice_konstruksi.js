@@ -20,6 +20,7 @@ function rapikan_invoice_konstruksi(frm) {
 	pindahkan_jadwal_bayar(frm, aktif);
 	atur_label_mata_uang(frm, aktif);
 	atur_kolom_items(frm, aktif);
+	atur_kolom_jadwal(frm, aktif);
 	if (!aktif) return;
 
 	frm.toggle_display(FIELD_TIDAK_RELEVAN, false);
@@ -144,6 +145,31 @@ function tampilkan_persen_pajak(frm) {
 // Tabel Items invoice proyek: kolom Warehouse disembunyikan (item jasa non-stok) dan kolom Item dilebarkan ke 6/12
 // sehingga total kolom penuh 12 — tidak ada sisa lebar yang jatuh ke kolom tombol edit (pensil), sama seperti tabel
 // pajak. Diterapkan ulang setiap berganti dokumen; invoice biasa kembali ke kolom bawaan.
+// Tabel jadwal pembayaran invoice proyek: Payment Term (selalu kosong, jadwal dibuat sistem) disembunyikan; Description
+// 4/12 (boleh turun baris), tambah kolom Outstanding (sisa per baris: termin / retensi) — total 12 kolom sehingga kolom
+// pensil tetap sempit. Invoice biasa kembali ke kolom bawaan.
+const KOLOM_JADWAL_PROYEK = { description: { columns: 4 }, outstanding: { in_list_view: 1, columns: 2 } };
+function atur_kolom_jadwal(frm, aktif) {
+	const grid = frm.fields_dict.payment_schedule?.grid;
+	if (!grid) return;
+	const kunci = `${frm.docname}|${aktif}`;
+	if (grid.__kpsi_kunci === kunci) return;
+	grid.__kpsi_kunci = kunci;
+	if (aktif) {
+		grid.column_disp_overrides.payment_term = 1;
+		Object.entries(KOLOM_JADWAL_PROYEK).forEach(([field, sifat]) => {
+			const df = frappe.meta.get_docfield(grid.doctype, field, frm.docname);
+			if (df) Object.assign(df, sifat);
+		});
+	} else {
+		delete grid.column_disp_overrides.payment_term;
+	}
+	grid.visible_columns = [];
+	grid.grid_rows = [];
+	$(grid.parent).find(".grid-body .grid-row").remove();
+	grid.refresh();
+}
+
 function atur_kolom_items(frm, aktif) {
 	const grid = frm.fields_dict.items?.grid;
 	if (!grid) return;
