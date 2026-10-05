@@ -439,6 +439,19 @@ class HalamanMilestone {
 	}
 
 	dialog_batalkan(m) {
+		const LAINNYA = __("Lainnya");
+		const ALASAN = [
+			__("Dokumen BAST / berita acara belum lengkap"),
+			__("Dokumen salah atau belum ditandatangani"),
+			__("Tanggal tercapai salah input"),
+			__("Salah pilih milestone"),
+			__("Pemeriksaan konsultan pengawas belum disetujui"),
+			__("Pekerjaan ditemukan cacat / perlu perbaikan"),
+			__("Volume / progres belum sesuai opname"),
+			__("Perubahan lingkup pekerjaan (addendum)"),
+			__("Permintaan pemberi kerja"),
+			LAINNYA,
+		];
 		const dialog = new frappe.ui.Dialog({
 			title: __("Batalkan Status Tercapai — {0}", [m.nama_milestone]),
 			fields: [
@@ -446,14 +459,20 @@ class HalamanMilestone {
 					"Milestone akan kembali berstatus Rencana / Terlambat dan termin {0} tidak bisa ditagih sampai ditandai tercapai lagi. Pembatalan dicatat di riwayat milestone.",
 					[kpm2_rp(m.nilai_termin)]
 				)}</div>` },
-				{ fieldname: "alasan", fieldtype: "Small Text", label: __("Alasan pembatalan"), reqd: 1 },
+				{ fieldname: "tanggal", fieldtype: "Date", label: __("Tanggal Pembatalan"), default: frappe.datetime.get_today(), read_only: 1 },
+				{ fieldname: "alasan", fieldtype: "Select", label: __("Alasan Pembatalan"), reqd: 1, options: ["", ...ALASAN] },
+				{ fieldname: "alasan_lain", fieldtype: "Small Text", label: __("Alasan Lainnya"),
+					depends_on: `eval:doc.alasan==${JSON.stringify(LAINNYA)}`, mandatory_depends_on: `eval:doc.alasan==${JSON.stringify(LAINNYA)}` },
 			],
 			primary_action_label: __("Batalkan Status Tercapai"),
-			primary_action: (v) =>
-				this.call("batalkan_tercapai", { name: m.name, alasan: v.alasan }, __("Status tercapai dibatalkan")).then(() => dialog.hide()),
+			primary_action: (v) => {
+				const alasan = v.alasan === LAINNYA ? `${LAINNYA}: ${(v.alasan_lain || "").trim()}` : v.alasan;
+				this.call("batalkan_tercapai", { name: m.name, alasan }, __("Status tercapai dibatalkan")).then(() => dialog.hide());
+			},
 			secondary_action_label: __("Tutup"),
 			secondary_action: () => dialog.hide(),
 		});
+		dialog.$wrapper.addClass("kpm2-dialog-batal");
 		dialog.get_primary_btn().removeClass("btn-primary").addClass("btn-danger");
 		dialog.show();
 	}

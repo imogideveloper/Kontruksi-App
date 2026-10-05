@@ -338,7 +338,9 @@ def batalkan_tercapai(project, name, alasan=None):
 	doc.save()
 	doc.add_comment(
 		"Comment",
-		_("Status tercapai ({0}) dibatalkan. Alasan: {1}").format(frappe.format(tanggal, "Date"), frappe.utils.escape_html(alasan.strip())),
+		_("Status tercapai ({0}) dibatalkan pada {1}. Alasan: {2}").format(
+			frappe.format(tanggal, "Date"), frappe.format(today(), "Date"), frappe.utils.escape_html(alasan.strip())
+		),
 	)
 
 

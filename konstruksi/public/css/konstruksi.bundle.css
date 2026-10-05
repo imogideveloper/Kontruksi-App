@@ -3964,3 +3964,10 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 		--sidebar-width: 268px;
 	}
 }
+
+/* Dialog Batalkan Status Tercapai: Tanggal Pembatalan read-only tetap hitam (mudah dibaca). */
+.kpm2-dialog-batal .frappe-control[data-fieldname="tanggal"] :is(.control-value, .like-disabled-input, input) {
+	color: var(--text-color) !important;
+	-webkit-text-fill-color: var(--text-color);
+	opacity: 1;
+}
