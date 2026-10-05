@@ -451,4 +451,7 @@ def get_daftar():
 		p.piutang = sum(flt(x.outstanding_amount) for x in inv)
 		p.siap_ditagih = frappe.db.count("Milestone Termin", {"project": p.name, "status": "Tercapai", "sales_invoice": ("is", "not set")})
 		p.uang_muka = bool(invoice_aktif({"project": p.name, "jenis_tagihan": "Uang Muka", "docstatus": 1}))
+		p.termin_total = frappe.db.count("Milestone Termin", {"project": p.name})
+		p.termin_ditagih = len({x.milestone_termin for x in frappe.get_all("Sales Invoice",
+			filters={"project": p.name, "jenis_tagihan": "Termin", "docstatus": 1}, fields=["milestone_termin"]) if x.milestone_termin})
 	return projects

@@ -89,6 +89,9 @@ class HalamanPenagihan {
 					<td class="kptl-potong" title="${kpg_esc(r.customer || "")}">${kpg_esc(r.customer || "—")}</td>
 					<td class="text-right">${kpg_rp(r.nilai_kontrak)}</td>
 					<td>${r.uang_muka ? `<span class="kpbs-var kpbs-var-maju">${__("Ditagih")}</span>` : `<span class="kpbs-var kpbs-var-sesuai">${__("Belum")}</span>`}</td>
+					<td>${r.termin_total
+						? `<span class="kpbs-var kpbs-var-${r.termin_ditagih ? "maju" : "sesuai"}">${__("{0} / {1} ditagih", [r.termin_ditagih, r.termin_total])}</span>`
+						: "—"}</td>
 					<td class="text-right">${kpg_rp(r.ditagih)}</td>
 					<td class="text-right">${kpg_rp(r.piutang)}</td>
 					<td class="text-right ${r.siap_ditagih ? "kpg-siap" : ""}">${r.siap_ditagih || "—"}</td>
@@ -96,9 +99,9 @@ class HalamanPenagihan {
 				</tr>`)
 				.join("");
 			this.$body.html(`${kepala}<div class="kptl-card kptl-card-tabel"><div class="kptl-tabel-wrap"><table class="kptl-tabel">
-				<colgroup><col style="width:130px"><col><col style="width:200px"><col style="width:150px"><col style="width:100px"><col style="width:150px"><col style="width:150px"><col style="width:110px"><col style="width:80px"></colgroup>
+				<colgroup><col style="width:130px"><col><col style="width:200px"><col style="width:150px"><col style="width:100px"><col style="width:130px"><col style="width:150px"><col style="width:150px"><col style="width:110px"><col style="width:80px"></colgroup>
 				<thead><tr><th>${__("ID Proyek")}</th><th>${__("Nama Proyek")}</th><th>${__("Klien")}</th><th class="text-right">${__("Nilai Kontrak")}</th>
-					<th>${__("Uang Muka")}</th><th class="text-right">${__("Sudah Ditagih")}</th><th class="text-right">${__("Piutang")}</th><th class="text-right">${__("Siap Ditagih")}</th><th></th></tr></thead>
+					<th>${__("Uang Muka")}</th><th title="${__("Jumlah termin (milestone) yang invoicenya sudah di-submit")}">${__("Termin")}</th><th class="text-right">${__("Sudah Ditagih")}</th><th class="text-right">${__("Piutang")}</th><th class="text-right">${__("Siap Ditagih")}</th><th></th></tr></thead>
 				<tbody>${baris}</tbody></table></div></div>`);
 		});
 	}
