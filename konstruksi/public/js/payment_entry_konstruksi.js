@@ -46,8 +46,8 @@ function rapikan_pembayaran_konstruksi(frm) {
 			return;
 		}
 		frm.toggle_display(FIELD_PE_TIDAK_RELEVAN, false);
-		// Rekening penerima (Account Paid To) selalu terlihat.
-		frm.fields_dict.payment_accounts_section?.collapse?.(false);
+		// Semua section yang bisa dilipat (Accounts, Deductions, Accounting Dimensions, More Information, …) terbuka.
+		(frm.layout?.sections || []).forEach((s) => s.df?.collapsible && s.collapse?.(false));
 		tampilkan_konteks(frm, info);
 		pakai_sidebar_konstruksi();
 	});
