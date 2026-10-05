@@ -1140,25 +1140,6 @@ button.dok-file-kosong .icon {
 	stroke: var(--konstruksi-active-fg);
 }
 
-/* Sidebar kiri: Section Break "Konfigurasi" tampil sebagai garis pemisah (menu operasional | konfigurasi).
-   Spacer bawaan Frappe tidak dirender di sidebar workspace, jadi dipakai Section Break berisi menu konfigurasi. */
-.body-sidebar .section-item[data-id="Konfigurasi"] > .standard-sidebar-item {
-	margin: 6px 0;
-	min-height: 0;
-	pointer-events: none;
-}
-
-.body-sidebar .section-item[data-id="Konfigurasi"] > .standard-sidebar-item > .item-anchor.section-break {
-	display: none !important;
-}
-
-.body-sidebar .section-item[data-id="Konfigurasi"] > .standard-sidebar-item > .divider {
-	display: block !important;
-	margin: 0;
-	/* Warna sama dengan blok menu aktif. */
-	border-top: 2px solid var(--konstruksi-active-bg);
-}
-
 /* Dokumen Tender: kotak nilai Kelengkapan Wajib diberi blok warna (sama dengan menu sidebar aktif). */
 body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_lengkap"] .control-value,
 body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_lengkap"] input {
