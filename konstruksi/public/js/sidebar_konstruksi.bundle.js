@@ -5,6 +5,7 @@
 //
 // Catatan: dari /desk/konstruksi Frappe menyimpan judul sidebar dalam huruf kecil ("konstruksi"); disamakan ke label.
 const SIDEBAR_KONSTRUKSI = "Konstruksi";
+const DOCTYPE_PENAGIHAN = ["Sales Invoice", "Payment Entry"];
 const sidebar_konstruksi = (judul) => String(judul || "").toLowerCase() === SIDEBAR_KONSTRUKSI.toLowerCase();
 
 // app_ready dipicu di dalam constructor frappe.Application, sebelum frappe.app terisi; pasang sesudahnya.
@@ -23,10 +24,15 @@ function pasang_kunci_sidebar() {
 	sidebar.set_workspace_sidebar = (...args) => {
 		const sebelumnya = sidebar.sidebar_title;
 		pilih_asli(...args);
-		const buka_workspace = frappe.get_route()[0] === "Workspaces";
-		if (sidebar_konstruksi(sebelumnya) && !buka_workspace && sidebar.sidebar_title !== SIDEBAR_KONSTRUKSI) {
+		const route = frappe.get_route();
+		const buka_workspace = route[0] === "Workspaces";
+		// Penagihan proyek (Sales Invoice, Payment Entry) selalu di sidebar Konstruksi, juga bila dibuka langsung
+		// (link, reload, notifikasi) — tidak pindah ke sidebar Accounting / Payments.
+		const doctype_penagihan = ["List", "Form"].includes(route[0]) && DOCTYPE_PENAGIHAN.includes(route[1]);
+		if ((sidebar_konstruksi(sebelumnya) || doctype_penagihan) && !buka_workspace && sidebar.sidebar_title !== SIDEBAR_KONSTRUKSI) {
 			sidebar.setup(SIDEBAR_KONSTRUKSI);
 			sidebar.set_active_workspace_item?.();
+			frappe.breadcrumbs?.update?.();
 		}
 	};
 }
