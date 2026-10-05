@@ -5430,3 +5430,24 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 		flex-grow: 1;
 	}
 }
+
+/* Sales Invoice tagihan proyek: ringkasan angka di bawah tabel Sales Taxes and Charges (Total Taxes, Grand Total,
+   Rounded Total, Total Advance, Outstanding) disusun satu tumpukan di kanan, nilai rata kanan, tepi kanannya
+   sejajar kolom Total tabel pajak (tabel dikurangi kolom pensil 36px). */
+@media (min-width: 768px) {
+	.kpsi .form-section:is([data-fieldname="section_break_43"], [data-fieldname="totals_section"], [data-fieldname="section_break_pxwz"]) .section-body {
+		flex-direction: column;
+		align-items: flex-end;
+		padding-right: 36px;
+	}
+
+	.kpsi .form-section:is([data-fieldname="section_break_43"], [data-fieldname="totals_section"], [data-fieldname="section_break_pxwz"]) .section-body > .form-column {
+		flex: 0 0 auto;
+		width: 50%;
+		max-width: 50%;
+	}
+}
+
+.kpsi .form-section:is([data-fieldname="section_break_43"], [data-fieldname="totals_section"], [data-fieldname="section_break_pxwz"]) .frappe-control[data-fieldtype="Currency"] :is(.control-value, input) {
+	text-align: right;
+}
