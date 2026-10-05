@@ -135,6 +135,10 @@ def data_invoice(doc):
 		"Bank Account", {"company": doc.company, "is_company_account": 1, "disabled": 0}, ["bank", "account_name", "bank_account_no"], as_dict=True
 	)
 
+	if bank:
+		# Atas nama rekening = nama perusahaan (account_name Bank Account hanya label rekening).
+		bank.atas_nama = company.company_name or doc.company
+
 	if jenis == "Uang Muka":
 		catatan = ("Tagihan uang muka sesuai ketentuan kontrak. Pemotongan PPh Final dilakukan oleh pemberi kerja dan bukti potong "
 			"diserahkan kepada penyedia jasa.")
