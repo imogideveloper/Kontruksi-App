@@ -5214,3 +5214,52 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	text-align: center;
 	color: var(--text-muted);
 }
+
+/* ===================== Penagihan (page/penagihan) — kelas kpg-* (+ kptl-*, kpbs-*) ===================== */
+.kpg .kpg-nilai {
+	font-size: 18px;
+	white-space: nowrap;
+}
+
+.kpg-aksi-kanan {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin-left: auto;
+	font-weight: normal;
+}
+
+.kpg-aksi-kanan .icon,
+.kpg-aksi .icon {
+	stroke: currentColor;
+}
+
+.kpg-tabel-termin {
+	min-width: 1280px;
+}
+
+.kpg-aksi {
+	white-space: nowrap;
+}
+
+.kpg-aksi .kpbs-var {
+	margin-right: 4px;
+}
+
+.kpg-st-draft {
+	background: rgba(194, 65, 12, 0.12);
+	color: #c2410c;
+}
+
+.kpg-siap {
+	font-weight: 700;
+	color: #c2410c;
+}
+
+.kpg-catatan {
+	margin-top: 4px;
+}
+
+.kpg-catatan-kartu {
+	padding: 8px 16px 12px;
+}

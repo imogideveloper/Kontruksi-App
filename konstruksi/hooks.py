@@ -192,6 +192,12 @@ doc_events = {
 		"on_update": "konstruksi.konstruksi.doctype.kontrak_project.kontrak_project.hitung_ulang_dari_rab",
 		"after_delete": "konstruksi.konstruksi.doctype.kontrak_project.kontrak_project.hitung_ulang_dari_rab",
 	},
+	# Penagihan proyek: satu tagihan aktif per milestone / uang muka; tautan tagihan di Milestone Termin.
+	"Sales Invoice": {
+		"validate": "konstruksi.konstruksi.penagihan.validasi_invoice",
+		"on_submit": "konstruksi.konstruksi.penagihan.sinkron_milestone",
+		"on_cancel": "konstruksi.konstruksi.penagihan.sinkron_milestone",
+	},
 	# Progres item WBS mengikuti Task yang terhubung.
 	"Task": {
 		"validate": "konstruksi.konstruksi.aktivitas.hitung_task",

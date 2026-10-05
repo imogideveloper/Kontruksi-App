@@ -384,11 +384,83 @@ def buat_wbs_default():
 	create_custom_fields(CUSTOM_FIELD_WBS, update=True)
 
 
+# Penagihan proyek (Sales Invoice uang muka / termin): item jasa, akun, dan field penanda di Sales Invoice.
+ITEM_PENAGIHAN = (
+	("UM-KONSTRUKSI", "Uang Muka Pekerjaan Konstruksi", "akun_uang_muka"),
+	("TERMIN-KONSTRUKSI", "Termin Pekerjaan Konstruksi", "akun_pendapatan"),
+)
+AKUN_PENAGIHAN = {
+	# kunci: (nama akun, induk, root_type, account_type)
+	"akun_uang_muka": ("Uang Muka Proyek Diterima", "Current Liabilities", "Liability", ""),
+	"akun_pph": ("PPh Final 4(2) Dibayar Dimuka", "Tax Assets", "Asset", "Tax"),
+	"akun_pendapatan": ("Pendapatan Jasa Konstruksi", "Direct Income", "Income", "Income Account"),
+}
+CUSTOM_FIELD_PENAGIHAN = {
+	"Sales Invoice": [
+		{"fieldname": "penagihan_proyek_section", "fieldtype": "Section Break", "label": "Penagihan Proyek",
+			"insert_after": "project", "collapsible": 1, "depends_on": "eval:doc.jenis_tagihan"},
+		{"fieldname": "jenis_tagihan", "fieldtype": "Select", "label": "Jenis Tagihan", "options": "\nUang Muka\nTermin",
+			"insert_after": "penagihan_proyek_section", "read_only": 1, "in_standard_filter": 1, "allow_on_submit": 0},
+		{"fieldname": "kontrak_project", "fieldtype": "Link", "label": "Kontrak Project", "options": "Kontrak Project",
+			"insert_after": "jenis_tagihan", "read_only": 1},
+		{"fieldname": "milestone_termin", "fieldtype": "Link", "label": "Milestone / Termin", "options": "Milestone Termin",
+			"insert_after": "kontrak_project", "read_only": 1, "depends_on": "eval:doc.jenis_tagihan=='Termin'"},
+		{"fieldname": "penagihan_proyek_column", "fieldtype": "Column Break", "insert_after": "milestone_termin"},
+		{"fieldname": "nilai_bruto", "fieldtype": "Currency", "label": "Nilai Bruto (termasuk PPN)", "options": "currency",
+			"insert_after": "penagihan_proyek_column", "read_only": 1},
+		{"fieldname": "potongan_uang_muka", "fieldtype": "Currency", "label": "Potongan Uang Muka (DPP)", "options": "currency",
+			"insert_after": "nilai_bruto", "read_only": 1, "depends_on": "eval:doc.jenis_tagihan=='Termin'"},
+		{"fieldname": "nilai_pph_final", "fieldtype": "Currency", "label": "PPh Final Dipotong", "options": "currency",
+			"insert_after": "potongan_uang_muka", "read_only": 1},
+		{"fieldname": "nilai_retensi", "fieldtype": "Currency", "label": "Retensi Ditahan", "options": "currency",
+			"insert_after": "nilai_pph_final", "read_only": 1, "depends_on": "eval:doc.jenis_tagihan=='Termin'",
+			"description": "Ditagih di jadwal pembayaran terakhir (jatuh tempo akhir masa pemeliharaan)."},
+	],
+}
+
+
+def akun_penagihan(company, kunci):
+	nama, induk, root_type, account_type = AKUN_PENAGIHAN[kunci]
+	abbr = frappe.get_cached_value("Company", company, "abbr")
+	akun = f"{nama} - {abbr}"
+	if not frappe.db.exists("Account", akun):
+		parent = frappe.db.get_value("Account", {"company": company, "account_name": induk, "is_group": 1})
+		if not parent:
+			return None
+		frappe.get_doc(
+			{"doctype": "Account", "account_name": nama, "parent_account": parent, "company": company,
+				"root_type": root_type, "account_type": account_type}
+		).insert(ignore_permissions=True)
+	return akun
+
+
+def buat_penagihan_default():
+	from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+	create_custom_fields(CUSTOM_FIELD_PENAGIHAN, update=True)
+	companies = frappe.get_all("Company", pluck="name")
+	for c in companies:
+		for kunci in AKUN_PENAGIHAN:
+			akun_penagihan(c, kunci)
+	for kode, nama, kunci_akun in ITEM_PENAGIHAN:
+		if frappe.db.exists("Item", kode):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Item", "item_code": kode, "item_name": nama, "item_group": "Services" if frappe.db.exists("Item Group", "Services") else "All Item Groups",
+				"stock_uom": "Unit" if frappe.db.exists("UOM", "Unit") else "Nos", "is_stock_item": 0, "is_sales_item": 1, "is_purchase_item": 0,
+				"include_item_in_manufacturing": 0, "description": nama,
+				"item_defaults": [{"company": c, "income_account": akun_penagihan(c, kunci_akun)} for c in companies if akun_penagihan(c, kunci_akun)],
+			}
+		).insert(ignore_permissions=True)
+
+
 def after_install():
 	buat_custom_field_project()
 	buat_tim_proyek_default()
 	buat_biaya_personel_default()
 	buat_wbs_default()
+	buat_penagihan_default()
 	buat_jenis_project_default()
 	buat_template_dokumen_default()
 	buat_tarif_pph_final_default()

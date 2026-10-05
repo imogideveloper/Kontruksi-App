@@ -83,6 +83,7 @@
 				frm.add_custom_button(__("Milestone & Termin"), () => frappe.set_route("milestone-dan-termin", frm.doc.name), __("Buka"));
 				frm.add_custom_button(__("Project Timeline"), () => frappe.set_route("project-timeline", frm.doc.name), __("Buka"));
 				frm.add_custom_button(__("Baseline Schedule"), () => frappe.set_route("baseline-schedule", frm.doc.name), __("Buka"));
+				frm.add_custom_button(__("Penagihan"), () => frappe.set_route("penagihan", frm.doc.name), __("Buka"));
 				muat_dashboard(frm);
 				muat_tim(frm);
 			}

@@ -165,7 +165,7 @@ class HalamanMilestone {
 				if (m.status === "Tercapai") {
 					ket_status = m.sales_invoice
 						? `<a href="/app/sales-invoice/${encodeURIComponent(m.sales_invoice)}">${__("Ditagih")}: ${kpm2_esc(m.sales_invoice)}</a>`
-						: `<span class="kpa-oranye">${__("Belum ditagih — buat di menu Penagihan")}</span>`;
+						: `<span class="kpa-oranye">${__("Belum ditagih")}</span>`;
 				} else if (manual && d.bisa_ubah) {
 					ket_status = `<a class="kpm2-tautkan" data-kpm2="ubah" data-name="${kpm2_esc(m.name)}">${__("Belum ditautkan ke WBS — klik")} ${frappe.utils.icon("pencil", "xs")}</a>`;
 				}
@@ -182,7 +182,7 @@ class HalamanMilestone {
 				} else if (ditagih) {
 					tombol.push(`<a class="btn btn-xs btn-default" href="/app/sales-invoice/${encodeURIComponent(m.sales_invoice)}">${frappe.utils.icon("file-text", "xs")} ${kpm2_esc(m.sales_invoice)}</a>`);
 				} else {
-					tombol.push(`<button class="btn btn-xs btn-default" disabled title="${__("Tagihan dibuat dari menu Penagihan (segera tersedia).")}">${frappe.utils.icon("receipt", "xs")} ${__("Buat Tagihan")}</button>`);
+					tombol.push(`<button class="btn btn-xs btn-primary" data-kpm2="tagih" data-name="${kpm2_esc(m.name)}" title="${__("Buat Sales Invoice termin ini (draft)")}">${frappe.utils.icon("receipt", "xs")} ${__("Buat Tagihan")}</button>`);
 				}
 				return `<tr>
 					<td class="kpw-kode">${m.urutan}</td>
@@ -278,6 +278,11 @@ class HalamanMilestone {
 			case "tercapai":
 			case "dokumen":
 				return this.dialog_tercapai(m, jenis === "dokumen");
+			case "tagih":
+				return frappe
+					.call({ method: "konstruksi.konstruksi.penagihan.buat_tagihan_termin", args: { project: this.project, milestone: name },
+						freeze: true, freeze_message: __("Membuat invoice termin…") })
+					.then((r) => r.message && frappe.set_route("Form", "Sales Invoice", r.message));
 			case "batalkan":
 				return this.dialog_batalkan(m);
 			case "hapus":
