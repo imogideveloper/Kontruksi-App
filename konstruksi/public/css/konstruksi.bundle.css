@@ -6050,9 +6050,10 @@ body[data-route^="List/Tender"] .frappe-list .level-left > .list-row-col:last-ch
 
 /* Report Trial Balance — area filter: filter utama di grid 6 kolom yang rapi, opsi (checkbox) dikumpulkan di bawah
    sebagai toggle switch modern, 3 per baris, tiap opsi dalam blok yang sama tinggi. */
+/* Grid 24 kolom: 8 filter utama satu baris (lebar sesuai isi: Company 4, Fiscal Year 2, lainnya 3), opsi 3 per baris (8). */
 body[data-route^="query-report/Trial Balance"] .page-form {
 	display: grid;
-	grid-template-columns: repeat(6, minmax(0, 1fr));
+	grid-template-columns: repeat(24, minmax(0, 1fr));
 	column-gap: 12px;
 	row-gap: 0;
 	padding: 10px 16px 12px;
@@ -6060,6 +6061,7 @@ body[data-route^="query-report/Trial Balance"] .page-form {
 
 body[data-route^="query-report/Trial Balance"] .page-form > .frappe-control {
 	order: 1;
+	grid-column: span 3;
 	width: auto;
 	max-width: none;
 	flex: none;
@@ -6067,9 +6069,17 @@ body[data-route^="query-report/Trial Balance"] .page-form > .frappe-control {
 	margin: 6px 0 !important;
 }
 
+body[data-route^="query-report/Trial Balance"] .page-form > .frappe-control[data-fieldname="company"] {
+	grid-column: span 4;
+}
+
+body[data-route^="query-report/Trial Balance"] .page-form > .frappe-control[data-fieldname="fiscal_year"] {
+	grid-column: span 2;
+}
+
 body[data-route^="query-report/Trial Balance"] .page-form > .frappe-control[data-fieldtype="Check"] {
 	order: 2;
-	grid-column: span 2;
+	grid-column: span 8;
 	margin: 4px 0 !important;
 }
 
@@ -6150,6 +6160,11 @@ body[data-route^="query-report/Trial Balance"] .page-form > .frappe-control[data
 @media (max-width: 991px) {
 	body[data-route^="query-report/Trial Balance"] .page-form {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	body[data-route^="query-report/Trial Balance"] .page-form > .frappe-control,
+	body[data-route^="query-report/Trial Balance"] .page-form > .frappe-control:is([data-fieldname="company"], [data-fieldname="fiscal_year"]) {
+		grid-column: span 1;
 	}
 
 	body[data-route^="query-report/Trial Balance"] .page-form > .frappe-control[data-fieldtype="Check"] {
