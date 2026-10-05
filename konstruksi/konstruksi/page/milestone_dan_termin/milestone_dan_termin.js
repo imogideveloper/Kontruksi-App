@@ -86,7 +86,9 @@ class HalamanMilestone {
 				.map((r) => {
 					const p = Math.min(flt(r.bobot_tercapai), 100);
 					return `<tr class="kpw-baris-proyek" data-kpm2="buka" data-project="${kpm2_esc(r.name)}">
-						<td><div class="kpw-proyek-nama">${kpm2_esc(r.project_name)}</div><div class="kpw-proyek-id">${kpm2_esc(r.name)}${r.customer ? ` · ${kpm2_esc(r.customer)}` : ""}</div></td>
+						<td class="kpw-kode">${kpm2_esc(r.name)}</td>
+						<td><div class="kpw-proyek-nama">${kpm2_esc(r.project_name)}</div></td>
+						<td class="kpm2-klien" title="${kpm2_esc(r.customer || "")}">${r.customer ? kpm2_esc(r.customer) : '<span class="kpw-strip">—</span>'}</td>
 						<td class="text-right">${kpm2_rp(r.nilai_kontrak)}</td>
 						<td class="text-right">${r.jumlah ? `${r.tercapai} / ${r.jumlah}` : `<span class="kpw-strip">${__("Belum ada")}</span>`}</td>
 						<td class="text-right ${r.terlambat ? "kpa-merah" : ""}">${r.terlambat}</td>
@@ -99,8 +101,8 @@ class HalamanMilestone {
 				.join("");
 			this.$body.html(`${kepala}<div class="kpr-card kpw-tabel-card"><div class="kpw-tabel-wrap">
 				<table class="kpw-tabel kpw-tabel-daftar">
-					<colgroup><col><col style="width:170px"><col style="width:110px"><col style="width:100px"><col style="width:120px"><col style="width:200px"><col style="width:80px"></colgroup>
-					<thead><tr><th>${__("Proyek")}</th><th class="text-right">${__("Nilai Kontrak")}</th><th class="text-right">${__("Tercapai")}</th>
+					<colgroup><col style="width:130px"><col><col style="width:200px"><col style="width:170px"><col style="width:110px"><col style="width:100px"><col style="width:120px"><col style="width:200px"><col style="width:80px"></colgroup>
+					<thead><tr><th>${__("ID Proyek")}</th><th>${__("Nama Proyek")}</th><th>${__("Klien")}</th><th class="text-right">${__("Nilai Kontrak")}</th><th class="text-right">${__("Tercapai")}</th>
 						<th class="text-right">${__("Terlambat")}</th><th class="text-right">${__("Total Bobot")}</th><th>${__("Bobot Tercapai")}</th><th></th></tr></thead>
 					<tbody>${baris}</tbody>
 				</table></div></div>`);

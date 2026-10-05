@@ -4083,3 +4083,15 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpa-tanda-oranye .icon {
 	stroke: currentColor;
 }
+
+/* Milestone & Termin, daftar proyek: ID, nama, klien di kolom terpisah (satu baris, dipotong "…" bila panjang). */
+.kpm2 .kpw-tabel-daftar {
+	min-width: 1180px;
+}
+
+.kpm2 .kpw-tabel-daftar .kpw-kode,
+.kpm2 .kpm2-klien {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
