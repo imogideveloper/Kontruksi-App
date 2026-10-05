@@ -3998,3 +3998,62 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpa-revisi-ringkas .kpa-lapor-nilai {
 	font-size: var(--text-base);
 }
+
+/* Dialog Batalkan Status Tercapai: aktivitas yang ikut dibatalkan (dan laporan terpilih). */
+.kpm2-ab-ket {
+	margin-bottom: 8px;
+}
+
+.kpm2-ab-wrap {
+	max-height: 360px;
+	overflow: auto;
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+}
+
+.kpm2-ab {
+	width: 100%;
+	table-layout: fixed;
+	border-collapse: collapse;
+}
+
+.kpm2-ab td {
+	padding: 9px 12px;
+	border-top: 1px solid var(--border-color);
+	font-size: var(--text-sm);
+	vertical-align: top;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.kpm2-ab tr:first-child td {
+	border-top: none;
+}
+
+.kpm2-ab-akt td {
+	background: var(--subtle-fg, #f8f9fa);
+	vertical-align: middle;
+}
+
+.kpm2-ab-akt .kpw-badge {
+	margin-left: 6px;
+}
+
+.kpm2-ab-lap td:nth-child(2) {
+	padding-left: 28px;
+}
+
+.kpm2-ab-cek {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	font-weight: normal;
+	cursor: pointer;
+}
+
+.kpm2-ab-ringkas {
+	margin-top: 10px;
+	font-size: var(--text-sm);
+}

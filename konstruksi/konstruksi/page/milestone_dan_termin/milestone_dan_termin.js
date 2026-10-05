@@ -439,6 +439,12 @@ class HalamanMilestone {
 	}
 
 	dialog_batalkan(m) {
+		frappe.xcall(KPM2_API + "get_aktivitas_milestone", { project: this.project, name: m.name }).then((akt) =>
+			this.tampil_dialog_batalkan(m, akt || [])
+		);
+	}
+
+	tampil_dialog_batalkan(m, akt) {
 		const LAINNYA = __("Lainnya");
 		const ALASAN = [
 			__("Dokumen BAST / berita acara belum lengkap"),
@@ -454,6 +460,7 @@ class HalamanMilestone {
 		];
 		const dialog = new frappe.ui.Dialog({
 			title: __("Batalkan Status Tercapai — {0}", [m.nama_milestone]),
+			size: "extra-large",
 			fields: [
 				{ fieldname: "info", fieldtype: "HTML", options: `<div class="kpa-peringatan">${__(
 					"Milestone akan kembali berstatus Rencana / Terlambat dan termin {0} tidak bisa ditagih sampai ditandai tercapai lagi. Pembatalan dicatat di riwayat milestone.",
@@ -463,14 +470,19 @@ class HalamanMilestone {
 				{ fieldname: "alasan", fieldtype: "Select", label: __("Alasan Pembatalan"), reqd: 1, options: ["", ...ALASAN] },
 				{ fieldname: "alasan_lain", fieldtype: "Small Text", label: __("Alasan Lainnya"),
 					depends_on: `eval:doc.alasan==${JSON.stringify(LAINNYA)}`, mandatory_depends_on: `eval:doc.alasan==${JSON.stringify(LAINNYA)}` },
-				{ fieldname: "catatan_revisi", fieldtype: "HTML", options: `<div class="kpa-form-ket">${__(
-					"Pembatalan tidak mengubah progres aktivitas. Bila laporan progres perlu dikoreksi, lakukan di menu Task & Activity Management → tab Laporan Progres → Revisi."
-				)}</div>` },
+				{ fieldname: "aktivitas_section", fieldtype: "Section Break", label: __("Aktivitas yang Ikut Dibatalkan") },
+				{ fieldname: "aktivitas", fieldtype: "HTML" },
 			],
 			primary_action_label: __("Batalkan Status Tercapai"),
 			primary_action: (v) => {
 				const alasan = v.alasan === LAINNYA ? `${LAINNYA}: ${(v.alasan_lain || "").trim()}` : v.alasan;
-				this.call("batalkan_tercapai", { name: m.name, alasan }, __("Status tercapai dibatalkan")).then(() => dialog.hide());
+				const laporan_batal = $a.find("[data-lap]:checked").map((_, el) => el.dataset.lap).get();
+				this.call("batalkan_tercapai", { name: m.name, alasan, laporan_batal }, __("Status tercapai dibatalkan")).then((r) => {
+					dialog.hide();
+					if (r?.laporan_dibatalkan) {
+						frappe.show_alert({ message: __("{0} laporan progres dibatalkan — aktivitasnya bisa dilaporkan ulang di Task & Activity", [r.laporan_dibatalkan]), indicator: "orange" }, 7);
+					}
+				});
 			},
 			secondary_action_label: __("Tutup"),
 			secondary_action: () => dialog.hide(),
@@ -478,6 +490,88 @@ class HalamanMilestone {
 		dialog.$wrapper.addClass("kpm2-dialog-batal");
 		dialog.get_primary_btn().removeClass("btn-primary").addClass("btn-danger");
 
+		// Aktivitas di lingkup milestone: centang aktivitas → laporan terakhir (yang membuatnya selesai) otomatis
+		// terpilih untuk dibatalkan; PM boleh mengubah pilihan laporannya. Progres kembali ke posisi sebelum laporan itu.
+		const $a = dialog.fields_dict.aktivitas.$wrapper;
+		const persen = (v) => `${format_number(flt(v), null, flt(v) % 1 ? 1 : 0)}%`;
+		const angka = (v) => format_number(flt(v), null, flt(v) % 1 ? 2 : 0);
+		const isi = (t, r) =>
+			t.metode_progres === "Tahapan"
+				? r.tahap.map((n) => `${kpm2_esc(n)}${t.bobot_tahap[n] ? ` (${persen(t.bobot_tahap[n])})` : ""}`).join(", ")
+				: `${angka(r.volume)} ${kpm2_esc(t.satuan || "")}`;
+		$a.html(
+			akt.length
+				? `<div class="kpa-form-ket kpm2-ab-ket">${__(
+						"Centang aktivitas yang ikut dibatalkan. Laporan terakhir (yang membuatnya selesai) otomatis terpilih; laporan terpilih menjadi Dibatalkan, progres kembali ke posisi sebelum laporan itu, dan tombol Lapor aktif lagi."
+				  )}</div>
+				<div class="kpm2-ab-wrap"><table class="kpm2-ab">
+					<colgroup><col style="width:40px"><col><col style="width:170px"><col style="width:240px"></colgroup>
+					<tbody>${akt
+						.map((t, ti) => `<tr class="kpm2-ab-akt">
+							<td><input type="checkbox" data-akt="${ti}"></td>
+							<td><span class="kpw-kode">${kpm2_esc(t.kode_wbs)}</span> <b>${kpm2_esc(t.subject)}</b>
+								<span class="kpw-badge">${__("{0} laporan", [t.laporan.length])}</span></td>
+							<td class="text-right">${t.metode_progres === "Tahapan" ? __("Tahapan") : `${angka(t.realisasi_volume)} / ${angka(t.target_volume)} ${kpm2_esc(t.satuan || "")}`}</td>
+							<td class="text-right" data-progres="${ti}"></td>
+						</tr>${t.laporan
+							.map((r, ri) => `<tr class="kpm2-ab-lap" data-baris="${ti}" style="display:none">
+								<td></td>
+								<td><label class="kpm2-ab-cek"><input type="checkbox" data-lap="${kpm2_esc(r.name)}" data-t="${ti}" data-r="${ri}">
+									${kpm2_tgl(r.tanggal)} · ${kpm2_esc(r.nama_pelapor || r.owner)}
+									${ri === 0 ? `<span class="kpw-badge kpw-badge-biru">${__("terakhir")}</span>` : ""}</label>
+									<div class="kpa-sub">${kpm2_esc(r.name)}${r.status === "Direvisi" ? ` · ${__("pernah direvisi")}` : ""}</div></td>
+								<td class="text-right">${isi(t, r)}</td>
+								<td></td>
+							</tr>`)
+							.join("")}`)
+						.join("")}</tbody>
+				</table></div>
+				<div class="kpm2-ab-ringkas"></div>`
+				: `<div class="kpa-form-ket">${__("Tidak ada aktivitas di lingkup milestone ini.")}</div>`
+		);
+		const perbarui = () => {
+			let n_lap = 0;
+			let n_akt = 0;
+			akt.forEach((t, ti) => {
+				const aktif = $a.find(`[data-akt="${ti}"]`).prop("checked");
+				$a.find(`tr[data-baris="${ti}"]`).toggle(aktif);
+				let turun = 0;
+				t.laporan.forEach((r, ri) => {
+					const $c = $a.find(`[data-t="${ti}"][data-r="${ri}"]`);
+					if (!aktif) $c.prop("checked", false);
+					if (!$c.prop("checked")) return;
+					n_lap++;
+					if (t.metode_progres === "Tahapan") {
+						const total = Object.values(t.bobot_tahap).reduce((a, b) => a + flt(b), 0) || 1;
+						turun += r.tahap.reduce((a, x) => a + (flt(t.bobot_tahap[x]) / total) * 100, 0);
+					} else if (flt(t.target_volume)) {
+						turun += (flt(r.volume) / flt(t.target_volume)) * 100;
+					}
+				});
+				if (turun > 0.0001) n_akt++;
+				// Progres tersimpan dibatasi 100%; laporan berlebih (realisasi > target) diperhitungkan dari realisasi.
+				const asal = t.metode_progres === "Tahapan" || !flt(t.target_volume) ? flt(t.progress) : (flt(t.realisasi_volume) / flt(t.target_volume)) * 100;
+				const baru = Math.min(Math.max(asal - turun, 0), 100);
+				$a.find(`[data-progres="${ti}"]`).html(
+					turun > 0.0001
+						? `${persen(t.progress)} → <b class="kpa-oranye">${persen(baru)}</b><div class="kpa-sub">${__("Lapor aktif lagi")}</div>`
+						: `<span class="kpa-sub">${__("Progres")} ${persen(t.progress)}</span>`
+				);
+			});
+			$a.find(".kpm2-ab-ringkas").html(
+				n_lap
+					? __("{0} laporan dibatalkan · {1} aktivitas kembali bisa dilaporkan", [`<b>${n_lap}</b>`, `<b>${n_akt}</b>`])
+					: `<span class="kpa-sub">${__("Tidak ada aktivitas dipilih — hanya status milestone yang dibatalkan.")}</span>`
+			);
+		};
+		$a.on("change", "[data-akt]", (e) => {
+			const ti = e.target.dataset.akt;
+			// Bawaan: laporan terakhir (paling atas = terbaru) terpilih.
+			if (e.target.checked) $a.find(`[data-t="${ti}"][data-r="0"]`).prop("checked", true);
+			perbarui();
+		});
+		$a.on("change", "[data-lap]", perbarui);
+		perbarui();
 		dialog.show();
 	}
 

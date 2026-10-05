@@ -337,10 +337,101 @@ def milestone_tercapai_untuk(project, wbs_item):
 	return None
 
 
+def task_lingkup(project, name):
+	"""Aktivitas (Task) yang item WBS-nya tercakup lingkup milestone."""
+	items = frappe.get_all("WBS Item", filters={"project": project}, fields=["name", "parent_wbs"])
+	daun = daun_tercakup(items, lingkup_per_milestone([name]).get(name, []))
+	if not daun:
+		return []
+	return frappe.get_all(
+		"Task", filters={"project": project, "wbs_item": ("in", list(daun)), "status": ("!=", "Cancelled")},
+		fields=["name", "subject", "metode_progres", "satuan", "target_volume", "realisasi_volume", "progress", "status", "wbs_item"],
+	)
+
+
 @frappe.whitelist()
-def batalkan_tercapai(project, name, alasan=None):
-	"""Batalkan status tercapai (hanya Projects Manager, wajib alasan; dicatat di riwayat milestone). Koreksi progres
-	aktivitas dilakukan terpisah di Task & Activity → Laporan Progres → Revisi."""
+def get_aktivitas_milestone(project, name):
+	"""Aktivitas di lingkup milestone beserta laporan progres yang dihitung (terbaru dulu), untuk dialog pembatalan:
+	PM memilih laporan yang ikut dibatalkan (bawaan: laporan terakhir yang membuat aktivitas selesai)."""
+	from konstruksi.konstruksi.aktivitas import STATUS_DIHITUNG
+	from konstruksi.konstruksi.wbs import kunci_kode
+
+	milestone_milik(project, name, "read")
+	tasks = task_lingkup(project, name)
+	if not tasks:
+		return []
+	kode = dict(frappe.get_all("WBS Item", filters={"project": project}, fields=["name", "kode"], as_list=True))
+	laporan = {}
+	for r in frappe.get_all(
+		"Laporan Progres",
+		filters={"task": ("in", [t.name for t in tasks]), "status": ("in", STATUS_DIHITUNG)},
+		fields=["name", "task", "tanggal", "volume", "status", "nama_pelapor", "owner"],
+		order_by="tanggal desc, creation desc",
+	):
+		laporan.setdefault(r.task, []).append(r)
+	tahap = {}
+	semua = [r.name for rows in laporan.values() for r in rows]
+	if semua:
+		for x in frappe.get_all(
+			"Laporan Progres Tahap", filters={"parent": ("in", semua), "parenttype": "Laporan Progres"},
+			fields=["parent", "nama_tahap"], order_by="idx asc",
+		):
+			tahap.setdefault(x.parent, []).append(x.nama_tahap)
+	bobot = {}
+	for b in frappe.get_all(
+		"Tahapan Aktivitas", filters={"parent": ("in", [t.name for t in tasks]), "parenttype": "Task"}, fields=["parent", "nama_tahap", "bobot"]
+	):
+		bobot.setdefault(b.parent, {})[b.nama_tahap] = flt(b.bobot)
+	for t in tasks:
+		t.kode_wbs = kode.get(t.wbs_item, "")
+		t.bobot_tahap = bobot.get(t.name, {})
+		t.laporan = laporan.get(t.name, [])
+		for r in t.laporan:
+			r.tahap = tahap.get(r.name, [])
+	tasks.sort(key=lambda t: kunci_kode(t.kode_wbs))
+	return tasks
+
+
+def batalkan_laporan_milestone(project, milestone, nama_milestone, alasan, laporan_batal):
+	"""Laporan terpilih di lingkup milestone → Dibatalkan (tidak dihitung lagi): realisasi & progres aktivitas kembali
+	ke posisi sebelum update itu, status Selesai lepas sehingga tombol Lapor aktif lagi."""
+	from frappe.utils import now_datetime
+
+	from konstruksi.konstruksi.aktivitas import STATUS_DIHITUNG
+
+	tasks = {t.name for t in task_lingkup(project, milestone)}
+	hasil = []
+	for nama in dict.fromkeys(laporan_batal or []):
+		lap = frappe.get_doc("Laporan Progres", nama)
+		if lap.task not in tasks or lap.status not in STATUS_DIHITUNG:
+			frappe.throw(_("Laporan {0} bukan laporan disetujui di lingkup milestone ini.").format(nama))
+		if lap.metode == "Tahapan":
+			lap.tahap_dibatalkan = ", ".join(filter(None, [lap.tahap_dibatalkan, ", ".join(t.nama_tahap for t in lap.tahap)]))
+			lap.set("tahap", [])
+		elif not lap.volume_awal:
+			lap.volume_awal = lap.volume
+		if lap.metode != "Tahapan":
+			lap.volume = 0
+		lap.update({
+			"status": "Dibatalkan",
+			"alasan_revisi": _("Pembatalan milestone {0}: {1}").format(nama_milestone, alasan),
+			"milestone_revisi": milestone,
+			"direvisi_oleh": frappe.session.user,
+			"direvisi_pada": now_datetime(),
+		})
+		lap.flags.keputusan = True
+		lap.flags.ignore_permissions = True
+		lap.save()
+		lap.add_comment("Comment", _("Dibatalkan karena pembatalan milestone {0}. Alasan: {1}").format(
+			nama_milestone, frappe.utils.escape_html(alasan)))
+		hasil.append(f"{lap.name} ({lap.aktivitas})")
+	return hasil
+
+
+@frappe.whitelist()
+def batalkan_tercapai(project, name, alasan=None, laporan_batal=None):
+	"""Batalkan status tercapai (hanya Projects Manager, wajib alasan; dicatat di riwayat milestone). Laporan progres
+	yang dipilih PM ikut dibatalkan sehingga aktivitasnya bisa dilaporkan ulang di Task & Activity."""
 	if not bisa_batalkan():
 		frappe.throw(_("Hanya Projects Manager yang bisa membatalkan status tercapai."), frappe.PermissionError)
 	if not (alasan or "").strip():
@@ -352,15 +443,20 @@ def batalkan_tercapai(project, name, alasan=None):
 	if doc.sales_invoice and frappe.db.get_value("Sales Invoice", doc.sales_invoice, "docstatus") == 1:
 		frappe.throw(_("Milestone ini sudah ditagih ({0}); batalkan tagihannya dulu.").format(doc.sales_invoice))
 	tanggal = doc.tanggal_tercapai
+	# Milestone dibatalkan dulu supaya laporan di lingkupnya boleh diubah (lihat aktivitas.revisi_laporan).
 	doc.tanggal_tercapai = None
 	doc.flags.batal_tercapai = True
 	doc.save()
+	laporan_batal = json.loads(laporan_batal) if isinstance(laporan_batal, str) else (laporan_batal or [])
+	dibatalkan = batalkan_laporan_milestone(project, name, doc.nama_milestone, alasan, laporan_batal)
 	doc.add_comment(
 		"Comment",
 		_("Status tercapai ({0}) dibatalkan pada {1}. Alasan: {2}.").format(
 			frappe.format(tanggal, "Date"), frappe.format(today(), "Date"), frappe.utils.escape_html(alasan)
-		),
+		)
+		+ (_(" Laporan progres ikut dibatalkan: {0}.").format("; ".join(dibatalkan)) if dibatalkan else ""),
 	)
+	return {"laporan_dibatalkan": len(dibatalkan)}
 
 
 @frappe.whitelist()
