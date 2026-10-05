@@ -5456,3 +5456,13 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpsi .form-section[data-fieldname="totals_section"] > .section-head {
 	display: none !important;
 }
+
+/* Sales Invoice tagihan proyek: baris Total Taxes and Charges — checkbox Disable Rounded Total di paling kiri
+   (sales_invoice_konstruksi.js memindahkannya), total tetap di kanan sejajar ringkasan di bawahnya. */
+@media (min-width: 768px) {
+	.kpsi .form-section[data-fieldname="section_break_43"] .section-body {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: flex-start;
+	}
+}

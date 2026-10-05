@@ -8,6 +8,7 @@ function rapikan_invoice_konstruksi(frm) {
 	const aktif = Boolean(frm.doc.jenis_tagihan);
 	frm.page.wrapper.toggleClass(KELAS_SI_KONSTRUKSI, aktif);
 	pindahkan_edit_posting(frm, aktif);
+	pindahkan_disable_rounded(frm, aktif);
 	atur_label_mata_uang(frm, aktif);
 	atur_kolom_items(frm, aktif);
 	if (!aktif) return;
@@ -35,6 +36,24 @@ function pindahkan_edit_posting(frm, aktif) {
 	} else {
 		const { induk, sebelum } = frm.__kpsi_posisi_edit;
 		sebelum.length ? edit.insertAfter(sebelum) : edit.prependTo(induk);
+	}
+}
+
+// Checkbox "Disable Rounded Total" dipindah ke paling kiri baris Total Taxes and Charges (section_break_43);
+// invoice biasa: dikembalikan ke posisi asalnya di section Totals.
+function pindahkan_disable_rounded(frm, aktif) {
+	const cek = frm.fields_dict.disable_rounded_total?.$wrapper;
+	const body = frm.fields_dict.section_break_43?.body || frm.layout?.sections?.find((s) => s.df?.fieldname === "section_break_43")?.body;
+	if (!cek?.length || !body?.length) return;
+	if (!frm.__kpsi_posisi_rounded) frm.__kpsi_posisi_rounded = { induk: cek.parent(), sebelum: cek.prev() };
+	let kiri = body.children(".kpsi-kolom-kiri");
+	if (aktif) {
+		if (!kiri.length) kiri = $('<div class="kpsi-kolom-kiri col-sm-6"><form></form></div>').prependTo(body);
+		cek.appendTo(kiri.children("form"));
+	} else {
+		const { induk, sebelum } = frm.__kpsi_posisi_rounded;
+		sebelum.length ? cek.insertAfter(sebelum) : cek.prependTo(induk);
+		kiri.remove();
 	}
 }
 
