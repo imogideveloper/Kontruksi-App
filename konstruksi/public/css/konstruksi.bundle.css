@@ -5487,3 +5487,8 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	-webkit-text-fill-color: var(--text-color);
 	opacity: 1;
 }
+
+/* Sales Invoice tagihan proyek: kotak nilai angka ringkasan di bawah tabel pajak diberi blok warna header tabel. */
+.kpsi .form-section:is([data-fieldname="section_break_43"], [data-fieldname="totals_section"], [data-fieldname="section_break_pxwz"]) .frappe-control[data-fieldtype="Currency"] :is(.like-disabled-input, .form-control) {
+	background-color: var(--konstruksi-active-bg) !important;
+}
