@@ -5414,3 +5414,19 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpsi .frappe-control[data-fieldname="items"] .grid-upload {
 	display: none !important;
 }
+
+/* Sales Invoice tagihan proyek: kolom tombol edit (pensil) / pengaturan kolom di ujung kanan semua tabel dibuat
+   sempit; sisa lebar dibagi ke kolom data. */
+@media (min-width: 768px) {
+	.kpsi .form-grid .grid-row > .row > .col:last-child:not([class*="col-xs-"]) {
+		flex: 0 0 36px !important;
+		max-width: 36px !important;
+		min-width: 36px !important;
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+	}
+
+	.kpsi .form-grid .grid-row > .row > .grid-static-col[class*="col-xs-"] {
+		flex-grow: 1;
+	}
+}
