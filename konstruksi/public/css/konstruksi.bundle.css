@@ -6191,3 +6191,16 @@ body[data-route^="query-report/Trial Balance"] .page-form > .frappe-control[data
 		grid-column: span 2;
 	}
 }
+
+/* Report Trial Balance: baris yang disorot kursor diberi blok warna (sama dengan blok hover sidebar). */
+body[data-route^="query-report/Trial Balance"] .dt-scrollable .dt-row .dt-cell {
+	transition: background-color 0.12s ease;
+}
+
+body[data-route^="query-report/Trial Balance"] .dt-scrollable .dt-row:hover .dt-cell {
+	background-color: color-mix(in srgb, var(--konstruksi-active-bg) 70%, transparent) !important;
+}
+
+body[data-route^="query-report/Trial Balance"] .dt-scrollable .dt-row:hover .dt-cell:first-child {
+	box-shadow: inset 3px 0 0 var(--konstruksi-active-accent);
+}
