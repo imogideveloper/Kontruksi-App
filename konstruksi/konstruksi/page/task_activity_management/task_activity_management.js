@@ -255,9 +255,9 @@ class HalamanAktivitas {
 				</div>
 			</div>
 			<div class="kpw-tabel-wrap"><table class="kpw-tabel kpa-tabel">
-				<colgroup><col style="width:60px"><col><col style="width:150px"><col style="width:190px"><col style="width:70px">
+				<colgroup><col style="width:60px"><col><col style="width:150px"><col style="width:150px"><col style="width:190px"><col style="width:70px">
 					<col style="width:90px"><col style="width:190px"><col style="width:110px"><col style="width:150px"></colgroup>
-				<thead><tr><th>${__("WBS")}</th><th>${__("Aktivitas")}</th><th>${__("PJ")}</th><th>${__("Jadwal")}</th><th class="text-right">${__("Durasi")}</th>
+				<thead><tr><th>${__("WBS")}</th><th>${__("Aktivitas")}</th><th>${__("PJ")}</th><th>${__("Posisi / Jabatan")}</th><th>${__("Jadwal")}</th><th class="text-right">${__("Durasi")}</th>
 					<th>${__("Prioritas")}</th><th>${__("Progres")}</th><th>${__("Status")}</th><th></th></tr></thead>
 				<tbody class="kpa-tbody"></tbody>
 			</table></div>
@@ -276,7 +276,7 @@ class HalamanAktivitas {
 		);
 		const $tbody = this.$body.find(".kpa-tbody");
 		if (!rows.length) {
-			$tbody.html(`<tr><td colspan="9" class="kpa-kosong">${
+			$tbody.html(`<tr><td colspan="10" class="kpa-kosong">${
 				d.aktivitas.length ? __("Tidak ada aktivitas yang cocok dengan filter.") : __("Belum ada aktivitas. Klik Aktivitas Baru untuk menambahkan.")
 			}</td></tr>`);
 			return;
@@ -300,7 +300,8 @@ class HalamanAktivitas {
 						<td class="kpa-wrap"><a class="kpa-judul" data-kpa="ubah" data-name="${kpa_esc(t.name)}">${kpa_esc(t.subject)}</a>${setelah}
 							${t.laporan_menunggu ? `<div class="kpa-sub kpa-oranye">${__("{0} laporan menunggu persetujuan", [t.laporan_menunggu])}</div>` : ""}
 							${(t.pendahulu_dibuka || []).length ? `<div class="kpa-sub"><span class="kpa-tanda-oranye" title="${__("Aktivitas ini sudah Selesai, tapi pendahulunya dibuka kembali (laporannya dibatalkan / direvisi). Periksa apakah aktivitas ini masih valid.")}">${frappe.utils.icon("triangle-alert", "xs")} ${__("Pendahulu dibuka kembali")}: ${t.pendahulu_dibuka.map(kpa_esc).join(", ")}</span></div>` : ""}</td>
-						<td class="kpa-wrap">${t.pj ? `<div>${kpa_esc(t.pj_nama)}</div><div class="kpa-sub">${kpa_esc(t.pj_jabatan || "")}</div>` : '<span class="kpw-strip">—</span>'}</td>
+						<td class="kpa-wrap">${t.pj ? kpa_esc(t.pj_nama) : '<span class="kpw-strip">—</span>'}</td>
+						<td class="kpa-wrap">${t.pj_jabatan ? kpa_esc(t.pj_jabatan) : '<span class="kpw-strip">—</span>'}</td>
 						<td>${kpa_tgl(t.exp_start_date)} – ${kpa_tgl(t.exp_end_date)}</td>
 						<td class="text-right">${t.durasi_hk ? `${t.durasi_hk} hk` : ""}</td>
 						<td><span class="kpa-prio kpa-prio-${kpa_esc(t.priority || "")}">${__(prio)}</span></td>
@@ -325,7 +326,7 @@ class HalamanAktivitas {
 					const selesai = g.rows.filter((t) => t.status === "Completed").length;
 					const terlambat = g.rows.filter((t) => t.status_tampil === "Terlambat").length;
 					const kepala = `<tr class="kpa-grup" data-kpa="grup" data-kunci="${kpa_esc(g.kunci)}">
-						<td colspan="9"><div class="kpa-grup-isi">
+						<td colspan="10"><div class="kpa-grup-isi">
 							<span class="kpw-toggle">${frappe.utils.icon(tertutup ? "right" : "down", "xs")}</span>
 							<span class="kpa-grup-judul">${g.kode ? `<span class="kpw-kode">${kpa_esc(g.kode)}</span> ` : ""}${g.judul}</span>
 							<span class="kpa-grup-jumlah"><span class="kpw-badge">${g.rows.length} ${__("aktivitas")}</span></span>
