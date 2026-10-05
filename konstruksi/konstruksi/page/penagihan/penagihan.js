@@ -122,25 +122,48 @@ class HalamanPenagihan {
 		const r = d.ringkasan;
 		const kartu = (warna, label, nilai, sub) => `<div class="kptl-card kpbs-kartu kpbs-garis-${warna}">
 			<div class="kpbs-kartu-label">${label}</div><div class="kpbs-kartu-nilai kpg-nilai">${nilai}</div><div class="kptl-sub-kecil">${sub}</div></div>`;
+		const retensi_sub = r.retensi_sisa > 0.5
+			? `${r.retensi_lewat ? `<b class="kptl-merah">${__("Sudah jatuh tempo")}</b>` : __("Jatuh tempo")} ${kpg_tgl(r.retensi_jatuh_tempo)}`
+			: r.retensi_total ? __("Semua retensi sudah diterima") : __("Belum ada retensi ditahan");
 
 		this.$body.html(`
 			<div class="kptl-head"><div class="kpbs-kepala">
 				<a class="kptl-crumb" href="/app/project/${encodeURIComponent(p.name)}">${kpg_esc(p.name)} · ${kpg_esc(p.project_name)}</a>
 				<span class="kpbs-sub">${__("Tagihan uang muka & termin ke {0} · kontrak {1}", [kpg_esc(k.customer), kpg_esc(k.nomor_kontrak || k.kontrak)])}</span>
 			</div></div>
+			${this.html_alur()}
 			<div class="kpbs-kartu-baris kpg-kartu-baris">
 				${kartu("abu", __("Nilai Kontrak"), kpg_rp(r.nilai_kontrak), __("Termasuk PPN {0}%", [format_number(k.ppn, null, 0)]))}
-				${kartu("hijau", __("Sudah Ditagih"), kpg_rp(r.ditagih), __("{0} termin dari nilai kontrak", [kpg_persen(r.persen_ditagih)]))}
+				${kartu("hijau", __("Sudah Ditagih"), kpg_rp(r.ditagih), __("Uang muka + {0} termin ({1} nilai kontrak)", [d.alur.termin_ditagih, kpg_persen(r.persen_ditagih)]))}
 				${kartu("hijau", __("Diterima"), kpg_rp(r.diterima), __("Pembayaran yang sudah masuk"))}
-				${kartu(r.piutang ? "oranye" : "abu", __("Piutang"), kpg_rp(r.piutang), __("termasuk retensi {0}", [kpg_rp(r.retensi)]))}
-				${kartu(r.bisa_ditagih ? "oranye" : "abu", __("Siap Ditagih"), kpg_rp(r.bisa_ditagih), __("Milestone tercapai belum ditagih"))}
+				${kartu(r.piutang ? "oranye" : "abu", __("Piutang"), kpg_rp(r.piutang), __("Belum dibayar, di luar retensi"))}
+				${kartu(r.retensi_sisa > 0.5 ? (r.retensi_lewat ? "merah" : "oranye") : "abu", __("Retensi Ditahan"), kpg_rp(r.retensi_sisa), retensi_sub)}
 			</div>
 			${this.html_uang_muka()}
 			${this.html_termin()}
-			<div class="kptl-sub-kecil kpg-catatan">${__(
-				"Invoice dibuat sebagai Draft: periksa, lampirkan dokumen (BA, faktur pajak), lalu Submit dari form Sales Invoice. Uang muka {0}% dipotong proporsional di tiap termin; retensi {1}% ditagih di jadwal pembayaran terakhir (jatuh tempo akhir pemeliharaan {2}); PPh final {3}% dipotong langsung di invoice.",
-				[format_number(k.um_persen, null, 2), format_number(k.retensi_persen, null, 2), kpg_tgl(k.akhir_pemeliharaan), format_number(k.pph_persen, null, 2)]
-			)}</div>`);
+			${this.html_retensi()}`);
+	}
+
+	// Panduan alur: langkah yang sudah selesai diberi tanda ✓.
+	html_alur() {
+		const a = this.data.alur;
+		const k = this.data.kontrak;
+		const langkah = [];
+		if (a.uang_muka !== null) langkah.push([a.uang_muka, __("Tagih uang muka"), a.uang_muka ? __("Sudah ditagih") : __("Syarat: jaminan uang muka")]);
+		langkah.push([a.termin_total && a.termin_ditagih === a.termin_total, __("Tagih termin"), __("{0} dari {1} milestone", [a.termin_ditagih, a.termin_total])]);
+		langkah.push([a.termin_ditagih > 0 && a.piutang_termin <= 0.5, __("Catat pembayaran"),
+			a.piutang_termin > 0.5 ? __("Piutang {0}", [kpg_rp(a.piutang_termin)]) : __("Tidak ada piutang")]);
+		langkah.push([a.termin_ditagih === a.termin_total && a.termin_total > 0 && a.retensi_sisa <= 0.5, __("Tagih retensi"),
+			a.retensi_sisa > 0.5 ? __("Sisa {0} · setelah {1}", [kpg_rp(a.retensi_sisa), kpg_tgl(k.akhir_pemeliharaan)]) : __("Setelah masa pemeliharaan")]);
+		return `<div class="kpg-alur">${langkah
+			.map(([ok, judul, ket], i) => `<div class="kpg-alur-langkah ${ok ? "kpg-alur-ok" : ""}">
+				<span class="kpg-alur-no">${ok ? "✓" : i + 1}</span><div><b>${judul}</b><div class="kptl-sub-kecil">${ket}</div></div></div>`)
+			.join('<span class="kpg-alur-panah">›</span>')}</div>`;
+	}
+
+	tombol_bayar(inv, bagian, label) {
+		if (!this.data.bisa_bayar) return "";
+		return `<button class="btn btn-default btn-xs" data-kpg="bayar" data-invoice="${kpg_esc(inv)}" data-bagian="${bagian}">${frappe.utils.icon("banknote", "xs")} ${label}</button>`;
 	}
 
 	html_uang_muka() {
@@ -151,71 +174,127 @@ class HalamanPenagihan {
 		const x = um.rincian;
 		const inv = um.invoice;
 		let aksi;
-		if (inv) aksi = `${kpg_status_inv(inv)} <a class="btn btn-default btn-sm" href="/app/sales-invoice/${encodeURIComponent(inv.name)}">${kpg_esc(inv.name)}</a>`;
-		else if (!k.jaminan_um) aksi = `<span class="kpbs-var kpbs-var-mundur" title="${__("Isi & tandai Jaminan Uang Muka di Kontrak Project")}">${__("Jaminan uang muka belum diserahkan")}</span>`;
+		if (inv) {
+			aksi = `${kpg_status_inv(inv)} <a class="btn btn-default btn-sm" href="/app/sales-invoice/${encodeURIComponent(inv.name)}">${kpg_esc(inv.name)}</a>`;
+			if (inv.docstatus === 1 && flt(inv.outstanding_amount) > 0.5) aksi += ` ${this.tombol_bayar(inv.name, "semua", __("Catat Pembayaran"))}`;
+		} else if (!k.jaminan_um) aksi = `<span class="kpbs-var kpbs-var-mundur" title="${__("Isi & tandai Jaminan Uang Muka di Kontrak Project")}">${__("Jaminan uang muka belum diserahkan")}</span>`;
 		else if (d.bisa_buat) aksi = `<button class="btn btn-primary btn-sm" data-kpg="tagih-um">${frappe.utils.icon("receipt", "xs")} ${__("Buat Tagihan Uang Muka")}</button>`;
 		else aksi = "";
+		const dasar = k.um_nilai
+			? __("{0}% × nilai kontrak awal {1} (sebelum addendum)", [format_number(k.um_persen, null, 2), kpg_rp(k.nilai_kontrak_awal)])
+			: __("{0}% × nilai kontrak", [format_number(k.um_persen, null, 2)]);
 		return `<div class="kptl-card kpbs-tabel-kartu">
-			<div class="kpbs-tabel-judul">${__("Uang Muka {0}%", [format_number(k.um_persen, null, 2)])}<span class="kpg-aksi-kanan">${aksi}</span></div>
+			<div class="kpbs-tabel-judul">${__("Uang Muka {0}%", [format_number(k.um_persen, null, 2)])}
+				<span class="kptl-sub-kecil">${dasar}</span><span class="kpg-aksi-kanan">${aksi}</span></div>
 			<div class="kptl-tabel-wrap"><table class="kptl-tabel kpg-tabel">
 				<thead><tr><th class="text-right">${__("Nilai Uang Muka (bruto)")}</th><th class="text-right">DPP</th><th class="text-right">${__("PPN")}</th>
 					<th class="text-right">${__("PPh Final")}</th><th class="text-right">${__("Total Tagihan")}</th><th class="text-right">${__("Sisa Piutang")}</th></tr></thead>
 				<tbody><tr>
 					<td class="text-right">${kpg_rp(x.bruto)}</td><td class="text-right">${kpg_rp(x.dpp)}</td><td class="text-right">${kpg_rp(x.ppn)}</td>
-					<td class="text-right kptl-merah">−${kpg_rp(x.pph)}</td><td class="text-right"><b>${kpg_rp(inv ? inv.rounded_total || inv.grand_total : x.total)}</b></td>
+					<td class="text-right kptl-merah">−${kpg_rp(x.pph)}</td><td class="text-right"><b>${kpg_rp(inv ? inv.total : x.total)}</b></td>
 					<td class="text-right">${inv && inv.docstatus === 1 ? kpg_rp(inv.outstanding_amount) : "—"}</td>
 				</tr></tbody></table></div>
-			<div class="kptl-sub-kecil kpg-catatan-kartu">${__("Dokumen pendukung: Jaminan Uang Muka, Surat Permohonan Pembayaran Uang Muka, Faktur Pajak uang muka, Berita Acara Pembayaran — lampirkan di invoice.")}</div>
+			<div class="kptl-sub-kecil kpg-catatan-kartu">${__("Dokumen pendukung: Jaminan Uang Muka, Surat Permohonan Pembayaran Uang Muka, Faktur Pajak uang muka, Berita Acara Pembayaran — lampirkan di invoice. Uang muka dipotong proporsional ({0}%) di setiap termin.", [format_number(k.um_persen, null, 2)])}</div>
 		</div>`;
 	}
 
 	html_termin() {
 		const d = this.data;
+		const k = d.kontrak;
+		const angka = (o) => `
+			<td class="text-right">${o.potong_um ? `−${kpg_rp(o.potong_um)}` : kpg_rp(0)}</td>
+			<td class="text-right">${kpg_rp(o.dpp_net)}</td>
+			<td class="text-right">${kpg_rp(o.ppn)}</td>
+			<td class="text-right kptl-merah">−${kpg_rp(o.pph)}</td>
+			<td class="text-right"><b>${kpg_rp(o.total)}</b></td>
+			<td class="text-right">${kpg_rp(o.retensi)}</td>
+			<td class="text-right">${kpg_rp(o.total - o.retensi)}</td>`;
 		const baris = d.termin
 			.map((t) => {
 				const inv = t.invoice;
 				const rc = t.rincian;
 				let isi, aksi;
 				if (inv) {
-					const dpp_net = flt(inv.net_total) - flt(inv.potongan_uang_muka);
-					isi = `<td class="text-right">${kpg_rp(inv.potongan_uang_muka ? -inv.potongan_uang_muka : 0)}</td>
-						<td class="text-right">${kpg_rp(dpp_net)}</td>
-						<td class="text-right kptl-merah">−${kpg_rp(inv.nilai_pph_final)}</td>
-						<td class="text-right"><b>${kpg_rp(inv.rounded_total || inv.grand_total)}</b></td>
-						<td class="text-right">${kpg_rp(inv.nilai_retensi)}</td>`;
+					isi = angka({ potong_um: inv.potongan_uang_muka, dpp_net: flt(inv.net_total) - flt(inv.potongan_uang_muka), ppn: inv.ppn,
+						pph: inv.nilai_pph_final, total: inv.total, retensi: inv.nilai_retensi });
 					aksi = `${kpg_status_inv(inv)} <a class="btn btn-default btn-xs" href="/app/sales-invoice/${encodeURIComponent(inv.name)}">${kpg_esc(inv.name)}</a>`;
+					if (inv.docstatus === 1 && inv.sisa_termin > 0.5) aksi += ` ${this.tombol_bayar(inv.name, "termin", __("Catat Pembayaran"))}`;
 				} else if (rc) {
-					isi = `<td class="text-right">${rc.potong_um ? `−${kpg_rp(rc.potong_um)}` : kpg_rp(0)}</td>
-						<td class="text-right">${kpg_rp(rc.dpp_net)}</td>
-						<td class="text-right kptl-merah">−${kpg_rp(rc.pph)}</td>
-						<td class="text-right"><b>${kpg_rp(rc.total)}</b></td>
-						<td class="text-right">${kpg_rp(rc.retensi)}</td>`;
-					aksi = d.bisa_buat
-						? `<button class="btn btn-primary btn-xs" data-kpg="tagih-termin" data-name="${kpg_esc(t.name)}">${frappe.utils.icon("receipt", "xs")} ${__("Buat Tagihan")}</button>`
-						: "";
+					isi = angka(rc);
+					aksi = !d.bisa_buat
+						? ""
+						: t.tunggu_um
+						? `<span class="kpbs-var kpbs-var-mundur" title="${__("Supaya termin ini dipotong uang muka secara proporsional")}">${__("Tagih uang muka dulu")}</span>`
+						: `<button class="btn btn-primary btn-xs" data-kpg="tagih-termin" data-name="${kpg_esc(t.name)}">${frappe.utils.icon("receipt", "xs")} ${__("Buat Tagihan")}</button>`;
 				} else {
-					isi = `<td colspan="5" class="kptl-sub-kecil">${__("Ditagih setelah milestone tercapai")}</td>`;
+					isi = `<td colspan="7" class="kptl-sub-kecil">${__("Ditagih setelah milestone tercapai")}</td>`;
 					aksi = `<span class="kpbs-var kpbs-var-sesuai">${__(t.status)}</span>`;
 				}
 				return `<tr>
 					<td class="kptl-mono">T${t.urutan}</td>
 					<td class="kptl-potong" title="${kpg_esc(t.nama_milestone)}"><b>${kpg_esc(t.nama_milestone)}</b>
 						<div class="kptl-sub-kecil">${t.status === "Tercapai" ? __("Tercapai {0}", [kpg_tgl(t.tanggal_tercapai)]) : __("Target {0}", [kpg_tgl(t.tanggal_target)])}</div></td>
-					<td class="text-right">${kpg_persen(t.bobot)}</td>
-					<td class="text-right">${kpg_rp(t.nilai_termin)}</td>
+					<td class="text-right">${kpg_rp(t.nilai_termin)}<div class="kptl-sub-kecil">${__("bobot {0}", [kpg_persen(t.bobot)])}</div></td>
 					${isi}
 					<td class="text-right kpg-aksi">${aksi}</td>
 				</tr>`;
 			})
 			.join("");
+		const kepala_kolom = (judul, info) => `<th class="text-right" title="${kpg_esc(info)}">${judul}</th>`;
 		return `<div class="kptl-card kpbs-tabel-kartu">
-			<div class="kpbs-tabel-judul">${__("Termin per Milestone")}</div>
+			<div class="kpbs-tabel-judul">${__("Termin per Milestone")}
+				<span class="kptl-sub-kecil">${__("Arahkan kursor ke judul kolom untuk cara hitungnya")}</span></div>
 			<div class="kptl-tabel-wrap"><table class="kptl-tabel kpg-tabel kpg-tabel-termin">
-				<colgroup><col style="width:56px"><col><col style="width:80px"><col style="width:140px"><col style="width:130px"><col style="width:140px"><col style="width:120px"><col style="width:140px"><col style="width:120px"><col style="width:230px"></colgroup>
-				<thead><tr><th>${__("Termin")}</th><th>${__("Milestone")}</th><th class="text-right">${__("Bobot")}</th><th class="text-right">${__("Nilai Termin")}</th>
-					<th class="text-right">${__("Pot. Uang Muka")}</th><th class="text-right">${__("DPP Ditagih")}</th><th class="text-right">${__("PPh Final")}</th>
-					<th class="text-right">${__("Total Tagihan")}</th><th class="text-right">${__("Retensi")}</th><th class="text-right">${__("Invoice")}</th></tr></thead>
-				<tbody>${baris || `<tr><td colspan="10" class="kptl-kosong">${__("Belum ada milestone. Buat di Milestone & Termin.")}</td></tr>`}</tbody>
+				<colgroup><col style="width:46px"><col><col style="width:130px"><col style="width:110px"><col style="width:120px"><col style="width:105px"><col style="width:105px">
+					<col style="width:120px"><col style="width:105px"><col style="width:125px"><col style="width:250px"></colgroup>
+				<thead><tr><th>${__("Termin")}</th><th>${__("Milestone")}</th>
+					${kepala_kolom(__("Nilai Termin"), __("Bobot × nilai kontrak, termasuk PPN (bruto)"))}
+					${kepala_kolom(__("Pot. Uang Muka"), __("Uang muka % × DPP termin, dipotong sampai uang muka habis"))}
+					${kepala_kolom(__("DPP Ditagih"), __("Nilai termin tanpa PPN, dikurangi potongan uang muka"))}
+					${kepala_kolom(__("PPN"), __("PPN % × DPP ditagih"))}
+					${kepala_kolom(__("PPh Final"), __("PPh final % × DPP ditagih, dipotong pemberi kerja"))}
+					${kepala_kolom(__("Total Tagihan"), __("DPP ditagih + PPN − PPh final (nilai invoice)"))}
+					${kepala_kolom(__("Retensi"), __("Retensi % × nilai termin; ditahan sampai akhir pemeliharaan"))}
+					${kepala_kolom(__("Dibayar Sekarang"), __("Total tagihan − retensi"))}
+					<th class="text-right">${__("Status / Aksi")}</th></tr></thead>
+				<tbody>${baris || `<tr><td colspan="11" class="kptl-kosong">${__("Belum ada milestone. Buat di Milestone & Termin.")}</td></tr>`}</tbody>
+			</table></div></div>`;
+	}
+
+	html_retensi() {
+		const d = this.data;
+		const k = d.kontrak;
+		const r = d.ringkasan;
+		const rows = d.retensi;
+		const warna = { Lunas: "maju", "Jatuh Tempo": "mundur", Ditahan: "baru" };
+		const baris = rows
+			.map((x) => `<tr>
+				<td class="kptl-mono">T${x.urutan}</td>
+				<td class="kptl-potong" title="${kpg_esc(x.nama_milestone)}">${kpg_esc(x.nama_milestone)}</td>
+				<td><a href="/app/sales-invoice/${encodeURIComponent(x.invoice)}">${kpg_esc(x.invoice)}</a></td>
+				<td class="text-right">${kpg_rp(x.retensi)}</td>
+				<td>${kpg_tgl(x.jatuh_tempo)}</td>
+				<td class="text-right">${kpg_rp(x.diterima)}</td>
+				<td class="text-right"><b>${kpg_rp(x.sisa)}</b></td>
+				<td><span class="kpbs-var kpbs-var-${warna[x.status]}">${__(x.status)}</span></td>
+				<td class="text-right kpg-aksi">${x.sisa > 0.5 && x.sisa_termin <= 0.5 ? this.tombol_bayar(x.invoice, "retensi", __("Catat Penerimaan Retensi"))
+					: x.sisa > 0.5 ? `<span class="kptl-sub-kecil" title="${__("Bagian termin invoice ini belum lunas")}">${__("Lunasi termin dulu")}</span>` : ""}</td>
+			</tr>`)
+			.join("");
+		return `<div class="kptl-card kpbs-tabel-kartu">
+			<div class="kpbs-tabel-judul">${__("Retensi {0}%", [format_number(k.retensi_persen, null, 2)])}
+				<span class="kptl-sub-kecil">${__("Ditahan pemberi kerja dari tiap termin, wajib ditagih kembali setelah masa pemeliharaan berakhir ({0}).", [kpg_tgl(k.akhir_pemeliharaan)])}</span></div>
+			<div class="kptl-tabel-wrap"><table class="kptl-tabel kpg-tabel">
+				<colgroup><col style="width:56px"><col><col style="width:170px"><col style="width:140px"><col style="width:120px"><col style="width:140px"><col style="width:140px"><col style="width:110px"><col style="width:220px"></colgroup>
+				<thead><tr><th>${__("Termin")}</th><th>${__("Milestone")}</th><th>${__("Invoice")}</th><th class="text-right">${__("Retensi")}</th><th>${__("Jatuh Tempo")}</th>
+					<th class="text-right">${__("Sudah Diterima")}</th><th class="text-right">${__("Sisa")}</th><th>${__("Status")}</th><th class="text-right">${__("Aksi")}</th></tr></thead>
+				<tbody>${baris || `<tr><td colspan="9" class="kptl-kosong">${__("Belum ada retensi — retensi muncul setelah invoice termin di-submit.")}</td></tr>`}</tbody>
+				${rows.length ? `<tfoot><tr class="kpg-total">
+					<td colspan="3" class="text-right">${__("Total")}</td><td class="text-right">${kpg_rp(r.retensi_total)}</td><td></td>
+					<td class="text-right">${kpg_rp(r.retensi_diterima)}</td>
+					<td class="text-right ${r.retensi_sisa > 0.5 ? "kptl-merah" : ""}">${kpg_rp(r.retensi_sisa)}</td>
+					<td colspan="2" class="kptl-sub-kecil">${r.retensi_sisa > 0.5 ? __("harus ditagih kembali") : __("semua retensi sudah diterima")}</td>
+				</tr></tfoot>` : ""}
 			</table></div></div>`;
 	}
 
@@ -228,6 +307,15 @@ class HalamanPenagihan {
 				return frappe
 					.call({ method: KPG_API + "buat_tagihan_uang_muka", args: { project: this.project }, freeze: true, freeze_message: __("Membuat invoice uang muka…") })
 					.then((r) => r.message && frappe.set_route("Form", "Sales Invoice", r.message));
+			case "bayar":
+				return frappe
+					.call({ method: KPG_API + "buat_pembayaran", args: { project: this.project, invoice: $el.attr("data-invoice"), bagian: $el.attr("data-bagian") },
+						freeze: true, freeze_message: __("Menyiapkan pembayaran…") })
+					.then((r) => {
+						if (!r.message) return;
+						const doc = frappe.model.sync(r.message)[0];
+						frappe.set_route("Form", doc.doctype, doc.name);
+					});
 			case "tagih-termin":
 				return frappe
 					.call({ method: KPG_API + "buat_tagihan_termin", args: { project: this.project, milestone: $el.attr("data-name") }, freeze: true, freeze_message: __("Membuat invoice termin…") })

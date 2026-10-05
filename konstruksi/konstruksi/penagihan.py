@@ -37,7 +37,7 @@ def data_kontrak(project):
 		nilai_kontrak=flt(p.nilai_kontrak or k.nilai_kontrak_terkini or k.nilai_kontrak), ppn=ppn,
 		um_persen=flt(k.uang_muka_persen), um_nilai=flt(k.nilai_uang_muka), retensi_persen=flt(k.retensi_persen),
 		pph_persen=flt(k.pph_final_persen), jaminan_um=k.jaminan_uang_muka_diserahkan, akhir_pemeliharaan=k.akhir_pemeliharaan,
-		nomor_kontrak=k.nomor_kontrak, cost_center=p.cost_center,
+		nomor_kontrak=k.nomor_kontrak, cost_center=p.cost_center, nilai_kontrak_awal=flt(k.nilai_kontrak),
 	)
 
 
@@ -78,6 +78,11 @@ def rincian_termin(k, m, project, kecuali=None):
 	retensi = flt(min(bruto * k.retensi_persen / 100, total), 0)
 	return frappe._dict(bruto=bruto, dpp=dpp, potong_um=potong, dpp_net=dpp_net, ppn=ppn, pph=pph, total=total, retensi=retensi,
 		dibayar_sekarang=total - retensi, um_diterima=bool(um))
+
+
+def perlu_uang_muka_dulu(k, project):
+	"""Kontrak dengan uang muka: termin baru boleh ditagih setelah invoice uang muka di-submit (supaya terpotong)."""
+	return bool(k.um_persen or k.um_nilai) and not invoice_aktif({"project": project, "jenis_tagihan": "Uang Muka", "docstatus": 1})
 
 
 def baris_pajak(k, company):
@@ -149,6 +154,9 @@ def buat_tagihan_termin(project, milestone):
 		frappe.throw(_("Milestone tidak ada di proyek ini."))
 	if m.status != "Tercapai":
 		frappe.throw(_("Milestone {0} belum tercapai.").format(m.nama_milestone))
+	if perlu_uang_muka_dulu(k, project) and not invoice_aktif({"milestone_termin": milestone}):
+		frappe.throw(_("Tagih (submit) invoice uang muka dulu supaya termin ini dipotong uang muka secara proporsional."),
+			title=_("Uang muka belum ditagih"))
 	ada = invoice_aktif({"milestone_termin": milestone})
 	if ada:
 		# Sudah ada (Draft / Submitted): buka invoice itu, bukan membuat baru.
@@ -213,42 +221,124 @@ def sinkron_milestone(doc, method=None):
 	frappe.db.set_value("Milestone Termin", doc.milestone_termin, "sales_invoice", nilai, update_modified=False)
 
 
+def ppn_invoice(names):
+	"""PPN (baris pajak positif berakun PPN Keluaran) per invoice."""
+	if not names:
+		return {}
+	return {
+		r.parent: flt(r.ppn)
+		for r in frappe.db.sql(
+			"""select t.parent, sum(t.tax_amount) as ppn from `tabSales Taxes and Charges` t join `tabAccount` a on a.name = t.account_head
+			where t.parenttype = 'Sales Invoice' and t.parent in %s and a.account_name = 'PPN Keluaran' group by t.parent""",
+			(tuple(names),),
+			as_dict=True,
+		)
+	}
+
+
+def lengkapi_invoice(inv, ppn):
+	"""Total, dibayar, retensi diterima/sisa. Pembayaran dianggap melunasi bagian termin dulu, sisanya retensi."""
+	total = flt(inv.rounded_total or inv.grand_total)
+	retensi = flt(inv.nilai_retensi)
+	dibayar = total - flt(inv.outstanding_amount) if inv.docstatus == 1 else 0
+	inv.total = total
+	inv.ppn = flt(ppn.get(inv.name))
+	inv.dibayar_sekarang = total - retensi
+	inv.dibayar = dibayar
+	inv.sisa_termin = max(inv.dibayar_sekarang - dibayar, 0) if inv.docstatus == 1 else 0
+	inv.retensi_diterima = min(max(dibayar - inv.dibayar_sekarang, 0), retensi)
+	inv.retensi_sisa = retensi - inv.retensi_diterima if inv.docstatus == 1 else 0
+	return inv
+
+
 @frappe.whitelist()
 def get_penagihan(project):
 	doc = frappe.get_doc("Project", project)
 	doc.check_permission("read")
 	k = data_kontrak(project)
+	hari_ini = getdate(today())
 	um_inv = invoice_aktif({"project": project, "jenis_tagihan": "Uang Muka"})
 	r_um = rincian_uang_muka(k) if (k.um_persen or k.um_nilai) else None
 	milestone = frappe.get_all("Milestone Termin", filters={"project": project},
 		fields=["name", "urutan", "nama_milestone", "tanggal_target", "tanggal_tercapai", "status", "bobot", "nilai_termin"], order_by="urutan asc")
-	termin = []
+	semua_inv = invoice_aktif({"project": project, "jenis_tagihan": ("in", ["Uang Muka", "Termin"])})
+	ppn = ppn_invoice([x.name for x in semua_inv])
+	per_nama = {x.name: lengkapi_invoice(x, ppn) for x in semua_inv}
+	tunggu_um = perlu_uang_muka_dulu(k, project)
+	termin, retensi = [], []
 	for m in milestone:
 		inv = invoice_aktif({"milestone_termin": m.name})
-		row = {**m, "invoice": inv[0] if inv else None}
+		inv = per_nama.get(inv[0].name) if inv else None
+		row = {**m, "invoice": inv}
 		if not inv and m.status == "Tercapai":
 			row["rincian"] = rincian_termin(k, m, project)
+			row["tunggu_um"] = tunggu_um
 		termin.append(row)
-	semua = invoice_aktif({"project": project, "jenis_tagihan": ("in", ["Uang Muka", "Termin"]), "docstatus": 1})
-	ditagih = sum(flt(x.rounded_total or x.grand_total) for x in semua)
-	piutang = sum(flt(x.outstanding_amount) for x in semua)
-	retensi = sum(flt(x.nilai_retensi) for x in semua)
+		if inv and inv.docstatus == 1 and flt(inv.nilai_retensi):
+			jatuh_tempo = k.akhir_pemeliharaan or inv.due_date
+			status = "Lunas" if inv.retensi_sisa <= 0.5 else ("Jatuh Tempo" if jatuh_tempo and getdate(jatuh_tempo) <= hari_ini else "Ditahan")
+			retensi.append({"urutan": m.urutan, "nama_milestone": m.nama_milestone, "invoice": inv.name, "retensi": flt(inv.nilai_retensi),
+				"diterima": inv.retensi_diterima, "sisa": inv.retensi_sisa, "jatuh_tempo": str(jatuh_tempo) if jatuh_tempo else None,
+				"status": status, "sisa_termin": inv.sisa_termin})
+	um = per_nama.get(um_inv[0].name) if um_inv else None
+	submitted = [x for x in per_nama.values() if x.docstatus == 1]
+	ditagih = sum(x.total for x in submitted)
+	retensi_total = sum(r["retensi"] for r in retensi)
+	retensi_sisa = sum(r["sisa"] for r in retensi)
+	jatuh_tempo_retensi = min((r["jatuh_tempo"] for r in retensi if r["sisa"] > 0.5 and r["jatuh_tempo"]), default=None)
+	termin_ditagih = [t for t in termin if t["invoice"] and t["invoice"].docstatus == 1]
 	return {
 		"project": {"name": doc.name, "project_name": doc.project_name},
 		"kontrak": k,
-		"uang_muka": {"rincian": r_um, "invoice": um_inv[0] if um_inv else None},
+		"uang_muka": {"rincian": r_um, "invoice": um},
 		"termin": termin,
+		"retensi": retensi,
+		"alur": {
+			"uang_muka": bool(um and um.docstatus == 1) if r_um else None,
+			"termin_ditagih": len(termin_ditagih),
+			"termin_total": len(termin),
+			"piutang_termin": sum(x.sisa_termin for x in submitted),
+			"retensi_sisa": retensi_sisa,
+		},
 		"ringkasan": {
 			"nilai_kontrak": k.nilai_kontrak,
 			"ditagih": ditagih,
-			"diterima": ditagih - piutang,
-			"piutang": piutang,
-			"retensi": retensi,
+			"diterima": sum(x.dibayar for x in submitted),
+			"piutang": sum(x.sisa_termin for x in submitted),
+			"retensi_total": retensi_total,
+			"retensi_diterima": retensi_total - retensi_sisa,
+			"retensi_sisa": retensi_sisa,
+			"retensi_jatuh_tempo": jatuh_tempo_retensi,
+			"retensi_lewat": bool(jatuh_tempo_retensi and getdate(jatuh_tempo_retensi) <= hari_ini),
 			"bisa_ditagih": sum(flt(t["nilai_termin"]) for t in termin if t["status"] == "Tercapai" and not t["invoice"]),
-			"persen_ditagih": flt(sum(flt(t["bobot"]) for t in termin if t["invoice"] and t["invoice"].docstatus == 1), 2),
+			"bisa_ditagih_total": sum(flt(t["rincian"].total) for t in termin if t.get("rincian")),
+			"persen_ditagih": flt(sum(flt(t["bobot"]) for t in termin_ditagih), 2),
 		},
 		"bisa_buat": bool(frappe.has_permission("Sales Invoice", "create")),
+		"bisa_bayar": bool(frappe.has_permission("Payment Entry", "create")),
 	}
+
+
+@frappe.whitelist()
+def buat_pembayaran(project, invoice, bagian="termin"):
+	"""Payment Entry (belum disimpan) untuk invoice proyek: bagian 'termin' = sisa di luar retensi, 'retensi' = sisa retensi,
+	'semua' = seluruh sisa piutang. Dikembalikan ke form untuk dilengkapi (rekening, tanggal, referensi)."""
+	from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
+
+	inv = frappe.get_doc("Sales Invoice", invoice)
+	if inv.project != project or inv.docstatus != 1:
+		frappe.throw(_("Invoice tidak valid untuk proyek ini."))
+	x = lengkapi_invoice(frappe._dict(name=inv.name, docstatus=1, rounded_total=inv.rounded_total, grand_total=inv.grand_total,
+		outstanding_amount=inv.outstanding_amount, nilai_retensi=inv.nilai_retensi), {})
+	jumlah = {"termin": x.sisa_termin, "retensi": x.retensi_sisa}.get(bagian, flt(inv.outstanding_amount))
+	if jumlah <= 0:
+		frappe.throw(_("Tidak ada sisa {0} pada invoice ini.").format(_("retensi") if bagian == "retensi" else _("tagihan")))
+	pe = get_payment_entry("Sales Invoice", invoice, party_amount=jumlah)
+	pe.project = project
+	pe.remarks = (
+		_("Penerimaan retensi {0}").format(inv.name) if bagian == "retensi" else _("Penerimaan {0} {1}").format(inv.jenis_tagihan or "", inv.name)
+	)
+	return pe
 
 
 @frappe.whitelist()

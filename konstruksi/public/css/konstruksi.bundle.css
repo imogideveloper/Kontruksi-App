@@ -5263,3 +5263,62 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpg-catatan-kartu {
 	padding: 8px 16px 12px;
 }
+
+/* Penagihan: panduan alur, tabel termin lebih ringkas, total retensi. */
+.kpg-alur {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 10px;
+	margin-bottom: 14px;
+	padding: 12px 16px;
+	border: 1px solid var(--border-color);
+	border-radius: 12px;
+	background: var(--fg-color, #fff);
+}
+
+.kpg-alur-langkah {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
+	color: var(--text-color);
+}
+
+.kpg-alur-no {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	border-radius: 999px;
+	background: var(--subtle-fg, #f3f4f6);
+	font-size: var(--text-xs);
+	font-weight: 700;
+	color: var(--text-muted);
+}
+
+.kpg-alur-ok .kpg-alur-no {
+	background: var(--kptl-selesai);
+	color: #fff;
+}
+
+.kpg-alur-panah {
+	font-size: 18px;
+	color: var(--text-muted);
+}
+
+.kpg .kpg-tabel-termin {
+	min-width: 1180px;
+}
+
+.kpg-tabel tfoot td,
+.kpg-total td {
+	background: var(--subtle-fg, #f8f9fa);
+	font-weight: 700;
+}
+
+.kpg .kpbs-tabel-judul .kptl-sub-kecil {
+	font-weight: normal;
+}
