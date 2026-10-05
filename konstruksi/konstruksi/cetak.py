@@ -311,3 +311,58 @@ def data_pembayaran(doc):
 		draft=doc.docstatus == 0,
 		batal=doc.docstatus == 2,
 	)
+
+
+def data_rekap_retensi(project):
+	"""Isian PDF Rekap Retensi satu proyek (lampiran invoice)."""
+	from konstruksi.konstruksi.penagihan import data_kontrak, get_penagihan
+
+	d = get_penagihan(project)
+	k = data_kontrak(project)
+	kontrak = frappe.get_doc("Kontrak Project", k.kontrak)
+	uang = lambda v: fmt_money(flt(v), currency="IDR")  # noqa: E731
+	angka = lambda v: fmt_money(flt(v), currency="IDR").replace("Rp", "").strip()  # noqa: E731
+	invoice = {x.name: x for x in frappe.get_all("Sales Invoice", filters={"name": ("in", [r["invoice"] for r in d["retensi"]] or [""])},
+		fields=["name", "posting_date", "nilai_bruto"])}
+	baris = []
+	for r in d["retensi"]:
+		inv = invoice.get(r["invoice"]) or frappe._dict()
+		baris.append(frappe._dict(
+			termin=f"T{r['urutan']}", milestone=r["nama_milestone"], invoice=r["invoice"],
+			tanggal=frappe.format(inv.posting_date, "Date") if inv.posting_date else "",
+			nilai_termin=angka(inv.nilai_bruto), retensi=angka(r["retensi"]),
+			jatuh_tempo=frappe.format(r["jatuh_tempo"], "Date") if r["jatuh_tempo"] else "",
+			diterima=angka(r["diterima"]), sisa=angka(r["sisa"]), status=r["status"],
+		))
+	rk = d["ringkasan"]
+	return frappe._dict(
+		company=_company(k.company),
+		proyek=f"{project} — {d['project']['project_name']}",
+		customer=frappe.db.get_value("Customer", k.customer, "customer_name") or k.customer,
+		nomor_kontrak=kontrak.nomor_kontrak or kontrak.name,
+		retensi_persen=f"{flt(k.retensi_persen):g}%".replace(".", ","),
+		skema=k.skema_retensi,
+		akhir_pemeliharaan=tanggal_indonesia(k.akhir_pemeliharaan) if k.akhir_pemeliharaan else "",
+		baris=baris,
+		total_nilai_termin=angka(sum(flt((invoice.get(r["invoice"]) or {}).get("nilai_bruto")) for r in d["retensi"])),
+		total=uang(rk["retensi_total"]), total_angka=angka(rk["retensi_total"]),
+		diterima=uang(rk["retensi_diterima"]), diterima_angka=angka(rk["retensi_diterima"]),
+		sisa=uang(rk["retensi_sisa"]), sisa_angka=angka(rk["retensi_sisa"]),
+		jatuh_tempo=tanggal_indonesia(rk["retensi_jatuh_tempo"]) if rk.get("retensi_jatuh_tempo") else "—",
+		tanggal_cetak=tanggal_indonesia(frappe.utils.today()),
+		pencetak=_nama_user(frappe.session.user),
+		font=font_cetak(),
+	)
+
+
+@frappe.whitelist()
+def cetak_rekap_retensi(project):
+	"""Unduh PDF Rekap Retensi proyek (A4 landscape) — lampiran invoice termin / pencairan retensi."""
+	from frappe.utils.pdf import get_pdf
+
+	frappe.get_doc("Project", project).check_permission("read")
+	html = frappe.render_template("konstruksi/templates/cetak/rekap_retensi.html", {"d": data_rekap_retensi(project)})
+	frappe.local.response.filename = f"Rekap Retensi {project}.pdf"
+	frappe.local.response.filecontent = get_pdf(html, {"orientation": "Landscape", "page-size": "A4",
+		"margin-top": "0mm", "margin-bottom": "0mm", "margin-left": "0mm", "margin-right": "0mm"})
+	frappe.local.response.type = "pdf"

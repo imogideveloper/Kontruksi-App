@@ -403,12 +403,17 @@ class HalamanPenagihan {
 		// Terima sekaligus: retensi semua termin yang bagian terminnya sudah lunas → satu Payment Entry.
 		const siap = rows.filter((x) => x.sisa > 0.5 && x.sisa_termin <= 0.5);
 		const tombol_semua = siap.length && d.bisa_bayar
-			? `<span class="kpg-aksi-kanan"><button class="btn btn-primary btn-xs" data-kpg="bayar-retensi-semua">${frappe.utils.icon("banknote", "xs")}
-				${__("Catat Penerimaan Semua Retensi")} (${siap.length} · ${kpg_rp(siap.reduce((a, x) => a + flt(x.sisa), 0))})</button></span>`
+			? `<button class="btn btn-primary btn-xs" data-kpg="bayar-retensi-semua">${frappe.utils.icon("banknote", "xs")}
+				${__("Catat Penerimaan Semua Retensi")} (${siap.length} · ${kpg_rp(siap.reduce((a, x) => a + flt(x.sisa), 0))})</button>`
 			: "";
+		// Rekap retensi (PDF A4 landscape) untuk lampiran invoice.
+		const tombol_cetak = rows.length
+			? `<button class="btn btn-default btn-xs" data-kpg="cetak-retensi">${frappe.utils.icon("printer", "xs")} ${__("Cetak Rekap (PDF)")}</button>`
+			: "";
+		const aksi_judul = tombol_semua || tombol_cetak ? `<span class="kpg-aksi-kanan">${tombol_cetak}${tombol_semua}</span>` : "";
 		return `<div class="kptl-card kpbs-tabel-kartu">
 			<div class="kpbs-tabel-judul">${__("Retensi {0}%", [format_number(k.retensi_persen, null, 2)])}
-				<span class="kptl-sub-kecil">${__("Ditahan pemberi kerja dari tiap termin, wajib ditagih kembali setelah masa pemeliharaan berakhir ({0}).", [kpg_tgl(k.akhir_pemeliharaan)])}</span>${tombol_semua}</div>
+				<span class="kptl-sub-kecil">${__("Ditahan pemberi kerja dari tiap termin, wajib ditagih kembali setelah masa pemeliharaan berakhir ({0}).", [kpg_tgl(k.akhir_pemeliharaan)])}</span>${aksi_judul}</div>
 			<div class="kptl-tabel-wrap"><table class="kptl-tabel kpg-tabel">
 				<colgroup><col style="width:56px"><col><col style="width:170px"><col style="width:140px"><col style="width:120px"><col style="width:140px"><col style="width:140px"><col style="width:110px"><col style="width:220px"></colgroup>
 				<thead><tr><th>${__("Termin")}</th><th>${__("Milestone")}</th><th>${__("Invoice")}</th><th class="text-right">${__("Retensi")}</th><th>${__("Jatuh Tempo")}</th>
@@ -445,6 +450,8 @@ class HalamanPenagihan {
 						const doc = frappe.model.sync(r.message)[0];
 						frappe.set_route("Form", doc.doctype, doc.name);
 					});
+			case "cetak-retensi":
+				return window.open(`/api/method/konstruksi.konstruksi.cetak.cetak_rekap_retensi?project=${encodeURIComponent(this.project)}`);
 			case "bayar-retensi-semua":
 				return frappe
 					.call({ method: KPG_API + "buat_pembayaran_retensi_semua", args: { project: this.project }, freeze: true, freeze_message: __("Menyiapkan penerimaan retensi…") })
