@@ -216,7 +216,7 @@ class HalamanMilestone {
 					<thead><tr><th>#</th><th>${__("Milestone")}</th><th>${__("Lingkup WBS")}</th><th>${__("Target")}</th><th>${__("Progres")}</th>
 						<th class="text-right">${__("Bobot = Termin")}<div class="kpa-th-sub">${__("kumulatif")}</div></th>
 						<th class="text-right">${__("Nilai Termin")}<div class="kpa-th-sub">${__("bruto + PPN, kumulatif")}</div></th>
-						<th>${__("Dokumen")}</th><th>${__("Status")}</th><th></th></tr></thead>
+						<th>${__("Dokumen")}</th><th>${__("Status")}</th><th class="text-right">${__("Aksi")}</th></tr></thead>
 					<tbody>${baris || `<tr><td colspan="10" class="kpa-kosong">${__("Belum ada milestone. Klik Milestone / Termin Baru untuk menambahkan.")}</td></tr>`}</tbody>
 					${d.milestone.length ? `<tfoot><tr class="kpw-total"><td colspan="5" class="text-right">${__("Total")}</td>
 						<td class="text-right ${bobot_pas ? "" : "kpa-oranye"}">${kpm2_persen(d.total_bobot)}</td><td class="text-right">${kpm2_rp(d.total_nilai)}</td>
