@@ -290,8 +290,10 @@ class HalamanPenagihan {
 				}
 				return `<tr>
 					<td class="kptl-mono">T${t.urutan}</td>
-					<td class="kptl-potong" title="${kpg_esc(t.nama_milestone)}"><b>${kpg_esc(t.nama_milestone)}</b>
-						<div class="kptl-sub-kecil">${t.status === "Tercapai" ? __("Tercapai {0}", [kpg_tgl(t.tanggal_tercapai)]) : __("Target {0}", [kpg_tgl(t.tanggal_target)])}</div></td>
+					<td class="kptl-potong" title="${kpg_esc(t.nama_milestone)}"><b>${kpg_esc(t.nama_milestone)}</b></td>
+					<td class="kpg-tgl">${t.status === "Tercapai"
+						? `${kpg_tgl(t.tanggal_tercapai)} <span class="kptl-sub-kecil">${__("tercapai")}</span>`
+						: `<span class="text-muted">${kpg_tgl(t.tanggal_target)}</span> <span class="kptl-sub-kecil">${__("target")}</span>`}</td>
 					<td class="text-right">${kpg_rp(t.nilai_termin)}<div class="kptl-sub-kecil">${__("bobot {0}", [kpg_persen(t.bobot)])}</div></td>
 					${isi}
 					<td class="text-right kpg-aksi">${aksi}</td>
@@ -303,9 +305,10 @@ class HalamanPenagihan {
 			<div class="kpbs-tabel-judul">${__("Termin per Milestone")}
 				<span class="kptl-sub-kecil">${__("Arahkan kursor ke judul kolom untuk cara hitungnya")}</span></div>
 			<div class="kptl-tabel-wrap"><table class="kptl-tabel kpg-tabel kpg-tabel-termin">
-				<colgroup><col style="width:46px"><col><col style="width:130px"><col style="width:110px"><col style="width:120px"><col style="width:105px"><col style="width:105px">
+				<colgroup><col style="width:46px"><col><col style="width:150px"><col style="width:130px"><col style="width:110px"><col style="width:120px"><col style="width:105px"><col style="width:105px">
 					<col style="width:120px"><col style="width:105px"><col style="width:125px"><col style="width:250px"></colgroup>
 				<thead><tr><th>${__("Termin")}</th><th>${__("Milestone")}</th>
+					<th title="${__("Tanggal milestone tercapai; bila belum tercapai, tanggal targetnya")}">${__("Tanggal")}</th>
 					${kepala_kolom(__("Nilai Termin"), __("Bobot × nilai kontrak, termasuk PPN (bruto)"))}
 					${kepala_kolom(__("Pot. Uang Muka"), __("Uang muka % × DPP termin, dipotong sampai uang muka habis"))}
 					${kepala_kolom(__("DPP Ditagih"), __("Nilai termin tanpa PPN, dikurangi potongan uang muka"))}
@@ -315,7 +318,7 @@ class HalamanPenagihan {
 					${kepala_kolom(__("Retensi"), __("Retensi % × nilai termin; ditahan sampai akhir pemeliharaan"))}
 					${kepala_kolom(__("Dibayar Sekarang"), __("Total tagihan − retensi"))}
 					<th class="text-right">${__("Status / Aksi")}</th></tr></thead>
-				<tbody>${baris || `<tr><td colspan="11" class="kptl-kosong">${__("Belum ada milestone. Buat di Milestone & Termin.")}</td></tr>`}</tbody>
+				<tbody>${baris || `<tr><td colspan="12" class="kptl-kosong">${__("Belum ada milestone. Buat di Milestone & Termin.")}</td></tr>`}</tbody>
 			</table></div></div>`;
 	}
 

@@ -5591,3 +5591,8 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	text-overflow: clip;
 	line-height: 1.4;
 }
+
+/* Penagihan: kolom Tanggal tabel Termin per Milestone — satu baris (tanggal + keterangan tercapai/target). */
+.kpg-tabel-termin td.kpg-tgl {
+	white-space: nowrap;
+}
