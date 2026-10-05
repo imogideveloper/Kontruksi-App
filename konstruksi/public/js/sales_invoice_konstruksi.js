@@ -8,6 +8,7 @@ function rapikan_invoice_konstruksi(frm) {
 	const aktif = Boolean(frm.doc.jenis_tagihan);
 	frm.page.wrapper.toggleClass(KELAS_SI_KONSTRUKSI, aktif);
 	pindahkan_edit_posting(frm, aktif);
+	atur_label_mata_uang(frm, aktif);
 	if (!aktif) return;
 
 	frm.toggle_display(FIELD_TIDAK_RELEVAN, false);
@@ -36,6 +37,26 @@ function pindahkan_edit_posting(frm, aktif) {
 		const { induk, sebelum } = frm.__kpsi_posisi_edit;
 		sebelum.length ? edit.insertAfter(sebelum) : edit.prependTo(induk);
 	}
+}
+
+// Label tanpa akhiran mata uang ("Rate", bukan "Rate (IDR)"): ERPNext menambahkannya lewat frm.set_currency_labels;
+// untuk invoice tagihan proyek dialihkan ke reset_currency_labels (label asli). Saat berpindah antara invoice proyek
+// dan invoice biasa, label dihitung ulang (cache mata uang ERPNext dikosongkan dulu).
+function atur_label_mata_uang(frm, aktif) {
+	if (!frm.__kpsi_label) {
+		const asli = frm.set_currency_labels.bind(frm);
+		frm.set_currency_labels = function (fields, currency, parentfield) {
+			if (!this.doc?.jenis_tagihan) return asli(fields, currency, parentfield);
+			if (!currency) return;
+			const ada = (fields || []).filter((f) => (parentfield ? true : this.fields_dict[f]));
+			return this.reset_currency_labels(ada, parentfield);
+		};
+		frm.__kpsi_label = true;
+	}
+	if (frm.__kpsi_label_aktif === aktif || !frm.cscript?.set_dynamic_labels) return;
+	frm.__kpsi_label_aktif = aktif;
+	frm.cscript._last_currency = null;
+	frm.cscript.set_dynamic_labels();
 }
 
 frappe.ui.form.on("Sales Invoice", {
