@@ -86,8 +86,8 @@ function pindahkan_jadwal_bayar(frm, aktif) {
 	setTimeout(() => (frm.layout?.tabs || []).forEach((t) => t.refresh?.()), 0);
 }
 
-// Invoice termin dengan retensi: di bawah Outstanding Amount ditampilkan pembagian sisa tagihan — bagian termin (yang
-// dibayar sekarang) & retensi (jatuh tempo akhir masa pemeliharaan). Pembayaran melunasi bagian termin dulu.
+// Invoice termin dengan retensi: di bawah Outstanding Amount ditampilkan pembagian sisa tagihan — "Pembayaran Termin n"
+// (yang dibayar sekarang) & "Retensi Ditahan" (jatuh tempo akhir masa pemeliharaan). Pembayaran melunasi bagian termin dulu.
 function tampilkan_rincian_retensi(frm) {
 	const sel = frm.fields_dict.outstanding_amount?.$wrapper;
 	if (!sel?.length) return;
@@ -101,7 +101,8 @@ function tampilkan_rincian_retensi(frm) {
 	const sisa_termin = Math.max(bagian_termin - dibayar, 0);
 	const sisa_retensi = retensi - Math.min(Math.max(dibayar - bagian_termin, 0), retensi);
 	const uang = (v) => format_currency(v, frm.doc.currency);
-	const tgl = (v) => (v ? frappe.datetime.str_to_user(v) : "");
+	// Nomor termin dari uraian_tagihan ("Termin 1 — Pekerjaan Persiapan selesai").
+	const no_termin = (/^Termin\s+(\d+)/.exec(frm.doc.uraian_tagihan || "") || [])[1] || "";
 	const baris = (label, nilai, tebal) => `
 		<div class="frappe-control kpsi-retensi" data-fieldtype="Currency">
 			<div class="form-group">
@@ -110,8 +111,8 @@ function tampilkan_rincian_retensi(frm) {
 			</div>
 		</div>`;
 	$(
-		baris(__("Sisa Termin (jatuh tempo {0})", [tgl(jadwal[0].due_date)]), sisa_termin, true) +
-			baris(__("Retensi Ditahan (jatuh tempo {0})", [tgl(jadwal[jadwal.length - 1].due_date)]), sisa_retensi)
+		baris(no_termin ? __("Pembayaran Termin {0}", [no_termin]) : __("Pembayaran Termin"), sisa_termin, true) +
+			baris(__("Retensi Ditahan"), sisa_retensi)
 	).insertAfter(sel);
 }
 
