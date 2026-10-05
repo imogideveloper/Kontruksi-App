@@ -140,9 +140,9 @@ class HalamanBaseline {
 	render() {
 		const d = this.data;
 		const p = d.project;
-		const kepala = `<div class="kptl-head"><div>
+		const kepala = `<div class="kptl-head"><div class="kpbs-kepala">
 			<a class="kptl-crumb" href="/app/project/${encodeURIComponent(p.name)}">${kpbs_esc(p.name)} · ${kpbs_esc(p.project_name)}</a>
-			<div class="kptl-sub kpbs-sub">${__("Snapshot jadwal rencana untuk mengontrol deviasi jadwal aktual.")}</div></div></div>`;
+			<span class="kpbs-sub">${__("Snapshot jadwal rencana untuk mengontrol deviasi jadwal aktual.")}</span></div></div>`;
 		if (!d.daftar.length) {
 			this.$body.html(`${kepala}<div class="kptl-card kptl-kosong">
 				<div>${__("Belum ada baseline untuk proyek ini.")}</div>

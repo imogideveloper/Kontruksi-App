@@ -5018,8 +5018,16 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 }
 
 /* ===================== Baseline Schedule (page/baseline_schedule) — kelas kpbs-* (+ kptl-*) ===================== */
+/* Judul: crumb proyek & keterangan halaman sebaris. */
+.kpbs-kepala {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 4px 14px;
+}
+
 .kpbs-sub {
-	margin: 2px 0 0;
+	color: var(--text-muted);
 }
 
 .kpbs .kptl-kosong .btn {
