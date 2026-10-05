@@ -61,6 +61,7 @@ override_doctype_class = {"Project": "konstruksi.overrides.project.KonstruksiPro
 doctype_list_js = {
 	"Project": "public/js/project_list_konstruksi.js",
 	"Expense Claim": "public/js/expense_claim_list_konstruksi.js",
+	"Sales Invoice": "public/js/sales_invoice_list_konstruksi.js",
 }
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}

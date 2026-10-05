@@ -400,7 +400,7 @@ CUSTOM_FIELD_PENAGIHAN = {
 		{"fieldname": "penagihan_proyek_section", "fieldtype": "Section Break", "label": "Penagihan Proyek",
 			"insert_after": "project", "collapsible": 0, "depends_on": "eval:doc.jenis_tagihan"},
 		{"fieldname": "jenis_tagihan", "fieldtype": "Select", "label": "Jenis Tagihan", "options": "\nUang Muka\nTermin",
-			"insert_after": "penagihan_proyek_section", "read_only": 1, "in_standard_filter": 1, "allow_on_submit": 0},
+			"insert_after": "penagihan_proyek_section", "read_only": 1, "in_standard_filter": 1, "in_list_view": 1, "allow_on_submit": 0},
 		{"fieldname": "kontrak_project", "fieldtype": "Link", "label": "Kontrak Project", "options": "Kontrak Project",
 			"insert_after": "jenis_tagihan", "read_only": 1},
 		{"fieldname": "milestone_termin", "fieldtype": "Link", "label": "Milestone / Termin", "options": "Milestone Termin",
@@ -434,10 +434,32 @@ def akun_penagihan(company, kunci):
 	return akun
 
 
+# List Sales Invoice: urutan kolom (title = nama customer di depan, status indikator).
+KOLOM_LIST_SALES_INVOICE = ["project", "jenis_tagihan", "posting_date", "due_date", "grand_total", "outstanding_amount", "status_field"]
+
+
+def atur_list_sales_invoice():
+	"""List Sales Invoice: kolom Proyek, Jenis Tagihan, Outstanding; filter Proyek; urutan kolom via List View Settings."""
+	import json
+
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	for fieldname in ("project", "outstanding_amount"):
+		make_property_setter("Sales Invoice", fieldname, "in_list_view", 1, "Check", validate_fields_for_doctype=False)
+	make_property_setter("Sales Invoice", "project", "in_standard_filter", 1, "Check", validate_fields_for_doctype=False)
+	lvs = frappe.get_doc("List View Settings", "Sales Invoice") if frappe.db.exists("List View Settings", "Sales Invoice") else frappe.new_doc("List View Settings")
+	if lvs.is_new():
+		lvs.name = "Sales Invoice"
+	lvs.fields = json.dumps([{"fieldname": f} for f in KOLOM_LIST_SALES_INVOICE])
+	lvs.flags.ignore_permissions = True
+	lvs.save() if not lvs.is_new() else lvs.insert(set_name="Sales Invoice")
+
+
 def buat_penagihan_default():
 	from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 	create_custom_fields(CUSTOM_FIELD_PENAGIHAN, update=True)
+	atur_list_sales_invoice()
 	companies = frappe.get_all("Company", pluck="name")
 	for c in companies:
 		for kunci in AKUN_PENAGIHAN:

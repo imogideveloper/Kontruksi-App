@@ -39,3 +39,4 @@ konstruksi.patches.v1_0.buat_penagihan
 konstruksi.patches.v1_0.buat_penagihan #section-terbuka
 konstruksi.patches.v1_0.atur_cetak_invoice
 konstruksi.patches.v1_0.atur_cetak_pembayaran
+konstruksi.patches.v1_0.buat_penagihan #list-sales-invoice
