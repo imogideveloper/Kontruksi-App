@@ -17,6 +17,7 @@ function rapikan_invoice_konstruksi(frm) {
 	frm.page.wrapper.toggleClass(KELAS_SI_KONSTRUKSI, aktif);
 	pindahkan_edit_posting(frm, aktif);
 	pindahkan_disable_rounded(frm, aktif);
+	if (!aktif) frm.fields_dict.outstanding_amount?.$wrapper?.siblings(".kpsi-retensi").remove();
 	pindahkan_jadwal_bayar(frm, aktif);
 	atur_label_mata_uang(frm, aktif);
 	atur_kolom_items(frm, aktif);
@@ -30,6 +31,7 @@ function rapikan_invoice_konstruksi(frm) {
 
 	tampilkan_persen_pajak(frm);
 	pasang_pembayaran_proyek(frm);
+	tampilkan_rincian_retensi(frm);
 
 	// Nama customer panjang tetap bisa dibaca utuh saat kursor diarahkan.
 	frm.fields_dict.customer?.$input?.attr("title", frm.doc.customer || "");
@@ -82,6 +84,35 @@ function pindahkan_jadwal_bayar(frm, aktif) {
 		sebelum.length ? jadwal.insertAfter(sebelum) : jadwal.prependTo(induk);
 	}
 	setTimeout(() => (frm.layout?.tabs || []).forEach((t) => t.refresh?.()), 0);
+}
+
+// Invoice termin dengan retensi: di bawah Outstanding Amount ditampilkan pembagian sisa tagihan — bagian termin (yang
+// dibayar sekarang) & retensi (jatuh tempo akhir masa pemeliharaan). Pembayaran melunasi bagian termin dulu.
+function tampilkan_rincian_retensi(frm) {
+	const sel = frm.fields_dict.outstanding_amount?.$wrapper;
+	if (!sel?.length) return;
+	sel.siblings(".kpsi-retensi").remove();
+	const retensi = flt(frm.doc.nilai_retensi);
+	const jadwal = frm.doc.payment_schedule || [];
+	if (!retensi || jadwal.length < 2) return;
+	const total = flt(frm.doc.rounded_total) || flt(frm.doc.grand_total);
+	const dibayar = frm.doc.docstatus === 1 ? total - flt(frm.doc.outstanding_amount) : 0;
+	const bagian_termin = total - retensi;
+	const sisa_termin = Math.max(bagian_termin - dibayar, 0);
+	const sisa_retensi = retensi - Math.min(Math.max(dibayar - bagian_termin, 0), retensi);
+	const uang = (v) => format_currency(v, frm.doc.currency);
+	const tgl = (v) => (v ? frappe.datetime.str_to_user(v) : "");
+	const baris = (label, nilai, tebal) => `
+		<div class="frappe-control kpsi-retensi" data-fieldtype="Currency">
+			<div class="form-group">
+				<div class="clearfix"><label class="control-label">${label}</label></div>
+				<div class="control-input-wrapper"><div class="control-value like-disabled-input">${tebal ? `<b>${uang(nilai)}</b>` : uang(nilai)}</div></div>
+			</div>
+		</div>`;
+	$(
+		baris(__("Sisa Termin (jatuh tempo {0})", [tgl(jadwal[0].due_date)]), sisa_termin, true) +
+			baris(__("Retensi Ditahan (jatuh tempo {0})", [tgl(jadwal[jadwal.length - 1].due_date)]), sisa_retensi)
+	).insertAfter(sel);
 }
 
 // Create → Payment pada invoice proyek: Payment Entry dari penagihan.buat_pembayaran (bagian termin tanpa retensi
