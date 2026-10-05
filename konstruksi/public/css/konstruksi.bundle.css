@@ -5596,3 +5596,23 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpg-tabel-termin td.kpg-tgl {
 	white-space: nowrap;
 }
+
+/* Penagihan: tabel menyesuaikan lebar isi (bukan lebar kolom tetap) — judul & isi kolom tidak terpotong; nama milestone
+   boleh turun baris; bila lebih lebar dari layar, tabel digeser ke samping (kptl-tabel-wrap overflow-x: auto). */
+.kpg .kpg-tabel {
+	table-layout: auto;
+	width: 100%;
+	min-width: 0;
+}
+
+.kpg .kpg-tabel th,
+.kpg .kpg-tabel td {
+	overflow: visible;
+	text-overflow: clip;
+	white-space: nowrap;
+}
+
+.kpg .kpg-tabel td.kptl-potong {
+	white-space: normal;
+	min-width: 200px;
+}
