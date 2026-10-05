@@ -2,8 +2,6 @@
 // ERPNext yang tidak relevan untuk invoice jasa konstruksi (POS, nota debit, potong pajak, barcode, stok, kolom
 // gudang) dan rapikan tampilannya. Invoice biasa (tanpa jenis_tagihan) tetap tampil seperti bawaan.
 const KELAS_SI_KONSTRUKSI = "kpsi";
-// Label khusus invoice proyek (field induk), dipasang ulang setiap label mata uang dihitung ulang.
-const LABEL_KHUSUS = { base_total_taxes_and_charges: "Total Taxes and Charges" };
 const FIELD_TIDAK_RELEVAN = ["is_pos", "is_debit_note", "apply_tds", "scan_barcode", "update_stock", "in_words", "base_in_words", "incoterm", "named_place", "tax_category", "taxes_and_charges", "shipping_rule", "total_qty", "total", "currency_and_price_list", "use_company_roundoff_cost_center"];
 
 function rapikan_invoice_konstruksi(frm) {
@@ -15,7 +13,9 @@ function rapikan_invoice_konstruksi(frm) {
 	if (!aktif) return;
 
 	frm.toggle_display(FIELD_TIDAK_RELEVAN, false);
-	pasang_label_khusus(frm);
+	// Total pajak versi mata uang perusahaan sama persis dengan versi mata uang invoice bila mata uangnya sama
+	// (proyek rupiah): cukup satu yang tampil.
+	if (frm.doc.currency === erpnext.get_currency(frm.doc.company)) frm.toggle_display("base_total_taxes_and_charges", false);
 
 	tampilkan_persen_pajak(frm);
 
@@ -48,8 +48,7 @@ function atur_label_mata_uang(frm, aktif) {
 			if (!this.doc?.jenis_tagihan) return asli(fields, currency, parentfield);
 			if (!currency) return;
 			const ada = (fields || []).filter((f) => (parentfield ? true : this.fields_dict[f]));
-			this.reset_currency_labels(ada, parentfield);
-			if (!parentfield) pasang_label_khusus(this);
+			return this.reset_currency_labels(ada, parentfield);
 		};
 		frm.__kpsi_label = true;
 	}
@@ -57,10 +56,6 @@ function atur_label_mata_uang(frm, aktif) {
 	frm.__kpsi_label_aktif = aktif;
 	frm.cscript._last_currency = null;
 	frm.cscript.set_dynamic_labels();
-}
-
-function pasang_label_khusus(frm) {
-	Object.entries(LABEL_KHUSUS).forEach(([field, label]) => frm.fields_dict[field]?.set_label(__(label)));
 }
 
 // Baris pajak tagihan proyek bertipe "Actual" (nominal dibulatkan rupiah) — ERPNext selalu mengosongkan Tax Rate
