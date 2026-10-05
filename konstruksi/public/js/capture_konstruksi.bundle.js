@@ -121,6 +121,9 @@ async function capture_halaman() {
 			// Elemen sementara / overlay tidak ikut digambar.
 			filter: (node) => {
 				if (!(node instanceof HTMLElement)) return true;
+				// iframe/object/embed (mis. frame tersembunyi berisi data:text/html di form Sales Invoice) tidak bisa
+				// dirender ke gambar dan membuat capture gagal — dilewati.
+				if (/^(IFRAME|OBJECT|EMBED)$/.test(node.tagName)) return false;
 				// Hanya UI Frappe: anak langsung <body> selain sidebar & area utama (mis. tombol ekstensi browser,
 				// splash, sprite ikon) tidak ikut digambar.
 				if (node.parentElement === document.body && !node.matches(".main-section, .body-sidebar-container")) return false;
