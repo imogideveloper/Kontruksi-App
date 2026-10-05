@@ -3971,3 +3971,52 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	-webkit-text-fill-color: var(--text-color);
 	opacity: 1;
 }
+
+/* Revisi laporan progres (pembatalan milestone) */
+.kpa-status-ungu { background: var(--kpr-ungu-bg, #f1ebfe); color: var(--kpr-ungu, #7c3aed); }
+.kpa-ungu, .kpa-sub.kpa-ungu { color: var(--kpr-ungu, #7c3aed); }
+.kpa-coret { color: var(--text-muted); }
+
+.kpm2-revisi-ket {
+	margin-bottom: 8px;
+}
+
+.kpm2-revisi-wrap {
+	max-height: 320px;
+	overflow: auto;
+}
+
+.kpm2-revisi td {
+	vertical-align: middle;
+}
+
+.kpm2-revisi tr.kpm2-revisi-dipilih td {
+	background: #fff4e5;
+}
+
+[data-theme="dark"] .kpm2-revisi tr.kpm2-revisi-dipilih td {
+	background: rgba(194, 65, 12, 0.15);
+}
+
+.kpm2-revisi-vol {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.kpm2-revisi-vol input {
+	width: 110px;
+	text-align: right;
+}
+
+.kpm2-revisi-tahap {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.kpm2-revisi-tahap label {
+	margin: 0;
+	font-weight: normal;
+	white-space: nowrap;
+}

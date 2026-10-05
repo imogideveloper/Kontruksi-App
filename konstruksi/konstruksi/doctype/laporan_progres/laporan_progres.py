@@ -6,11 +6,12 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt
 
-from konstruksi.konstruksi.aktivitas import bisa_setujui, perbarui_dari_laporan
+from konstruksi.konstruksi.aktivitas import STATUS_DIHITUNG, bisa_setujui, perbarui_dari_laporan
 
 
 class LaporanProgres(Document):
-	"""Laporan progres harian satu aktivitas (Task). Hanya laporan berstatus Disetujui yang menambah realisasi."""
+	"""Laporan progres harian satu aktivitas (Task). Hanya laporan Disetujui / Direvisi (volume / tahap hasil revisi)
+	yang menambah realisasi; Dibatalkan & Ditolak tidak dihitung."""
 
 	def validate(self):
 		task = frappe.get_doc("Task", self.task)
@@ -20,11 +21,14 @@ class LaporanProgres(Document):
 			self.pelapor = frappe.db.get_value("Employee", {"user_id": self.owner or frappe.session.user})
 
 		sebelum = self.get_doc_before_save()
-		if sebelum and sebelum.status == "Disetujui" and not self.flags.keputusan and not bisa_setujui():
+		if sebelum and sebelum.status in STATUS_DIHITUNG and not self.flags.keputusan and not bisa_setujui():
 			frappe.throw(_("Laporan yang sudah disetujui tidak bisa diubah."))
 		if sebelum and sebelum.status != self.status and not self.flags.keputusan:
 			frappe.throw(_("Status laporan diubah lewat tombol Setujui / Tolak."))
 
+		if self.status == "Dibatalkan":
+			# Dibatalkan lewat revisi: volume / tahap sudah dikosongkan, tidak perlu divalidasi.
+			return
 		if self.metode == "Tahapan":
 			self.volume = 0
 			nama_tahap = {t.nama_tahap: t for t in task.get("tahapan") or []}
@@ -50,9 +54,9 @@ class LaporanProgres(Document):
 
 	def on_update(self):
 		sebelum = self.get_doc_before_save()
-		if self.status == "Disetujui" or (sebelum and sebelum.status == "Disetujui"):
+		if self.status in STATUS_DIHITUNG or (sebelum and sebelum.status in STATUS_DIHITUNG):
 			perbarui_dari_laporan(self.task)
 
 	def after_delete(self):
-		if self.status == "Disetujui" and frappe.db.exists("Task", self.task):
+		if self.status in STATUS_DIHITUNG and frappe.db.exists("Task", self.task):
 			perbarui_dari_laporan(self.task)

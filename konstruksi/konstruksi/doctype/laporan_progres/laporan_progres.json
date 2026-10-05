@@ -1,7 +1,7 @@
 {
  "actions": [],
  "creation": "2026-10-08 18:00:00.000000",
- "modified": "2026-10-08 18:00:00.000000",
+ "modified": "2026-10-05 10:00:00.000000",
  "modified_by": "Administrator",
  "owner": "Administrator",
  "doctype": "DocType",
@@ -118,7 +118,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Menunggu\nDisetujui\nDitolak",
+   "options": "Menunggu\nDisetujui\nDirevisi\nDibatalkan\nDitolak",
    "default": "Menunggu",
    "read_only": 1,
    "in_list_view": 1,
@@ -204,6 +204,54 @@
    "label": "Alasan Ditolak",
    "read_only": 1,
    "depends_on": "eval:doc.status=='Ditolak'"
+  },
+  {
+   "fieldname": "section_revisi",
+   "fieldtype": "Section Break",
+   "label": "Revisi",
+   "depends_on": "eval:['Direvisi','Dibatalkan'].includes(doc.status)"
+  },
+  {
+   "fieldname": "volume_awal",
+   "fieldtype": "Float",
+   "label": "Volume Awal (sebelum revisi)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tahap_dibatalkan",
+   "fieldtype": "Small Text",
+   "label": "Tahap Dibatalkan",
+   "read_only": 1
+  },
+  {
+   "fieldname": "milestone_revisi",
+   "fieldtype": "Link",
+   "label": "Karena Pembatalan Milestone",
+   "options": "Milestone Termin",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_revisi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "alasan_revisi",
+   "fieldtype": "Small Text",
+   "label": "Alasan Revisi",
+   "read_only": 1
+  },
+  {
+   "fieldname": "direvisi_oleh",
+   "fieldtype": "Link",
+   "label": "Direvisi Oleh",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "direvisi_pada",
+   "fieldtype": "Datetime",
+   "label": "Direvisi Pada",
+   "read_only": 1
   }
  ],
  "field_order": [
@@ -229,6 +277,14 @@
   "disetujui_oleh",
   "disetujui_pada",
   "column_break_setuju",
-  "alasan_tolak"
+  "alasan_tolak",
+  "section_revisi",
+  "volume_awal",
+  "tahap_dibatalkan",
+  "milestone_revisi",
+  "column_break_revisi",
+  "alasan_revisi",
+  "direvisi_oleh",
+  "direvisi_pada"
  ]
 }

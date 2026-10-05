@@ -17,6 +17,20 @@ const KPA_PRIORITAS = { Low: "Rendah", Medium: "Sedang", High: "Tinggi", Urgent:
 const KPA_STATUS_WARNA = { "Belum Mulai": "abu", Berjalan: "biru", Terlambat: "merah", Selesai: "hijau", "Menunggu Review": "oranye", Dibatalkan: "abu" };
 const KPA_BULAN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 
+const KPA_WARNA_LAPORAN = { Menunggu: "oranye", Disetujui: "hijau", Direvisi: "ungu", Dibatalkan: "abu", Ditolak: "merah" };
+// Isi progres laporan; laporan yang direvisi menampilkan nilai lama dicoret → nilai baru.
+const kpa_isi_laporan = (r) => {
+	const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
+	const angka = (v) => format_number(flt(v), null, flt(v) % 1 ? 2 : 0);
+	if (r.metode === "Tahapan") {
+		const batal = (r.tahap_dibatalkan || "").split(",").map((x) => x.trim()).filter(Boolean);
+		return [...(r.tahap || []).map(esc), ...batal.map((x) => `<s class="kpa-coret">${esc(x)}</s>`)].join(", ") || "—";
+	}
+	const satuan = esc(r.satuan || "");
+	return flt(r.volume_awal) && flt(r.volume_awal) !== flt(r.volume)
+		? `<s class="kpa-coret">${angka(r.volume_awal)}</s> → ${angka(r.volume)} ${satuan}`
+		: `${angka(r.volume)} ${satuan}`;
+};
 const kpa_esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
 const kpa_tgl = (v) => {
 	if (!v) return "";
@@ -376,7 +390,7 @@ class HalamanAktivitas {
 	// ---------- tab laporan ----------
 
 	render_laporan() {
-		const opsi = ["Menunggu", "Disetujui", "Ditolak"]
+		const opsi = ["Menunggu", "Disetujui", "Direvisi", "Dibatalkan", "Ditolak"]
 			.map((s) => `<option value="${s}" ${this.filter_laporan === s ? "selected" : ""}>${__(s)}</option>`)
 			.join("");
 		this.$body.find(".kpa-isi").html(`<div class="kpr-card kpw-tabel-card">
@@ -398,11 +412,11 @@ class HalamanAktivitas {
 		return frappe.xcall(KPA_API + "get_laporan", { project: this.project, status: this.filter_laporan || null }).then((rows) => {
 			this.laporan = rows;
 			const d = this.data;
-			const warna = { Menunggu: "oranye", Disetujui: "hijau", Ditolak: "merah" };
+			const warna = KPA_WARNA_LAPORAN;
 			const html = rows.length
 				? rows
 						.map((r) => {
-							const isi = r.metode === "Tahapan" ? r.tahap.map(kpa_esc).join(", ") : `${kpa_angka(r.volume)} ${kpa_esc(r.satuan || "")}`;
+							const isi = kpa_isi_laporan(r);
 							const tombol = [];
 							if (r.status === "Menunggu" && d.bisa_setujui) {
 								tombol.push(`<button class="btn btn-xs btn-primary" data-kpa="setujui" data-name="${kpa_esc(r.name)}">${__("Setujui")}</button>`);
@@ -418,6 +432,7 @@ class HalamanAktivitas {
 								<td class="kpa-wrap"><b>${isi}</b></td>
 								<td class="kpa-wrap">${kpa_esc(r.catatan || "")}${r.kendala ? `<div class="kpa-sub kpa-oranye">${__("Kendala")}: ${kpa_esc(r.kendala)}</div>` : ""}
 									${r.alasan_tolak ? `<div class="kpa-sub kpa-merah">${__("Ditolak")}: ${kpa_esc(r.alasan_tolak)}</div>` : ""}
+									${r.alasan_revisi ? `<div class="kpa-sub kpa-ungu">${__("Revisi")} (${kpa_esc(r.milestone_revisi || "")}): ${kpa_esc(r.alasan_revisi)}</div>` : ""}
 									${r.foto ? `<a class="kpa-sub" href="${encodeURI(r.foto)}" target="_blank">${frappe.utils.icon("image", "xs")} ${__("Foto")}</a>` : ""}</td>
 								<td><span class="kpa-status kpa-status-${warna[r.status]}">${__(r.status)}</span></td>
 								<td class="text-right kpa-tombol">${tombol.join(" ")}</td>
@@ -820,13 +835,14 @@ class HalamanAktivitas {
 					.slice()
 					.reverse()
 					.map((x) => {
-						const warna = { Menunggu: "oranye", Disetujui: "hijau", Ditolak: "merah" }[x.status];
-						const kerja = volume ? `${kpa_angka(x.volume)} ${kpa_esc(satuan)}` : x.tahap.map(kpa_esc).join(", ");
+						const warna = KPA_WARNA_LAPORAN[x.status];
+						const kerja = kpa_isi_laporan({ ...x, metode: volume ? "Volume" : "Tahapan", satuan });
 						return `<tr><td>${kpa_tgl(x.tanggal)}</td><td class="text-right">${kerja}</td>
-							<td class="text-right">${x.status === "Disetujui" ? kpa_persen(x.progres_kumulatif, 1) : "—"}</td>
+							<td class="text-right">${["Disetujui", "Direvisi"].includes(x.status) ? kpa_persen(x.progres_kumulatif, 1) : "—"}</td>
 							<td>${kpa_esc(x.nama_pelapor || x.owner)}</td>
 							<td><span class="kpa-status kpa-status-${warna}">${__(x.status)}</span></td>
-							<td class="kpa-wrap">${kpa_esc(x.catatan || "")}${x.alasan_tolak ? `<div class="kpa-sub kpa-merah">${__("Ditolak")}: ${kpa_esc(x.alasan_tolak)}</div>` : ""}</td></tr>`;
+							<td class="kpa-wrap">${kpa_esc(x.catatan || "")}${x.alasan_tolak ? `<div class="kpa-sub kpa-merah">${__("Ditolak")}: ${kpa_esc(x.alasan_tolak)}</div>` : ""}
+								${x.alasan_revisi ? `<div class="kpa-sub kpa-ungu">${__("Revisi")}: ${kpa_esc(x.alasan_revisi)}</div>` : ""}</td></tr>`;
 					})
 					.join("")}</tbody></table>`
 			: `<div class="kpa-form-ket">${__("Belum ada laporan untuk aktivitas ini.")}</div>`;

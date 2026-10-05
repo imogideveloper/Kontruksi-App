@@ -18,6 +18,8 @@ from frappe import _
 from frappe.utils import cint, flt, get_datetime, getdate, now_datetime, today
 
 PENYETUJU = ("Projects Manager", "System Manager")
+# Status laporan yang dihitung ke realisasi (Direvisi = volume / tahap hasil revisi).
+STATUS_DIHITUNG = ("Disetujui", "Direvisi")
 
 
 def tanggal_libur(project):
@@ -73,8 +75,11 @@ def hitung_task(doc, method=None):
 			return
 	terlambat = doc.exp_end_date and get_datetime(doc.exp_end_date).date() < getdate()
 	if doc.status == "Completed" and flt(doc.progress) < 100:
-		doc.status = "Working"
+		# Progres turun (mis. laporan direvisi): kembali Berjalan, atau Belum Mulai bila 0%.
+		doc.status = "Working" if flt(doc.progress) > 0 else "Open"
 		doc.completed_on = None
+	elif doc.status == "Working" and flt(doc.progress) <= 0:
+		doc.status = "Open"
 	if terlambat and doc.status in ("Open", "Working"):
 		doc.status = "Overdue"
 	elif not terlambat and doc.status == "Overdue":
@@ -88,7 +93,7 @@ def perbarui_dari_laporan(task):
 	doc = frappe.get_doc("Task", task)
 	laporan = frappe.get_all(
 		"Laporan Progres",
-		filters={"task": task, "status": "Disetujui"},
+		filters={"task": task, "status": ("in", STATUS_DIHITUNG)},
 		fields=["name", "tanggal", "volume"],
 		order_by="tanggal asc, creation asc",
 	)
@@ -220,7 +225,8 @@ def get_laporan(project, status=None):
 		filters=filters,
 		fields=[
 			"name", "task", "aktivitas", "tanggal", "pelapor", "nama_pelapor", "status", "metode", "volume", "satuan", "catatan",
-			"kendala", "foto", "disetujui_oleh", "alasan_tolak", "owner",
+			"kendala", "foto", "disetujui_oleh", "alasan_tolak", "owner", "volume_awal", "tahap_dibatalkan", "alasan_revisi",
+			"milestone_revisi", "direvisi_oleh", "direvisi_pada",
 		],
 		order_by="tanggal desc, creation desc",
 		limit_page_length=200,
@@ -365,7 +371,7 @@ def simpan_aktivitas(project, subject, wbs_item, exp_start_date, exp_end_date, n
 @frappe.whitelist()
 def hapus_aktivitas(project, name):
 	doc = task_milik(project, name, "delete")
-	if frappe.db.exists("Laporan Progres", {"task": name, "status": "Disetujui"}):
+	if frappe.db.exists("Laporan Progres", {"task": name, "status": ("in", STATUS_DIHITUNG)}):
 		frappe.throw(_("Aktivitas ini sudah punya laporan progres yang disetujui; ubah statusnya menjadi Cancelled bila tidak dikerjakan."))
 	for l in frappe.get_all("Laporan Progres", filters={"task": name}, pluck="name"):
 		frappe.delete_doc("Laporan Progres", l, ignore_permissions=True)
@@ -379,7 +385,8 @@ def get_riwayat(project, task):
 	rows = frappe.get_all(
 		"Laporan Progres",
 		filters={"task": task},
-		fields=["name", "tanggal", "volume", "status", "nama_pelapor", "owner", "catatan", "alasan_tolak", "creation"],
+		fields=["name", "tanggal", "volume", "status", "nama_pelapor", "owner", "catatan", "alasan_tolak", "creation", "volume_awal",
+			"tahap_dibatalkan", "alasan_revisi", "milestone_revisi"],
 		order_by="tanggal asc, creation asc",
 	)
 	tahap = {}
@@ -394,7 +401,7 @@ def get_riwayat(project, task):
 	kumulatif = 0
 	for r in rows:
 		r.tahap = tahap.get(r.name, [])
-		if r.status == "Disetujui":
+		if r.status in STATUS_DIHITUNG:
 			if t.metode_progres == "Tahapan":
 				kumulatif += sum(bobot.get(n) or (0 if sum(bobot.values()) else 1) for n in r.tahap) / total_bobot * 100
 			elif flt(t.target_volume):
@@ -466,7 +473,7 @@ def tolak_laporan(project, name, alasan):
 @frappe.whitelist()
 def hapus_laporan(project, name):
 	doc = laporan_milik(project, name)
-	if doc.status == "Disetujui" and not bisa_setujui():
+	if doc.status in STATUS_DIHITUNG and not bisa_setujui():
 		frappe.throw(_("Laporan yang sudah disetujui hanya bisa dihapus oleh Projects Manager."))
 	if doc.owner != frappe.session.user and not bisa_setujui():
 		frappe.throw(_("Hanya pembuat laporan atau Projects Manager yang bisa menghapus laporan ini."))

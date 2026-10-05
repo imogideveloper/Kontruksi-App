@@ -439,6 +439,12 @@ class HalamanMilestone {
 	}
 
 	dialog_batalkan(m) {
+		frappe.xcall(KPM2_API + "get_laporan_milestone", { project: this.project, name: m.name }).then((laporan) =>
+			this.tampil_dialog_batalkan(m, laporan || [])
+		);
+	}
+
+	tampil_dialog_batalkan(m, laporan) {
 		const LAINNYA = __("Lainnya");
 		const ALASAN = [
 			__("Dokumen BAST / berita acara belum lengkap"),
@@ -463,17 +469,86 @@ class HalamanMilestone {
 				{ fieldname: "alasan", fieldtype: "Select", label: __("Alasan Pembatalan"), reqd: 1, options: ["", ...ALASAN] },
 				{ fieldname: "alasan_lain", fieldtype: "Small Text", label: __("Alasan Lainnya"),
 					depends_on: `eval:doc.alasan==${JSON.stringify(LAINNYA)}`, mandatory_depends_on: `eval:doc.alasan==${JSON.stringify(LAINNYA)}` },
+				{ fieldname: "revisi_section", fieldtype: "Section Break", label: __("Revisi Laporan Progres ({0})", [laporan.length]) },
+				{ fieldname: "revisi", fieldtype: "HTML" },
 			],
 			primary_action_label: __("Batalkan Status Tercapai"),
 			primary_action: (v) => {
 				const alasan = v.alasan === LAINNYA ? `${LAINNYA}: ${(v.alasan_lain || "").trim()}` : v.alasan;
-				this.call("batalkan_tercapai", { name: m.name, alasan }, __("Status tercapai dibatalkan")).then(() => dialog.hide());
+				const revisi = ambil_revisi();
+				if (revisi === null) return;
+				this.call("batalkan_tercapai", { name: m.name, alasan, revisi }, __("Status tercapai dibatalkan")).then((r) => {
+					dialog.hide();
+					if (r?.direvisi) frappe.show_alert({ message: __("{0} laporan progres direvisi", [r.direvisi]), indicator: "orange" });
+				});
 			},
 			secondary_action_label: __("Tutup"),
 			secondary_action: () => dialog.hide(),
 		});
 		dialog.$wrapper.addClass("kpm2-dialog-batal");
 		dialog.get_primary_btn().removeClass("btn-primary").addClass("btn-danger");
+
+		// Tabel laporan progres (disetujui) di lingkup milestone: centang yang direvisi, isi volume / tahap koreksinya.
+		const $r = dialog.fields_dict.revisi.$wrapper;
+		$r.html(
+			laporan.length
+				? `<div class="kpa-form-ket kpm2-revisi-ket">${__(
+						"Centang laporan yang progresnya perlu dikoreksi. Volume revisi 0 / semua tahap dicentang = laporan dibatalkan. Laporan asli tetap tersimpan dengan status Direvisi / Dibatalkan."
+				  )}</div>
+				<div class="kpm2-revisi-wrap"><table class="kpa-riwayat kpm2-revisi">
+					<thead><tr><th></th><th>${__("Tanggal")}</th><th>${__("Aktivitas")}</th><th class="text-right">${__("Dikerjakan")}</th>
+						<th>${__("Pelapor")}</th><th>${__("Revisi menjadi")}</th></tr></thead>
+					<tbody>${laporan
+						.map((x, i) => {
+							const tahapan = x.metode === "Tahapan";
+							const kerja = tahapan ? x.tahap.map(kpm2_esc).join(", ") : `${format_number(x.volume)} ${kpm2_esc(x.satuan || "")}`;
+							const isian = tahapan
+								? `<div class="kpm2-revisi-tahap">${x.tahap
+										.map((n) => `<label><input type="checkbox" data-i="${i}" data-tahap="${kpm2_esc(n)}" disabled> ${__("batalkan")} ${kpm2_esc(n)}</label>`)
+										.join("")}</div>`
+								: `<div class="kpm2-revisi-vol"><input type="number" min="0" step="any" class="form-control input-sm" data-i="${i}" data-volume
+										value="${x.volume}" max="${x.volume}" disabled><span>${kpm2_esc(x.satuan || "")}</span></div>`;
+							return `<tr data-baris="${i}">
+								<td><input type="checkbox" data-pilih="${i}"></td>
+								<td>${kpm2_tgl(x.tanggal)}<div class="kpa-sub">${kpm2_esc(x.name)}${x.status === "Direvisi" ? ` · ${__("pernah direvisi")}` : ""}</div></td>
+								<td class="kpa-wrap"><b>${kpm2_esc(x.aktivitas)}</b><div class="kpa-sub">${kpm2_esc(x.kode_wbs)} · ${__("progres {0}", [kpm2_persen(flt(x.progres_aktivitas).toFixed(1))])}</div></td>
+								<td class="text-right">${kerja}</td>
+								<td class="kpa-wrap">${kpm2_esc(x.nama_pelapor || x.owner)}</td>
+								<td>${isian}</td>
+							</tr>`;
+						})
+						.join("")}</tbody>
+				</table></div>`
+				: `<div class="kpa-form-ket">${__("Tidak ada laporan progres yang disetujui di lingkup milestone ini.")}</div>`
+		);
+		$r.on("change", "[data-pilih]", (e) => {
+			const i = e.target.dataset.pilih;
+			$r.find(`[data-i="${i}"]`).prop("disabled", !e.target.checked);
+			$r.find(`tr[data-baris="${i}"]`).toggleClass("kpm2-revisi-dipilih", e.target.checked);
+		});
+		const ambil_revisi = () => {
+			const hasil = [];
+			for (const el of $r.find("[data-pilih]:checked").get()) {
+				const i = Number(el.dataset.pilih);
+				const x = laporan[i];
+				if (x.metode === "Tahapan") {
+					const batal = $r.find(`[data-i="${i}"][data-tahap]:checked`).map((_, c) => c.dataset.tahap).get();
+					if (!batal.length) {
+						frappe.msgprint(__("Pilih tahap yang dibatalkan untuk laporan {0}.", [x.name]));
+						return null;
+					}
+					hasil.push({ laporan: x.name, tahap_batal: batal });
+				} else {
+					const v = flt($r.find(`[data-i="${i}"][data-volume]`).val());
+					if (v < 0 || v >= flt(x.volume)) {
+						frappe.msgprint(__("Volume revisi laporan {0} harus 0 sampai kurang dari {1}.", [x.name, format_number(x.volume)]));
+						return null;
+					}
+					hasil.push({ laporan: x.name, volume: v });
+				}
+			}
+			return hasil;
+		};
 		dialog.show();
 	}
 
