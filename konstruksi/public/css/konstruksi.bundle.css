@@ -4307,6 +4307,11 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	stroke: currentColor;
 }
 
+/* Buka / Tutup semua: ikon panah bawaan seperti di RAB Penawaran (tanpa override warna garis). */
+.kptl-toolbar .kptl-buka-tutup .btn .icon {
+	stroke: initial;
+}
+
 /* Tab */
 .kptl-tabs {
 	display: flex;

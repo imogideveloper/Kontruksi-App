@@ -183,8 +183,8 @@ class HalamanTimeline {
 					</div>
 				</div>
 				<div class="btn-group kptl-buka-tutup">
-					<button class="btn btn-default btn-sm" data-kptl="buka-semua" title="${__("Tampilkan semua aktivitas (detail)")}">${frappe.utils.icon("down", "xs")} ${__("Buka semua")}</button>
-					<button class="btn btn-default btn-sm" data-kptl="tutup-semua" title="${__("Tampilkan kelompok WBS saja (ringkasan)")}">${frappe.utils.icon("right", "xs")} ${__("Tutup semua")}</button>
+					<button class="btn btn-default btn-sm" data-kptl="buka-semua" title="${__("Tampilkan semua aktivitas (detail)")}">${frappe.utils.icon("down", "sm")} ${__("Buka semua")}</button>
+					<button class="btn btn-default btn-sm" data-kptl="tutup-semua" title="${__("Tampilkan kelompok WBS saja (ringkasan)")}">${frappe.utils.icon("right", "sm")} ${__("Tutup semua")}</button>
 				</div>
 				<div class="kptl-toolbar-kanan">
 					<button class="btn btn-default btn-sm" data-kptl="hari-ini">${frappe.utils.icon("calendar", "xs")} ${__("Hari ini")}</button>
