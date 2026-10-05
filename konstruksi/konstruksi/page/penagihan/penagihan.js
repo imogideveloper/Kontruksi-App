@@ -82,26 +82,42 @@ class HalamanPenagihan {
 				this.$body.html(`${kepala}<div class="kptl-card kptl-kosong">${__("Belum ada Project Master. Buat dari Kontrak Project terlebih dahulu.")}</div>`);
 				return;
 			}
+			const warna_um = { Lunas: "maju", "Belum dibayar": "mundur", Draft: "baru", "Belum ditagih": "sesuai" };
+			const badge_termin = (r) => {
+				if (!r.termin_total) return "—";
+				const warna = r.termin_ditagih >= r.termin_total ? "maju" : r.termin_ditagih ? "baru" : "sesuai";
+				return `<span class="kpbs-var kpbs-var-${warna}">${r.termin_ditagih} / ${r.termin_total}</span>`;
+			};
+			const progres = (persen) => `<div class="kpg-progres" title="${__("Nilai termin yang sudah ditagih ÷ nilai kontrak")}">
+				<div class="kpg-progres-bar"><span style="width:${Math.min(Math.max(persen, 0), 100)}%"></span></div>
+				<span class="kpg-progres-angka">${format_number(persen, null, 1)}%</span></div>`;
 			const baris = rows
 				.map((r) => `<tr class="kptl-baris-proyek" data-kpg="buka" data-project="${kpg_esc(r.name)}">
 					<td class="kptl-mono">${kpg_esc(r.name)}</td>
-					<td><b>${kpg_esc(r.project_name)}</b></td>
-					<td class="kptl-potong" title="${kpg_esc(r.customer || "")}">${kpg_esc(r.customer || "—")}</td>
+					<td class="kptl-potong"><b>${kpg_esc(r.project_name)}</b></td>
+					<td class="kptl-potong">${kpg_esc(r.customer || "—")}</td>
 					<td class="text-right">${kpg_rp(r.nilai_kontrak)}</td>
-					<td>${r.uang_muka ? `<span class="kpbs-var kpbs-var-maju">${__("Ditagih")}</span>` : `<span class="kpbs-var kpbs-var-sesuai">${__("Belum")}</span>`}</td>
-					<td>${r.termin_total
-						? `<span class="kpbs-var kpbs-var-${r.termin_ditagih ? "maju" : "sesuai"}">${__("{0} / {1} ditagih", [r.termin_ditagih, r.termin_total])}</span>`
-						: "—"}</td>
-					<td class="text-right">${kpg_rp(r.ditagih)}</td>
-					<td class="text-right">${kpg_rp(r.piutang)}</td>
-					<td class="text-right ${r.siap_ditagih ? "kpg-siap" : ""}">${r.siap_ditagih || "—"}</td>
+					<td>${progres(r.progres_tagih)}</td>
+					<td><span class="kpbs-var kpbs-var-${warna_um[r.uang_muka] || "sesuai"}">${__(r.uang_muka)}</span></td>
+					<td>${badge_termin(r)}</td>
+					<td class="text-right">${kpg_rp(r.diterima)}</td>
+					<td class="text-right">${r.piutang > 0.5 ? `<b>${kpg_rp(r.piutang)}</b>` : kpg_rp(0)}</td>
+					<td class="text-right">${r.retensi_ditahan > 0.5 ? kpg_rp(r.retensi_ditahan) : "—"}</td>
+					<td class="text-right">${r.siap_ditagih ? `<span class="kpbs-var kpbs-var-baru kpg-siap">${__("{0} termin", [r.siap_ditagih])}</span>` : "—"}</td>
 					<td class="text-right kptl-buka">${__("Buka")} ${frappe.utils.icon("right", "xs")}</td>
 				</tr>`)
 				.join("");
-			this.$body.html(`${kepala}<div class="kptl-card kptl-card-tabel"><div class="kptl-tabel-wrap"><table class="kptl-tabel">
-				<colgroup><col style="width:130px"><col><col style="width:200px"><col style="width:150px"><col style="width:100px"><col style="width:130px"><col style="width:150px"><col style="width:150px"><col style="width:110px"><col style="width:80px"></colgroup>
-				<thead><tr><th>${__("ID Proyek")}</th><th>${__("Nama Proyek")}</th><th>${__("Klien")}</th><th class="text-right">${__("Nilai Kontrak")}</th>
-					<th>${__("Uang Muka")}</th><th title="${__("Jumlah termin (milestone) yang invoicenya sudah di-submit")}">${__("Termin")}</th><th class="text-right">${__("Sudah Ditagih")}</th><th class="text-right">${__("Piutang")}</th><th class="text-right">${__("Siap Ditagih")}</th><th></th></tr></thead>
+			const judul = (teks, info) => `<th class="${info?.kanan ? "text-right" : ""}" title="${kpg_esc(info?.ket || "")}">${teks}</th>`;
+			this.$body.html(`${kepala}<div class="kptl-card kptl-card-tabel"><div class="kptl-tabel-wrap"><table class="kptl-tabel kpg-tabel">
+				<thead><tr>${judul(__("ID Proyek"))}${judul(__("Nama Proyek"))}${judul(__("Klien"))}
+					${judul(__("Nilai Kontrak"), { kanan: 1 })}
+					${judul(__("Progres Tagih"), { ket: __("Nilai termin yang sudah ditagih ÷ nilai kontrak (uang muka tidak dihitung)") })}
+					${judul(__("Uang Muka"))}
+					${judul(__("Termin"), { ket: __("Jumlah termin yang invoicenya sudah di-submit / total milestone") })}
+					${judul(__("Diterima"), { kanan: 1, ket: __("Pembayaran yang sudah diterima dari invoice uang muka & termin") })}
+					${judul(__("Piutang"), { kanan: 1, ket: __("Invoice yang belum dibayar, termasuk retensi") })}
+					${judul(__("Retensi Ditahan"), { kanan: 1, ket: __("Retensi yang belum diterima — ditagih setelah masa pemeliharaan") })}
+					${judul(__("Siap Ditagih"), { kanan: 1, ket: __("Milestone tercapai yang belum dibuat invoicenya") })}<th></th></tr></thead>
 				<tbody>${baris}</tbody></table></div></div>`);
 		});
 	}

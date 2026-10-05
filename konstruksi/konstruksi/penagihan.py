@@ -443,15 +443,33 @@ def isi_referensi_pembayaran(doc, method=None):
 
 @frappe.whitelist()
 def get_daftar():
+	"""Daftar proyek halaman Penagihan: ringkasan status penagihan per proyek.
+
+	progres_tagih = nilai bruto termin yang sudah ditagih ÷ nilai kontrak (uang muka tidak dihitung — ia dipotong
+	kembali dari termin). Diterima / piutang dari invoice uang muka & termin yang sudah di-submit; retensi ditahan =
+	retensi yang belum diterima."""
 	projects = frappe.get_list("Project", filters={"kontrak_project": ("is", "set")},
 		fields=["name", "project_name", "customer", "nilai_kontrak"], order_by="creation desc", limit_page_length=0)
 	for p in projects:
-		inv = invoice_aktif({"project": p.name, "jenis_tagihan": ("in", ["Uang Muka", "Termin"]), "docstatus": 1})
-		p.ditagih = sum(flt(x.rounded_total or x.grand_total) for x in inv)
-		p.piutang = sum(flt(x.outstanding_amount) for x in inv)
-		p.siap_ditagih = frappe.db.count("Milestone Termin", {"project": p.name, "status": "Tercapai", "sales_invoice": ("is", "not set")})
-		p.uang_muka = bool(invoice_aktif({"project": p.name, "jenis_tagihan": "Uang Muka", "docstatus": 1}))
+		semua = invoice_aktif({"project": p.name, "jenis_tagihan": ("in", ["Uang Muka", "Termin"])})
+		extra = {x.name: x for x in frappe.get_all("Sales Invoice", filters={"name": ("in", [x.name for x in semua] or [""])},
+			fields=["name", "jenis_tagihan", "milestone_termin", "nilai_bruto"])}
+		submitted = [lengkapi_invoice(x, {}) for x in semua if x.docstatus == 1]
+		um = next((x for x in semua if extra[x.name].jenis_tagihan == "Uang Muka"), None)
+		if not um:
+			p.uang_muka = "Belum ditagih"
+		elif um.docstatus == 0:
+			p.uang_muka = "Draft"
+		else:
+			p.uang_muka = "Lunas" if flt(um.outstanding_amount) <= 0.5 else "Belum dibayar"
+		termin = [x for x in submitted if extra[x.name].jenis_tagihan == "Termin"]
 		p.termin_total = frappe.db.count("Milestone Termin", {"project": p.name})
-		p.termin_ditagih = len({x.milestone_termin for x in frappe.get_all("Sales Invoice",
-			filters={"project": p.name, "jenis_tagihan": "Termin", "docstatus": 1}, fields=["milestone_termin"]) if x.milestone_termin})
+		p.termin_ditagih = len({extra[x.name].milestone_termin for x in termin if extra[x.name].milestone_termin})
+		bruto_termin = sum(flt(extra[x.name].nilai_bruto) for x in termin)
+		p.progres_tagih = flt(bruto_termin / flt(p.nilai_kontrak) * 100, 1) if flt(p.nilai_kontrak) else 0
+		p.ditagih = sum(x.total for x in submitted)
+		p.diterima = sum(x.dibayar for x in submitted)
+		p.piutang = sum(flt(x.outstanding_amount) for x in submitted)
+		p.retensi_ditahan = sum(x.retensi_sisa for x in termin)
+		p.siap_ditagih = frappe.db.count("Milestone Termin", {"project": p.name, "status": "Tercapai", "sales_invoice": ("is", "not set")})
 	return projects
