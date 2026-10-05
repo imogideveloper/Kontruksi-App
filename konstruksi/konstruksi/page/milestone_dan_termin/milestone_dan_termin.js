@@ -439,12 +439,6 @@ class HalamanMilestone {
 	}
 
 	dialog_batalkan(m) {
-		frappe.xcall(KPM2_API + "get_laporan_milestone", { project: this.project, name: m.name }).then((laporan) =>
-			this.tampil_dialog_batalkan(m, laporan || [])
-		);
-	}
-
-	tampil_dialog_batalkan(m, laporan) {
 		const LAINNYA = __("Lainnya");
 		const ALASAN = [
 			__("Dokumen BAST / berita acara belum lengkap"),
@@ -460,7 +454,6 @@ class HalamanMilestone {
 		];
 		const dialog = new frappe.ui.Dialog({
 			title: __("Batalkan Status Tercapai — {0}", [m.nama_milestone]),
-			size: "extra-large",
 			fields: [
 				{ fieldname: "info", fieldtype: "HTML", options: `<div class="kpa-peringatan">${__(
 					"Milestone akan kembali berstatus Rencana / Terlambat dan termin {0} tidak bisa ditagih sampai ditandai tercapai lagi. Pembatalan dicatat di riwayat milestone.",
@@ -470,18 +463,14 @@ class HalamanMilestone {
 				{ fieldname: "alasan", fieldtype: "Select", label: __("Alasan Pembatalan"), reqd: 1, options: ["", ...ALASAN] },
 				{ fieldname: "alasan_lain", fieldtype: "Small Text", label: __("Alasan Lainnya"),
 					depends_on: `eval:doc.alasan==${JSON.stringify(LAINNYA)}`, mandatory_depends_on: `eval:doc.alasan==${JSON.stringify(LAINNYA)}` },
-				{ fieldname: "revisi_section", fieldtype: "Section Break", label: __("Revisi Laporan Progres ({0})", [laporan.length]) },
-				{ fieldname: "revisi", fieldtype: "HTML" },
+				{ fieldname: "catatan_revisi", fieldtype: "HTML", options: `<div class="kpa-form-ket">${__(
+					"Pembatalan tidak mengubah progres aktivitas. Bila laporan progres perlu dikoreksi, lakukan di menu Task & Activity Management → tab Laporan Progres → Revisi."
+				)}</div>` },
 			],
 			primary_action_label: __("Batalkan Status Tercapai"),
 			primary_action: (v) => {
 				const alasan = v.alasan === LAINNYA ? `${LAINNYA}: ${(v.alasan_lain || "").trim()}` : v.alasan;
-				const revisi = ambil_revisi();
-				if (revisi === null) return;
-				this.call("batalkan_tercapai", { name: m.name, alasan, revisi }, __("Status tercapai dibatalkan")).then((r) => {
-					dialog.hide();
-					if (r?.direvisi) frappe.show_alert({ message: __("{0} laporan progres direvisi", [r.direvisi]), indicator: "orange" });
-				});
+				this.call("batalkan_tercapai", { name: m.name, alasan }, __("Status tercapai dibatalkan")).then(() => dialog.hide());
 			},
 			secondary_action_label: __("Tutup"),
 			secondary_action: () => dialog.hide(),
@@ -489,130 +478,6 @@ class HalamanMilestone {
 		dialog.$wrapper.addClass("kpm2-dialog-batal");
 		dialog.get_primary_btn().removeClass("btn-primary").addClass("btn-danger");
 
-		// Tabel laporan progres (disetujui) di lingkup milestone, dikelompokkan per aktivitas: centang laporan yang
-		// direvisi, isi volume / tahap koreksinya; pratinjau progres aktivitas berubah langsung.
-		const $r = dialog.fields_dict.revisi.$wrapper;
-		const grup = [];
-		laporan.forEach((x, i) => {
-			let g = grup.find((y) => y.task === x.task);
-			if (!g) grup.push((g = { task: x.task, kode: x.kode_wbs, aktivitas: x.aktivitas, metode: x.metode, satuan: x.satuan,
-				target: flt(x.target_volume), realisasi: flt(x.realisasi_volume), progres: flt(x.progres_aktivitas), bobot: x.bobot_tahap || {}, baris: [] }));
-			g.baris.push(i);
-		});
-		const persen = (v) => `${format_number(flt(v), null, flt(v) % 1 ? 1 : 0)}%`;
-		const angka = (v) => format_number(flt(v), null, flt(v) % 1 ? 2 : 0);
-
-		const html_laporan = (i) => {
-			const x = laporan[i];
-			const tahapan = x.metode === "Tahapan";
-			const kerja = tahapan
-				? x.tahap.map((n) => `${kpm2_esc(n)}${x.bobot_tahap?.[n] ? ` <span class="kpa-sub">(${persen(x.bobot_tahap[n])})</span>` : ""}`).join(", ")
-				: `${angka(x.volume)} ${kpm2_esc(x.satuan || "")}`;
-			const isian = tahapan
-				? x.tahap.map((n) => `<label class="kpm2-rv-cek"><input type="checkbox" data-i="${i}" data-tahap="${kpm2_esc(n)}"> ${__("batalkan")} ${kpm2_esc(n)}</label>`).join("")
-				: `<div class="kpm2-revisi-vol"><input type="number" min="0" step="any" class="form-control input-sm" data-i="${i}" data-volume
-						value="0" max="${x.volume}"><span>${kpm2_esc(x.satuan || "")}</span></div>`;
-			return `<tr class="kpm2-rv-laporan" data-baris="${i}">
-				<td></td>
-				<td><label class="kpm2-rv-cek"><input type="checkbox" data-pilih="${i}"> ${kpm2_tgl(x.tanggal)}</label>
-					<div class="kpa-sub">${kpm2_esc(x.name)}${x.status === "Direvisi" ? ` · ${__("pernah direvisi")}` : ""}</div></td>
-				<td class="text-right">${kerja}</td>
-				<td>${kpm2_esc(x.nama_pelapor || x.owner)}</td>
-				<td><div class="kpm2-rv-isian">${isian}</div></td>
-			</tr>`;
-		};
-		$r.html(
-			laporan.length
-				? `<div class="kpa-form-ket kpm2-revisi-ket">${__(
-						"Centang laporan yang progresnya perlu dikoreksi, lalu isi revisinya (volume 0 / semua tahap = laporan dibatalkan). Laporan asli tetap tersimpan dengan status Direvisi / Dibatalkan."
-				  )}</div>
-				<div class="kpm2-revisi-wrap"><table class="kpm2-revisi">
-					<colgroup><col style="width:36px"><col style="width:200px"><col style="width:220px"><col style="width:200px"><col></colgroup>
-					<thead><tr><th></th><th>${__("Tanggal Laporan")}</th><th class="text-right">${__("Dikerjakan")}</th><th>${__("Pelapor")}</th><th>${__("Revisi menjadi")}</th></tr></thead>
-					<tbody>${grup
-						.map((g, gi) => `<tr class="kpm2-rv-grup" data-grup="${gi}">
-								<td><input type="checkbox" data-pilih-grup="${gi}"></td>
-								<td colspan="3"><span class="kpw-kode">${kpm2_esc(g.kode)}</span> <b>${kpm2_esc(g.aktivitas)}</b>
-									<span class="kpw-badge">${__("{0} laporan", [g.baris.length])}</span></td>
-								<td class="kpm2-rv-progres" data-progres="${gi}"></td>
-							</tr>${g.baris.map(html_laporan).join("")}`)
-						.join("")}</tbody>
-				</table></div>
-				<div class="kpm2-rv-ringkas"></div>`
-				: `<div class="kpa-form-ket">${__("Tidak ada laporan progres yang disetujui di lingkup milestone ini.")}</div>`
-		);
-
-		// Pratinjau progres per aktivitas & ringkasan pilihan.
-		const perbarui = () => {
-			let dipilih = 0;
-			const terdampak = new Set();
-			grup.forEach((g, gi) => {
-				let turun = 0;
-				g.baris.forEach((i) => {
-					const pilih = $r.find(`[data-pilih="${i}"]`).prop("checked");
-					$r.find(`tr[data-baris="${i}"]`).toggleClass("kpm2-revisi-dipilih", pilih).find(".kpm2-rv-isian").toggle(pilih);
-					if (!pilih) return;
-					dipilih++;
-					terdampak.add(g.task);
-					const x = laporan[i];
-					if (g.metode === "Tahapan") {
-						const total = Object.values(g.bobot).reduce((s, v) => s + flt(v), 0) || 1;
-						$r.find(`[data-i="${i}"][data-tahap]:checked`).each((_, c) => (turun += (flt(g.bobot[c.dataset.tahap]) / total) * 100));
-					} else if (g.target) {
-						const v = Math.max(flt($r.find(`[data-i="${i}"][data-volume]`).val()), 0);
-						turun += (Math.max(flt(x.volume) - v, 0) / g.target) * 100;
-					}
-				});
-				const semua = g.baris.every((i) => $r.find(`[data-pilih="${i}"]`).prop("checked"));
-				const sebagian = !semua && g.baris.some((i) => $r.find(`[data-pilih="${i}"]`).prop("checked"));
-				const cek = $r.find(`[data-pilih-grup="${gi}"]`).get(0);
-				if (cek) {
-					cek.checked = semua;
-					cek.indeterminate = sebagian;
-				}
-				const baru = Math.max(g.progres - turun, 0);
-				$r.find(`[data-progres="${gi}"]`).html(
-					turun > 0.0001
-						? `${__("Progres")} ${persen(g.progres)} → <b class="kpa-oranye">${persen(baru)}</b>`
-						: `<span class="kpa-sub">${__("Progres")} ${persen(g.progres)}</span>`
-				);
-			});
-			$r.find(".kpm2-rv-ringkas").html(
-				dipilih
-					? __("{0} laporan dipilih · {1} aktivitas terdampak", [`<b>${dipilih}</b>`, `<b>${terdampak.size}</b>`])
-					: `<span class="kpa-sub">${__("Belum ada laporan dipilih — milestone tetap bisa dibatalkan tanpa revisi.")}</span>`
-			);
-		};
-		$r.on("change", "[data-pilih-grup]", (e) => {
-			grup[e.target.dataset.pilihGrup].baris.forEach((i) => $r.find(`[data-pilih="${i}"]`).prop("checked", e.target.checked));
-			perbarui();
-		});
-		$r.on("change input", "[data-pilih], [data-tahap], [data-volume]", perbarui);
-		perbarui();
-
-		const ambil_revisi = () => {
-			const hasil = [];
-			for (const el of $r.find("[data-pilih]:checked").get()) {
-				const i = Number(el.dataset.pilih);
-				const x = laporan[i];
-				if (x.metode === "Tahapan") {
-					const batal = $r.find(`[data-i="${i}"][data-tahap]:checked`).map((_, c) => c.dataset.tahap).get();
-					if (!batal.length) {
-						frappe.msgprint(__("Pilih tahap yang dibatalkan untuk laporan {0}.", [x.name]));
-						return null;
-					}
-					hasil.push({ laporan: x.name, tahap_batal: batal });
-				} else {
-					const v = flt($r.find(`[data-i="${i}"][data-volume]`).val());
-					if (v < 0 || v >= flt(x.volume)) {
-						frappe.msgprint(__("Volume revisi laporan {0} harus 0 sampai kurang dari {1}.", [x.name, format_number(x.volume)]));
-						return null;
-					}
-					hasil.push({ laporan: x.name, volume: v });
-				}
-			}
-			return hasil;
-		};
 		dialog.show();
 	}
 

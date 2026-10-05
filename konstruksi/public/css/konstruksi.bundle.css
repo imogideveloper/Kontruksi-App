@@ -3972,153 +3972,29 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	opacity: 1;
 }
 
-/* Revisi laporan progres (pembatalan milestone) */
+/* Laporan progres yang direvisi (Task & Activity → Laporan Progres → Revisi) */
 .kpa-status-ungu { background: var(--kpr-ungu-bg, #f1ebfe); color: var(--kpr-ungu, #7c3aed); }
 .kpa-ungu, .kpa-sub.kpa-ungu { color: var(--kpr-ungu, #7c3aed); }
 .kpa-coret { color: var(--text-muted); }
 
-.kpm2-revisi-ket {
-	margin-bottom: 8px;
-}
 
-.kpm2-revisi-wrap {
-	max-height: 320px;
-	overflow: auto;
-}
 
-.kpm2-revisi td {
-	vertical-align: middle;
-}
-
-.kpm2-revisi tr.kpm2-revisi-dipilih td {
-	background: #fff4e5;
-}
-
-[data-theme="dark"] .kpm2-revisi tr.kpm2-revisi-dipilih td {
-	background: rgba(194, 65, 12, 0.15);
-}
-
-.kpm2-revisi-vol {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-}
-
-.kpm2-revisi-vol input {
-	width: 110px;
-	text-align: right;
-}
-
-.kpm2-revisi-tahap {
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
-}
-
-.kpm2-revisi-tahap label {
-	margin: 0;
-	font-weight: normal;
-	white-space: nowrap;
-}
-
-/* Dialog Batalkan Status Tercapai (extra-large): teks satu baris; bila layar sempit, tabel revisi digeser horizontal. */
-.kpm2-dialog-batal .kpa-peringatan,
-.kpm2-dialog-batal .kpm2-revisi-ket {
-	white-space: normal;
-}
-
-.kpm2-dialog-batal .kpm2-revisi th,
-.kpm2-dialog-batal .kpm2-revisi td {
-	white-space: nowrap;
-}
-
-.kpm2-dialog-batal .kpm2-revisi .kpa-sub {
-	white-space: nowrap;
-}
-
-.kpm2-dialog-batal .kpm2-revisi td:first-child,
-.kpm2-dialog-batal .kpm2-revisi th:first-child {
-	width: 36px;
-}
 
 .kpm2-dialog-batal .frappe-control[data-fieldname="alasan"] select {
 	max-width: 520px;
 }
 
-/* Tabel revisi di dialog Batalkan Status Tercapai: dikelompokkan per aktivitas. */
-.kpm2-dialog-batal .kpm2-revisi {
-	width: 100%;
-	min-width: 900px;
-	table-layout: fixed;
-	border-collapse: separate;
-	border-spacing: 0;
-	border: 1px solid var(--border-color);
-	border-radius: 8px;
-	overflow: hidden;
+/* Dialog Revisi Laporan Progres: Tanggal Revisi read-only tetap hitam. */
+.kpa-dialog-revisi .frappe-control[data-fieldname="tanggal_revisi"] :is(.control-value, .like-disabled-input, input) {
+	color: var(--text-color) !important;
+	-webkit-text-fill-color: var(--text-color);
+	opacity: 1;
 }
 
-.kpm2-dialog-batal .kpm2-revisi th {
-	position: sticky;
-	top: 0;
-	z-index: 1;
-	padding: 10px 12px;
-	background: var(--konstruksi-active-bg);
-	color: var(--konstruksi-header-fg);
-	font-size: var(--text-sm);
-	font-weight: 600;
+.kpa-dialog-revisi .frappe-control[data-fieldname="alasan"] select {
+	max-width: 520px;
 }
 
-.kpm2-dialog-batal .kpm2-revisi td {
-	padding: 10px 12px;
-	border-top: 1px solid var(--border-color);
-	font-size: var(--text-sm);
-	vertical-align: top;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.kpm2-dialog-batal .kpm2-rv-grup td {
-	background: var(--subtle-fg, #f3f4f6);
-	vertical-align: middle;
-}
-
-.kpm2-dialog-batal .kpm2-rv-grup .kpw-badge {
-	margin-left: 6px;
-}
-
-.kpm2-dialog-batal .kpm2-rv-progres {
-	text-align: right;
-	white-space: nowrap;
-}
-
-.kpm2-dialog-batal .kpm2-rv-laporan td:nth-child(2) {
-	padding-left: 4px;
-}
-
-.kpm2-dialog-batal .kpm2-rv-cek {
-	display: inline-flex;
-	align-items: center;
-	gap: 8px;
-	margin: 0;
-	font-weight: normal;
-	cursor: pointer;
-}
-
-.kpm2-dialog-batal .kpm2-rv-isian {
-	display: none;
-}
-
-.kpm2-dialog-batal .kpm2-rv-isian .kpm2-rv-cek {
-	display: flex;
-	margin-bottom: 4px;
-}
-
-.kpm2-dialog-batal .kpm2-revisi-wrap {
-	max-height: 380px;
-	overflow: auto;
-}
-
-.kpm2-dialog-batal .kpm2-rv-ringkas {
-	margin-top: 10px;
-	font-size: var(--text-sm);
+.kpa-revisi-ringkas .kpa-lapor-nilai {
+	font-size: var(--text-base);
 }

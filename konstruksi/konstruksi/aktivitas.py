@@ -471,8 +471,66 @@ def tolak_laporan(project, name, alasan):
 
 
 @frappe.whitelist()
+def revisi_laporan(project, name, alasan, volume=None, tahap_batal=None):
+	"""Revisi laporan progres yang sudah disetujui (hanya Projects Manager). Metode Volume: volume koreksi (0 = laporan
+	dibatalkan); metode Tahapan: tahap yang dibatalkan (semua = laporan dibatalkan). Laporan asli tetap tersimpan
+	berstatus Direvisi / Dibatalkan dengan jejak revisinya; realisasi & status aktivitas dihitung ulang.
+	Ditolak bila aktivitasnya termasuk milestone yang masih berstatus tercapai."""
+	from konstruksi.konstruksi.milestone import milestone_tercapai_untuk
+
+	if not bisa_setujui():
+		frappe.throw(_("Hanya Projects Manager yang bisa merevisi laporan progres."), frappe.PermissionError)
+	alasan = (alasan or "").strip()
+	if not alasan:
+		frappe.throw(_("Isi alasan revisi."))
+	lap = laporan_milik(project, name)
+	if lap.status not in STATUS_DIHITUNG:
+		frappe.throw(_("Hanya laporan yang sudah disetujui yang bisa direvisi."))
+	m = milestone_tercapai_untuk(project, frappe.db.get_value("Task", lap.task, "wbs_item"))
+	if m:
+		frappe.throw(
+			_("Aktivitas ini termasuk milestone {0} ({1}) yang masih berstatus tercapai. Batalkan dulu status tercapainya di menu Milestone & Termin.").format(
+				frappe.bold(m.nama_milestone), m.name
+			),
+			title=_("Milestone masih tercapai"),
+		)
+	if lap.metode == "Tahapan":
+		tahap_batal = json.loads(tahap_batal) if isinstance(tahap_batal, str) else (tahap_batal or [])
+		batal = [n for n in tahap_batal if n in {t.nama_tahap for t in lap.tahap}]
+		if not batal:
+			frappe.throw(_("Pilih tahap yang dibatalkan."))
+		sisa = [t for t in lap.tahap if t.nama_tahap not in batal]
+		lap.tahap_dibatalkan = ", ".join(filter(None, [lap.tahap_dibatalkan, ", ".join(batal)]))
+		lap.set("tahap", [{"nama_tahap": t.nama_tahap} for t in sisa])
+		lap.status = "Direvisi" if sisa else "Dibatalkan"
+		ringkas = _("tahap dibatalkan: {0}").format(", ".join(batal))
+	else:
+		baru = flt(volume)
+		if baru < 0 or baru >= flt(lap.volume):
+			frappe.throw(_("Volume revisi harus 0 sampai kurang dari {0}.").format(flt(lap.volume)))
+		if not lap.volume_awal:
+			lap.volume_awal = lap.volume
+		ringkas = _("volume {0} → {1} {2}").format(flt(lap.volume), baru, lap.satuan or "")
+		lap.volume = baru
+		lap.status = "Direvisi" if baru else "Dibatalkan"
+	lap.update({"alasan_revisi": alasan, "direvisi_oleh": frappe.session.user, "direvisi_pada": now_datetime()})
+	lap.flags.keputusan = True
+	lap.flags.ignore_permissions = True
+	lap.save()
+	lap.add_comment("Comment", _("Direvisi: {0}. Alasan: {1}").format(ringkas, frappe.utils.escape_html(alasan)))
+	return {"status": lap.status}
+
+
+@frappe.whitelist()
 def hapus_laporan(project, name):
 	doc = laporan_milik(project, name)
+	if doc.status in STATUS_DIHITUNG:
+		from konstruksi.konstruksi.milestone import milestone_tercapai_untuk
+
+		m = milestone_tercapai_untuk(project, frappe.db.get_value("Task", doc.task, "wbs_item"))
+		if m:
+			frappe.throw(_("Aktivitas ini termasuk milestone {0} yang masih berstatus tercapai; batalkan dulu status tercapainya.").format(
+				frappe.bold(m.nama_milestone)))
 	if doc.status in STATUS_DIHITUNG and not bisa_setujui():
 		frappe.throw(_("Laporan yang sudah disetujui hanya bisa dihapus oleh Projects Manager."))
 	if doc.owner != frappe.session.user and not bisa_setujui():

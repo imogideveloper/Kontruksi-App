@@ -422,6 +422,9 @@ class HalamanAktivitas {
 								tombol.push(`<button class="btn btn-xs btn-primary" data-kpa="setujui" data-name="${kpa_esc(r.name)}">${__("Setujui")}</button>`);
 								tombol.push(`<button class="btn btn-xs btn-default" data-kpa="tolak" data-name="${kpa_esc(r.name)}">${__("Tolak")}</button>`);
 							}
+							if (["Disetujui", "Direvisi"].includes(r.status) && d.bisa_setujui) {
+								tombol.push(`<button class="btn btn-xs btn-default" data-kpa="revisi" data-name="${kpa_esc(r.name)}" title="${__("Koreksi volume / tahap laporan ini")}">${frappe.utils.icon("pencil", "xs")} ${__("Revisi")}</button>`);
+							}
 							if (r.status !== "Disetujui" || d.bisa_setujui) {
 								tombol.push(`<button class="btn btn-xs btn-default kpa-ikon-btn" data-kpa="hapus-laporan" data-name="${kpa_esc(r.name)}" title="${__("Hapus")}">${frappe.utils.icon("delete", "xs")}</button>`);
 							}
@@ -490,6 +493,8 @@ class HalamanAktivitas {
 					__("Tolak Laporan"),
 					__("Tolak")
 				);
+			case "revisi":
+				return this.dialog_revisi((this.laporan || []).find((x) => x.name === name));
 			case "hapus-laporan":
 				return frappe.confirm(__("Hapus laporan {0}?", [kpa_esc(name)]), () => this.call("hapus_laporan", { name }, __("Laporan dihapus")));
 		}
@@ -682,6 +687,83 @@ class HalamanAktivitas {
 		render_tahap();
 		render_metode();
 		render_durasi();
+		dialog.show();
+	}
+
+	// Revisi laporan progres yang sudah disetujui (Projects Manager): koreksi volume / batalkan tahap, wajib alasan.
+	// Ditolak server bila aktivitasnya termasuk milestone yang masih berstatus tercapai.
+	dialog_revisi(r) {
+		if (!r) return;
+		const t = this.data.aktivitas.find((x) => x.name === r.task) || {};
+		const tahapan = r.metode === "Tahapan";
+		const LAINNYA = __("Lainnya");
+		const ALASAN = [
+			__("Volume tidak sesuai opname / pengukuran ulang"),
+			__("Salah input volume"),
+			__("Salah pilih aktivitas"),
+			__("Tanggal laporan salah"),
+			__("Pekerjaan ditemukan cacat / harus dibongkar"),
+			__("Ditolak konsultan pengawas"),
+			__("Tahap belum benar-benar selesai"),
+			__("Laporan dobel"),
+			__("Pembatalan milestone terkait"),
+			LAINNYA,
+		];
+		const bobot = Object.fromEntries((t.tahapan || []).map((x) => [x.nama_tahap, flt(x.bobot)]));
+		const total_bobot = Object.values(bobot).reduce((a, b) => a + b, 0) || 1;
+		const fields = [
+			{ fieldname: "info", fieldtype: "HTML", options: `<div class="kpa-lapor-ringkas kpa-revisi-ringkas">
+				<div><div class="kpa-lapor-label">${__("Aktivitas")}</div><div class="kpa-lapor-nilai">${kpa_esc(r.aktivitas)}</div><div class="kpa-sub">${kpa_esc(t.kode_wbs || "")}</div></div>
+				<div><div class="kpa-lapor-label">${__("Laporan")}</div><div class="kpa-lapor-nilai">${kpa_tgl(r.tanggal)}</div><div class="kpa-sub">${kpa_esc(r.name)} · ${kpa_esc(r.nama_pelapor || r.owner)}</div></div>
+				<div><div class="kpa-lapor-label">${__("Dikerjakan")}</div><div class="kpa-lapor-nilai">${kpa_isi_laporan(r)}</div></div>
+				<div><div class="kpa-lapor-label">${__("Progres aktivitas")}</div><div class="kpa-lapor-nilai">${kpa_persen(t.progress, 1)}</div></div>
+			</div>` },
+			{ fieldname: "tanggal_revisi", fieldtype: "Date", label: __("Tanggal Revisi"), default: frappe.datetime.get_today(), read_only: 1 },
+			{ fieldname: "alasan", fieldtype: "Select", label: __("Alasan Revisi"), reqd: 1, options: ["", ...ALASAN] },
+			{ fieldname: "alasan_lain", fieldtype: "Small Text", label: __("Alasan Lainnya"),
+				depends_on: `eval:doc.alasan==${JSON.stringify(LAINNYA)}`, mandatory_depends_on: `eval:doc.alasan==${JSON.stringify(LAINNYA)}` },
+			tahapan
+				? { fieldname: "tahap_batal", fieldtype: "MultiCheck", label: __("Tahap yang dibatalkan"), reqd: 1, columns: 1,
+					options: (r.tahap || []).map((n) => ({ label: bobot[n] ? `${n} (${kpa_persen(bobot[n], 1)})` : n, value: n })) }
+				: { fieldname: "volume", fieldtype: "Float", label: __("Volume Revisi ({0})", [r.satuan || "-"]), reqd: 1, default: 0,
+					description: __("Semula {0} {1}. Isi 0 untuk membatalkan laporan ini.", [kpa_angka(r.volume), r.satuan || ""]) },
+			{ fieldname: "pratinjau", fieldtype: "HTML" },
+		];
+		const dialog = new frappe.ui.Dialog({
+			title: __("Revisi Laporan Progres — {0}", [r.name]),
+			size: "large",
+			fields,
+			primary_action_label: __("Simpan Revisi"),
+			primary_action: (v) => {
+				const alasan = v.alasan === LAINNYA ? `${LAINNYA}: ${(v.alasan_lain || "").trim()}` : v.alasan;
+				if (!tahapan && (flt(v.volume) < 0 || flt(v.volume) >= flt(r.volume))) {
+					return frappe.msgprint(__("Volume revisi harus 0 sampai kurang dari {0}.", [kpa_angka(r.volume)]));
+				}
+				if (tahapan && !(v.tahap_batal || []).length) return frappe.msgprint(__("Pilih tahap yang dibatalkan."));
+				this.call("revisi_laporan", { name: r.name, alasan, volume: tahapan ? null : flt(v.volume), tahap_batal: tahapan ? v.tahap_batal : null },
+					__("Laporan direvisi")).then(() => {
+					dialog.hide();
+					if (this.tab === "laporan") this.render();
+				});
+			},
+			secondary_action_label: __("Batal"),
+			secondary_action: () => dialog.hide(),
+		});
+		dialog.$wrapper.addClass("kpa-dialog-revisi");
+		const pratinjau = () => {
+			let turun = 0;
+			if (tahapan) {
+				const dipilih = dialog.get_value("tahap_batal") || [];
+				turun = dipilih.reduce((a, n) => a + ((bobot[n] || 0) / total_bobot) * 100, 0);
+			} else if (flt(t.target_volume)) {
+				turun = (Math.max(flt(r.volume) - Math.max(flt(dialog.fields_dict.volume.get_input_value()), 0), 0) / flt(t.target_volume)) * 100;
+			}
+			const baru = Math.max(flt(t.progress) - turun, 0);
+			dialog.fields_dict.pratinjau.$wrapper.html(`<div class="kpa-pratinjau-progres ${turun > 0.0001 ? "kpa-lebih" : ""}">
+				${__("Progres aktivitas")} ${kpa_persen(t.progress, 1)} → <b>${kpa_persen(baru, 1)}</b></div>`);
+		};
+		dialog.$wrapper.on("input change", "input", pratinjau);
+		pratinjau();
 		dialog.show();
 	}
 
