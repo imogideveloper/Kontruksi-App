@@ -400,7 +400,10 @@ CUSTOM_FIELD_PENAGIHAN = {
 		{"fieldname": "penagihan_proyek_section", "fieldtype": "Section Break", "label": "Penagihan Proyek",
 			"insert_after": "project", "collapsible": 0, "depends_on": "eval:doc.jenis_tagihan"},
 		{"fieldname": "jenis_tagihan", "fieldtype": "Select", "label": "Jenis Tagihan", "options": "\nUang Muka\nTermin",
-			"insert_after": "penagihan_proyek_section", "read_only": 1, "in_standard_filter": 1, "in_list_view": 1, "allow_on_submit": 0},
+			"insert_after": "penagihan_proyek_section", "read_only": 1, "in_standard_filter": 1, "in_list_view": 0, "allow_on_submit": 0},
+		# Uraian singkat untuk kolom list ("Uang Muka", "Termin 2 — Pekerjaan Struktur selesai"); diisi otomatis.
+		{"fieldname": "uraian_tagihan", "fieldtype": "Data", "label": "Tagihan", "insert_after": "jenis_tagihan", "read_only": 1,
+			"hidden": 1, "in_list_view": 1, "no_copy": 1},
 		{"fieldname": "kontrak_project", "fieldtype": "Link", "label": "Kontrak Project", "options": "Kontrak Project",
 			"insert_after": "jenis_tagihan", "read_only": 1},
 		{"fieldname": "milestone_termin", "fieldtype": "Link", "label": "Milestone / Termin", "options": "Milestone Termin",
@@ -435,7 +438,7 @@ def akun_penagihan(company, kunci):
 
 
 # List Sales Invoice: urutan kolom (title = nama customer di depan, status indikator).
-KOLOM_LIST_SALES_INVOICE = ["project", "jenis_tagihan", "posting_date", "due_date", "grand_total", "outstanding_amount", "status_field"]
+KOLOM_LIST_SALES_INVOICE = ["project", "uraian_tagihan", "posting_date", "due_date", "grand_total", "outstanding_amount", "status_field"]
 
 
 def atur_list_sales_invoice():
@@ -453,6 +456,10 @@ def atur_list_sales_invoice():
 	lvs.fields = json.dumps([{"fieldname": f} for f in KOLOM_LIST_SALES_INVOICE])
 	lvs.flags.ignore_permissions = True
 	lvs.save() if not lvs.is_new() else lvs.insert(set_name="Sales Invoice")
+	from konstruksi.konstruksi.penagihan import uraian_tagihan
+
+	for si in frappe.get_all("Sales Invoice", filters={"jenis_tagihan": ("is", "set")}, fields=["name", "jenis_tagihan", "milestone_termin"]):
+		frappe.db.set_value("Sales Invoice", si.name, "uraian_tagihan", uraian_tagihan(si), update_modified=False)
 
 
 def buat_penagihan_default():

@@ -203,8 +203,19 @@ def atur_jadwal_retensi(si, k):
 	])
 
 
+def uraian_tagihan(doc):
+	"""Teks kolom list Sales Invoice: "Uang Muka" / "Termin 2 — Pekerjaan Struktur selesai"."""
+	if doc.get("jenis_tagihan") == "Termin" and doc.get("milestone_termin"):
+		m = frappe.db.get_value("Milestone Termin", doc.milestone_termin, ["urutan", "nama_milestone"], as_dict=True)
+		if m:
+			return _("Termin {0} — {1}").format(m.urutan, m.nama_milestone)
+	return _(doc.get("jenis_tagihan") or "")
+
+
 def validasi_invoice(doc, method=None):
 	"""Sales Invoice validate: satu tagihan aktif per milestone / satu uang muka per proyek."""
+	if doc.jenis_tagihan:
+		doc.uraian_tagihan = uraian_tagihan(doc)
 	if doc.jenis_tagihan == "Termin" and doc.milestone_termin:
 		lain = frappe.db.get_value("Sales Invoice", {"milestone_termin": doc.milestone_termin, "docstatus": ("<", 2), "name": ("!=", doc.name)})
 		if lain:
