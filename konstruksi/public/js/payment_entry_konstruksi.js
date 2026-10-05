@@ -48,11 +48,25 @@ function rapikan_pembayaran_konstruksi(frm) {
 			return;
 		}
 		frm.toggle_display(FIELD_PE_TIDAK_RELEVAN, false);
+		atur_mata_uang_perusahaan(frm);
 		// Semua section yang bisa dilipat (Accounts, Deductions, Accounting Dimensions, More Information, …) terbuka.
 		(frm.layout?.sections || []).forEach((s) => s.df?.collapsible && s.collapse?.(false));
 		tampilkan_konteks(frm, info);
 		pakai_sidebar_konstruksi();
 	});
+}
+
+// Field "(Company Currency)" disembunyikan bila mata uangnya sama dengan mata uang perusahaan (proyek rupiah).
+// Difference Amount tidak punya versi lain: cukup labelnya tanpa "(Company Currency)".
+const FIELD_PE_MATA_UANG_PERUSAHAAN = [
+	"base_paid_amount", "base_received_amount", "base_total_allocated_amount", "base_total_taxes_and_charges",
+	"base_paid_amount_after_tax", "base_received_amount_after_tax", "base_in_words",
+];
+function atur_mata_uang_perusahaan(frm) {
+	const perusahaan = frappe.get_doc(":Company", frm.doc.company)?.default_currency;
+	const sama = [frm.doc.paid_from_account_currency, frm.doc.paid_to_account_currency].every((c) => !c || c === perusahaan);
+	if (sama) frm.toggle_display(FIELD_PE_MATA_UANG_PERUSAHAAN, false);
+	frm.fields_dict.difference_amount?.set_label(__("Difference Amount"));
 }
 
 function tampilkan_konteks(frm, info) {
@@ -115,7 +129,8 @@ function pasang_label_tanpa_mata_uang(frm) {
 		if (!this.__kppe_aktif) return asli(fields, currency, parentfield);
 		if (!currency) return;
 		const ada = (fields || []).filter((f) => (parentfield ? true : this.fields_dict[f]));
-		return this.reset_currency_labels(ada, parentfield);
+		this.reset_currency_labels(ada, parentfield);
+		if (ada.includes("difference_amount")) this.fields_dict.difference_amount?.set_label(__("Difference Amount"));
 	};
 	frm.__kppe_label = true;
 }

@@ -4,6 +4,11 @@
 const KELAS_SI_KONSTRUKSI = "kpsi";
 const FIELD_TIDAK_RELEVAN = ["is_pos", "is_debit_note", "apply_tds", "scan_barcode", "update_stock", "in_words", "base_in_words", "incoterm", "named_place", "tax_category", "taxes_and_charges", "shipping_rule", "total_qty", "total", "currency_and_price_list", "use_company_roundoff_cost_center", "sec_tax_breakup", "time_sheet_list", "section_break_104"];
 
+const FIELD_MATA_UANG_PERUSAHAAN = [
+	"base_total", "base_net_total", "base_total_taxes_and_charges", "base_discount_amount", "base_grand_total",
+	"base_paid_amount", "base_change_amount", "base_write_off_amount", "base_totals_section",
+];
+
 function rapikan_invoice_konstruksi(frm) {
 	const aktif = Boolean(frm.doc.jenis_tagihan);
 	frm.page.wrapper.toggleClass(KELAS_SI_KONSTRUKSI, aktif);
@@ -14,9 +19,9 @@ function rapikan_invoice_konstruksi(frm) {
 	if (!aktif) return;
 
 	frm.toggle_display(FIELD_TIDAK_RELEVAN, false);
-	// Total pajak versi mata uang perusahaan sama persis dengan versi mata uang invoice bila mata uangnya sama
+	// Field "(Company Currency)" sama persis dengan versinya dalam mata uang invoice bila mata uangnya sama
 	// (proyek rupiah): cukup satu yang tampil.
-	if (frm.doc.currency === erpnext.get_currency(frm.doc.company)) frm.toggle_display("base_total_taxes_and_charges", false);
+	if (frm.doc.currency === erpnext.get_currency(frm.doc.company)) frm.toggle_display(FIELD_MATA_UANG_PERUSAHAAN, false);
 
 	tampilkan_persen_pajak(frm);
 
