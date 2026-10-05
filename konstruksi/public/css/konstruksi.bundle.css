@@ -5543,8 +5543,8 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	}
 }
 
-/* Payment Entry penerimaan proyek: judul section "Amount" disembunyikan (field di dalamnya tetap tampil). */
-.kppe .form-section[data-fieldname="payment_amounts_section"] > .section-head {
+/* Payment Entry penerimaan proyek: judul section "Amount" & "Writeoff" disembunyikan (field di dalamnya tetap tampil). */
+.kppe .form-section:is([data-fieldname="payment_amounts_section"], [data-fieldname="section_break_34"]) > .section-head {
 	display: none !important;
 }
 
