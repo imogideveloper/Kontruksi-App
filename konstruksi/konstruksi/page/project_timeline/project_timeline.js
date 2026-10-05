@@ -18,6 +18,22 @@ const KPTL_HARI_MS = 86400000;
 const KPTL_SKALA = { hari: 34, minggu: 11, bulan: 4, tahun: 1.6 };
 const KPTL_WARNA_STATUS = { Selesai: "selesai", Berjalan: "berjalan", Terlambat: "terlambat", "Belum Mulai": "belum", "Menunggu Review": "berjalan" };
 const KPTL_LABEL_W = 320;
+// Penjelasan tiap item legenda (diklik → tampil di bawah legenda).
+const KPTL_INFO_LEGENDA = {
+	selesai: [__("Selesai"), __("Progres aktivitas sudah 100% dari Laporan Progres yang disetujui dan semua pendahulunya (predecessor) sudah selesai. Batang hijau penuh.")],
+	berjalan: [__("Berjalan"), __("Sudah ada progres (lebih dari 0%) dari laporan yang disetujui dan tanggal selesai rencana belum lewat. Bagian gelap batang = progres yang sudah dicapai, bagian terang = sisa pekerjaan.")],
+	terlambat: [__("Terlambat"), __("Tanggal selesai rencana sudah lewat tetapi progres belum 100%. Bagian gelap = progres yang sudah dicapai. Perlu tindakan: percepat pekerjaan atau sesuaikan jadwal.")],
+	belum: [__("Belum mulai"), __("Belum ada laporan progres yang disetujui (0%) dan tanggal selesai rencana belum lewat. Bukan masalah selama tanggal mulainya belum tiba.")],
+	grup: [__("Kelompok WBS"), __("Ringkasan item WBS level 1. Panjang batang = rentang semua aktivitas di dalamnya; bagian gelap = progres kelompok (tertimbang nilai pekerjaan). Garis tepi merah = ada aktivitas terlambat di kelompok ini.")],
+	kritis: [__("Jalur kritis ⚡"), __("Aktivitas tanpa kelonggaran waktu: bila mundur 1 hari, penerusnya — dan akhir proyek — ikut mundur. Bukan tanda bermasalah, tetapi harus dijaga tepat waktu. Aktifkan lewat Tampilan → Tandai jalur kritis.")],
+	milestone: [__("Milestone ◆"), __("Target milestone / termin penagihan (T1, T2, …) di tanggal targetnya. Hijau = tercapai, merah = lewat target belum tercapai, ungu = rencana. Klik untuk membuka Milestone & Termin.")],
+	hariini: [__("Hari ini"), __("Garis merah = tanggal hari ini. Batang di kiri garis yang belum hijau berarti pekerjaan yang seharusnya sudah berjalan / selesai.")],
+	mulai: [__("Mulai pelaksanaan"), __("Awal masa pelaksanaan kontrak (mulai kerja / SPMK) dari Kontrak Project.")],
+	selesai_kontrak: [__("Batas selesai kontrak"), __("Akhir masa pelaksanaan kontrak (termasuk tambahan waktu addendum). Aktivitas yang batangnya melewati garis oranye ini berisiko denda keterlambatan.")],
+	pemeliharaan: [__("Akhir pemeliharaan"), __("Akhir masa pemeliharaan (retensi) setelah serah terima pertama.")],
+	rencana: [__("Rencana"), __("Progres kumulatif yang seharusnya dicapai menurut jadwal aktivitas: bobot tiap aktivitas (dari bobot WBS) disebar rata per hari kerja jadwalnya.")],
+	aktual: [__("Aktual"), __("Progres kumulatif yang benar-benar dicapai menurut Laporan Progres yang disetujui, per tanggal laporan. Di atas garis Rencana = lebih cepat; di bawah = terlambat (deviasi negatif).")],
+};
 
 const kptl_esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
 const kptl_tgl = (s) => {
@@ -201,18 +217,19 @@ class HalamanTimeline {
 				</div>
 			</div>
 			<div class="kptl-legenda">
-				<span><i class="kptl-l kptl-l-selesai"></i>${__("Selesai")}</span>
-				<span><i class="kptl-l kptl-l-berjalan"></i>${__("Berjalan")}</span>
-				<span><i class="kptl-l kptl-l-terlambat"></i>${__("Terlambat")}</span>
-				<span><i class="kptl-l kptl-l-belum"></i>${__("Belum mulai")}</span>
-				<span><i class="kptl-l kptl-l-grup"></i>${__("Kelompok WBS")}</span>
-				<span><i class="kptl-l kptl-l-kritis"></i>⚡ ${__("Jalur kritis")}${this.opsi.kritis ? "" : ` <span class="kptl-sub-kecil">(${__("aktifkan di Tampilan")})</span>`}</span>
-				<span><i class="kptl-l-diamond"></i>${__("Milestone")}</span>
-				<span><i class="kptl-l-hariini"></i>${__("Hari ini")}</span>
-				<span><i class="kptl-l-periode kptl-l-mulai"></i>${__("Mulai pelaksanaan")}</span>
-				<span><i class="kptl-l-periode kptl-l-selesai"></i>${__("Batas selesai kontrak")}</span>
-				${this.data.project.akhir_pemeliharaan ? `<span><i class="kptl-l-periode kptl-l-pemeliharaan"></i>${__("Akhir pemeliharaan")}</span>` : ""}
+				<span class="kptl-legenda-item" data-kptl="legenda" data-info="selesai"><i class="kptl-l kptl-l-selesai"></i>${__("Selesai")}</span>
+				<span class="kptl-legenda-item" data-kptl="legenda" data-info="berjalan"><i class="kptl-l kptl-l-berjalan"></i>${__("Berjalan")}</span>
+				<span class="kptl-legenda-item" data-kptl="legenda" data-info="terlambat"><i class="kptl-l kptl-l-terlambat"></i>${__("Terlambat")}</span>
+				<span class="kptl-legenda-item" data-kptl="legenda" data-info="belum"><i class="kptl-l kptl-l-belum"></i>${__("Belum mulai")}</span>
+				<span class="kptl-legenda-item" data-kptl="legenda" data-info="grup"><i class="kptl-l kptl-l-grup"></i>${__("Kelompok WBS")}</span>
+				<span class="kptl-legenda-item" data-kptl="legenda" data-info="kritis"><i class="kptl-l kptl-l-kritis"></i>⚡ ${__("Jalur kritis")}${this.opsi.kritis ? "" : ` <span class="kptl-sub-kecil">(${__("aktifkan di Tampilan")})</span>`}</span>
+				<span class="kptl-legenda-item" data-kptl="legenda" data-info="milestone"><i class="kptl-l-diamond"></i>${__("Milestone")}</span>
+				<span class="kptl-legenda-item" data-kptl="legenda" data-info="hariini"><i class="kptl-l-hariini"></i>${__("Hari ini")}</span>
+				<span class="kptl-legenda-item" data-kptl="legenda" data-info="mulai"><i class="kptl-l-periode kptl-l-mulai"></i>${__("Mulai pelaksanaan")}</span>
+				<span class="kptl-legenda-item" data-kptl="legenda" data-info="selesai_kontrak"><i class="kptl-l-periode kptl-l-selesai"></i>${__("Batas selesai kontrak")}</span>
+				${this.data.project.akhir_pemeliharaan ? `<span class="kptl-legenda-item" data-kptl="legenda" data-info="pemeliharaan"><i class="kptl-l-periode kptl-l-pemeliharaan"></i>${__("Akhir pemeliharaan")}</span>` : ""}
 			</div>
+			<div class="kptl-legenda-info" style="display:none"></div>
 			<div class="kptl-gantt"></div>`);
 		this.render_gantt();
 	}
@@ -408,11 +425,12 @@ class HalamanTimeline {
 		$isi.html(`<div class="kptl-kurva-kepala">
 				<div class="kptl-kurva-judul">${__("Kurva S — progres kumulatif")}</div>
 				<div class="kptl-legenda kptl-legenda-kurva">
-					<span><i class="kptl-k kptl-k-rencana"></i>${__("Rencana")}</span>
-					<span><i class="kptl-k kptl-k-aktual"></i>${__("Aktual")}</span>
-					<span><i class="kptl-l-hariini"></i>${__("Hari ini")}</span>
-					<span><i class="kptl-l-periode kptl-l-selesai"></i>${__("Batas selesai kontrak")}</span>
+					<span class="kptl-legenda-item" data-kptl="legenda" data-info="rencana"><i class="kptl-k kptl-k-rencana"></i>${__("Rencana")}</span>
+					<span class="kptl-legenda-item" data-kptl="legenda" data-info="aktual"><i class="kptl-k kptl-k-aktual"></i>${__("Aktual")}</span>
+					<span class="kptl-legenda-item" data-kptl="legenda" data-info="hariini"><i class="kptl-l-hariini"></i>${__("Hari ini")}</span>
+					<span class="kptl-legenda-item" data-kptl="legenda" data-info="selesai_kontrak"><i class="kptl-l-periode kptl-l-selesai"></i>${__("Batas selesai kontrak")}</span>
 				</div>
+				<div class="kptl-legenda-info" style="display:none"></div>
 				<button class="btn btn-default btn-sm" data-kptl="tabel-kurva">${frappe.utils.icon("table", "xs")} ${this.tabel_kurva ? __("Sembunyikan tabel") : __("Tabel data")}</button>
 			</div>
 			<div class="kptl-kurva"></div>
@@ -566,6 +584,24 @@ class HalamanTimeline {
 				return frappe.set_route("Form", "Task", $el.attr("data-name"));
 			case "milestone":
 				return frappe.set_route("milestone-dan-termin", this.project);
+			case "legenda": {
+				const kunci = $el.attr("data-info");
+				const $info = $el.closest(".kptl-isi").find(".kptl-legenda-info").first();
+				const aktif = $info.is(":visible") && $info.attr("data-info") === kunci;
+				this.$body.find(".kptl-legenda-item").removeClass("kptl-legenda-aktif");
+				if (aktif) return $info.hide();
+				const [judul, teks] = KPTL_INFO_LEGENDA[kunci] || ["", ""];
+				$el.addClass("kptl-legenda-aktif");
+				return $info
+					.attr("data-info", kunci)
+					.html(`<div class="kptl-legenda-info-isi">${$el.find("i").first().prop("outerHTML") || ""}
+						<div><b>${kptl_esc(judul)}</b><div>${kptl_esc(teks)}</div></div>
+						<a class="kptl-legenda-tutup" data-kptl="legenda-tutup" title="${__("Tutup")}">✕</a></div>`)
+					.show();
+			}
+			case "legenda-tutup":
+				this.$body.find(".kptl-legenda-item").removeClass("kptl-legenda-aktif");
+				return $el.closest(".kptl-legenda-info").hide();
 			case "tabel-kurva":
 				this.tabel_kurva = !this.tabel_kurva;
 				return this.render_kurva();

@@ -4951,3 +4951,53 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	line-height: 1;
 	cursor: help;
 }
+
+/* Timeline: legenda bisa diklik → penjelasan arti warna / tanda. */
+.kptl-legenda-item {
+	padding: 2px 6px;
+	border-radius: 6px;
+	cursor: pointer;
+}
+
+.kptl-legenda-item:hover,
+.kptl-legenda-item.kptl-legenda-aktif {
+	background: var(--subtle-fg, #f3f4f6);
+	color: var(--text-color);
+}
+
+.kptl-legenda-info {
+	margin: -4px 0 10px;
+}
+
+.kptl-kurva-kepala .kptl-legenda-info {
+	flex-basis: 100%;
+	order: 5;
+	margin: 0;
+}
+
+.kptl-legenda-info-isi {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	max-width: 760px;
+	padding: 10px 12px;
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	background: var(--subtle-fg, #f8f9fa);
+	font-size: var(--text-sm);
+	color: var(--text-color);
+}
+
+.kptl-legenda-info-isi > i {
+	flex-shrink: 0;
+	margin-top: 5px;
+}
+
+.kptl-legenda-info-isi > div {
+	flex: 1;
+}
+
+.kptl-legenda-tutup {
+	color: var(--text-muted) !important;
+	cursor: pointer;
+}
