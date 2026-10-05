@@ -198,10 +198,18 @@ class HalamanBaseline {
 					<label class="kpbs-pilih-label">${__("Bandingkan dengan")}</label>
 					<select class="form-control input-sm kpbs-pilih">${opsi}</select>
 				</div>
-				<div class="kpbs-info">${frappe.utils.icon("lock", "xs")} ${__("Baseline terkunci")} · ${__("{0} aktivitas, {1} milestone", [b.jumlah_aktivitas, b.jumlah_milestone])}
-					${b.keterangan ? ` · ${kpbs_esc(b.keterangan)}` : ""}
-					<div class="kptl-sub-kecil">${__("Disimpan {0} oleh {1}", [kpbs_tgl(b.tanggal), kpbs_esc(frappe.user.full_name(b.owner))])}${b.periode_selesai ? ` · ${__("batas selesai saat itu")} ${kpbs_tgl(b.periode_selesai)}` : ""}</div>
-				</div>
+				${(() => {
+					// Satu baris: status kunci · isi · keterangan · disimpan oleh/kapan · batas selesai saat itu.
+					const bagian = [
+						__("Baseline terkunci"),
+						__("{0} aktivitas, {1} milestone", [b.jumlah_aktivitas, b.jumlah_milestone]),
+						b.keterangan || "",
+						__("Disimpan {0} oleh {1}", [kpbs_tgl(b.tanggal), frappe.user_info(b.owner).fullname || b.owner]),
+						b.periode_selesai ? __("batas selesai saat itu {0}", [kpbs_tgl(b.periode_selesai)]) : "",
+					].filter(Boolean);
+					const teks = bagian.join(" · ");
+					return `<div class="kpbs-info" title="${kpbs_esc(teks)}">${frappe.utils.icon("lock", "xs")} ${kpbs_esc(teks)}</div>`;
+				})()}
 				${d.bisa_hapus ? `<button class="btn btn-default btn-sm kpbs-hapus" data-kpbs="hapus" title="${__("Hapus baseline ini")}">${frappe.utils.icon("trash-2", "xs")}</button>` : ""}
 			</div>
 			<div class="kpbs-kartu-baris">

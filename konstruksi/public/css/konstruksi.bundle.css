@@ -5187,3 +5187,10 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	height: 4px;
 	background: #94a3b8;
 }
+
+/* Info baseline terkunci: satu baris (dipotong "…", teks lengkap di tooltip). */
+.kpbs-info {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
