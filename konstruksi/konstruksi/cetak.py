@@ -212,3 +212,101 @@ def font_cetak():
 			)
 		_font_css = "\n".join(bagian)
 	return _font_css
+
+
+def _company(nama, alamat=None):
+	company = frappe.get_cached_doc("Company", nama)
+	alamat = alamat or frappe.db.get_value("Dynamic Link", {"link_doctype": "Company", "link_name": nama, "parenttype": "Address"}, "parent")
+	return frappe._dict(
+		nama=(company.company_name or nama).upper(),
+		nama_asli=company.company_name or nama,
+		alamat=_alamat(alamat),
+		npwp=company.tax_id,
+		kota=frappe.db.get_value("Address", alamat, "city") if alamat else "",
+	)
+
+
+def _nama_user(user):
+	return frappe.db.get_value("User", user, "full_name") or user if user else ""
+
+
+def data_pembayaran(doc):
+	"""Semua isian print format SiKon Bukti Penerimaan (Payment Entry)."""
+	terima = doc.payment_type == "Receive"
+	mata_uang = doc.paid_to_account_currency if terima else doc.paid_from_account_currency
+	uang = lambda v: fmt_money(flt(v), currency=mata_uang)  # noqa: E731
+	angka = lambda v: fmt_money(flt(v), currency=mata_uang).replace("Rp", "").strip()  # noqa: E731
+	co = _company(doc.company)
+
+	pihak = frappe._dict(nama=doc.party_name or doc.party or "", alamat=[], npwp="")
+	if doc.party_type in ("Customer", "Supplier") and doc.party:
+		alamat = frappe.db.get_value(doc.party_type, doc.party, "customer_primary_address" if doc.party_type == "Customer" else "supplier_primary_address")
+		pihak.alamat = _alamat(alamat)
+		pihak.npwp = frappe.db.get_value(doc.party_type, doc.party, "tax_id")
+
+	akun_kas = doc.paid_to if terima else doc.paid_from
+	jenis_akun = frappe.get_cached_value("Account", akun_kas, "account_type") if akun_kas else ""
+	metode = doc.mode_of_payment or ("Transfer Bank" if jenis_akun == "Bank" else "Tunai" if jenis_akun == "Cash" else "")
+	referensi = doc.reference_no if doc.reference_no and doc.reference_no != doc.name else ""
+
+	rincian, sisa_total, proyek = [], 0, set()
+	for r in doc.references:
+		uraian, tanggal = "", ""
+		if r.reference_doctype in ("Sales Invoice", "Purchase Invoice"):
+			inv = frappe.db.get_value(r.reference_doctype, r.reference_name, ["posting_date", "project"], as_dict=True) or frappe._dict()
+			tanggal = frappe.format(inv.posting_date, "Date") if inv.posting_date else ""
+			uraian = frappe.db.get_value(r.reference_doctype + " Item", {"parent": r.reference_name, "idx": 1}, "item_name") or ""
+			if inv.project:
+				proyek.add(inv.project)
+		sisa = max(flt(r.outstanding_amount) - flt(r.allocated_amount), 0)
+		sisa_total += sisa
+		rincian.append(frappe._dict(nomor=r.reference_name, uraian=uraian, tanggal=tanggal, total=angka(r.total_amount),
+			dibayar=angka(r.allocated_amount), sisa=angka(sisa)))
+	if doc.project:
+		proyek.add(doc.project)
+	nama_proyek = ", ".join(frappe.db.get_value("Project", p, "project_name") or p for p in sorted(proyek))
+
+	diterima = flt(doc.received_amount if terima else doc.paid_amount)
+	potongan = sum(flt(x.amount) for x in doc.get("deductions") or [])
+
+	bank = None
+	if doc.bank_account:
+		bank = frappe.db.get_value("Bank Account", doc.bank_account, ["bank", "bank_account_no"], as_dict=True)
+	elif jenis_akun == "Bank":
+		bank = frappe.db.get_value("Bank Account", {"account": akun_kas, "is_company_account": 1}, ["bank", "bank_account_no"], as_dict=True)
+	if bank:
+		bank.atas_nama = co.nama_asli
+
+	return frappe._dict(
+		company=co,
+		terima=terima,
+		judul=["BUKTI PENERIMAAN", "PEMBAYARAN"] if terima else ["BUKTI", "PEMBAYARAN"],
+		subjudul="Payment Receipt" if terima else "Payment Voucher",
+		label_pihak="DITERIMA DARI" if terima else "DIBAYARKAN KEPADA",
+		label_tanggal="Tanggal Terima" if terima else "Tanggal Bayar",
+		label_jumlah="JUMLAH DITERIMA" if terima else "JUMLAH DIBAYAR",
+		label_total="Total Diterima" if terima else "Total Dibayar",
+		label_rekening="DITERIMA PADA REKENING" if terima else "DIBAYAR DARI REKENING",
+		pihak=pihak,
+		tanggal=frappe.format(doc.posting_date, "Date"),
+		metode=metode,
+		referensi=referensi,
+		proyek=nama_proyek,
+		jumlah=uang(diterima),
+		terbilang=terbilang(diterima),
+		lunas=bool(rincian) and sisa_total <= 0.005,
+		sisa=uang(sisa_total),
+		rincian=rincian,
+		dialokasikan=uang(doc.total_allocated_amount),
+		potongan=uang(-potongan) if potongan else "",
+		belum_dialokasikan=uang(doc.unallocated_amount),
+		total=uang(diterima),
+		bank=bank,
+		akun_kas=akun_kas if jenis_akun != "Bank" else "",
+		catatan=("Dokumen ini merupakan bukti sah penerimaan pembayaran atas invoice yang tercantum di atas."
+			if terima else "Dokumen ini merupakan bukti sah pembayaran atas tagihan yang tercantum di atas."),
+		penerima=_nama_user(doc.owner),
+		tanggal_ttd=tanggal_indonesia(doc.posting_date),
+		draft=doc.docstatus == 0,
+		batal=doc.docstatus == 2,
+	)

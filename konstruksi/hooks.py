@@ -95,7 +95,7 @@ doctype_list_js = {
 
 # add methods and filters to jinja environment
 jinja = {
-	"methods": ["konstruksi.konstruksi.cetak.data_invoice", "konstruksi.konstruksi.cetak.terbilang", "konstruksi.konstruksi.cetak.font_cetak"],
+	"methods": ["konstruksi.konstruksi.cetak.data_invoice", "konstruksi.konstruksi.cetak.terbilang", "konstruksi.konstruksi.cetak.font_cetak", "konstruksi.konstruksi.cetak.data_pembayaran"],
 }
 # jinja = {
 # 	"methods": "konstruksi.utils.jinja_methods",
