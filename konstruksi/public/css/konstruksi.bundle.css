@@ -4924,3 +4924,30 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 
 .kptl-k-batas { stroke: var(--kptl-batas); stroke-width: 3; }
 .kptl-k-batas-label { fill: var(--kptl-batas); font-size: 11px; font-weight: 600; }
+
+/* Timeline: jalur kritis = garis tepi putus-putus oranye + ⚡ (bukan merah, supaya tidak tertukar dengan Terlambat). */
+.kptl {
+	--kptl-kritis: #ea580c;
+}
+
+[data-theme="dark"] .kptl {
+	--kptl-kritis: #fb923c;
+}
+
+.kptl .kptl-bar.kptl-bar-kritis {
+	box-shadow: none;
+	outline: 2px dashed var(--kptl-kritis);
+	outline-offset: 2px;
+}
+
+.kptl .kptl-l.kptl-l-kritis {
+	border: 2px dashed var(--kptl-kritis);
+}
+
+.kptl-kritis-ikon {
+	position: absolute;
+	top: 10px;
+	font-size: 12px;
+	line-height: 1;
+	cursor: help;
+}

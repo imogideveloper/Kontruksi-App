@@ -42,7 +42,8 @@ class HalamanTimeline {
 		this.filter_status = new Set();
 		this.hanya_kritis = false;
 		this.tertutup = new Set();
-		this.opsi = { label: true, kritis: true, libur: true, milestone: true };
+		// Jalur kritis bawaan tidak ditandai (aktifkan lewat Tampilan / filter "Hanya jalur kritis").
+		this.opsi = { label: true, kritis: false, libur: true, milestone: true };
 		this.field_project = page.add_field({
 			fieldname: "project",
 			fieldtype: "Link",
@@ -205,7 +206,7 @@ class HalamanTimeline {
 				<span><i class="kptl-l kptl-l-terlambat"></i>${__("Terlambat")}</span>
 				<span><i class="kptl-l kptl-l-belum"></i>${__("Belum mulai")}</span>
 				<span><i class="kptl-l kptl-l-grup"></i>${__("Kelompok WBS")}</span>
-				<span><i class="kptl-l kptl-l-kritis"></i>${__("Jalur kritis")}</span>
+				<span><i class="kptl-l kptl-l-kritis"></i>⚡ ${__("Jalur kritis")}${this.opsi.kritis ? "" : ` <span class="kptl-sub-kecil">(${__("aktifkan di Tampilan")})</span>`}</span>
 				<span><i class="kptl-l-diamond"></i>${__("Milestone")}</span>
 				<span><i class="kptl-l-hariini"></i>${__("Hari ini")}</span>
 				<span><i class="kptl-l-periode kptl-l-mulai"></i>${__("Mulai pelaksanaan")}</span>
@@ -341,7 +342,8 @@ class HalamanTimeline {
 							${prog_a > 0 && warna !== "selesai" ? `<div class="kptl-bar-isi" style="width:${prog_a}%"></div>` : ""}
 							${lebar_bar >= 34 ? `<span class="kptl-bar-persen">${kptl_persen(prog_a, 0)}</span>` : ""}
 						</div>
-						${this.opsi.label ? `<span class="kptl-bar-label" style="left:${x(a.mulai) + lebar_bar + 6}px">${kptl_esc(a.subject)}</span>` : ""}` : ""}
+						${this.opsi.kritis && a.kritis ? `<span class="kptl-kritis-ikon" style="left:${x(a.mulai) + lebar_bar + 4}px" title="${__("Jalur kritis: mundur 1 hari = proyek ikut mundur")}">⚡</span>` : ""}
+						${this.opsi.label ? `<span class="kptl-bar-label" style="left:${x(a.mulai) + lebar_bar + (this.opsi.kritis && a.kritis ? 20 : 6)}px">${kptl_esc(a.subject)}</span>` : ""}` : ""}
 					</div></div>`);
 			});
 		});
@@ -539,12 +541,13 @@ class HalamanTimeline {
 			}
 			case "filter-kritis":
 				this.hanya_kritis = e.target.checked;
+				if (this.hanya_kritis) this.opsi.kritis = true;
 				e.stopPropagation();
 				return this.render_gantt();
 			case "opsi":
 				this.opsi[$el.attr("data-opsi")] = e.target.checked;
 				e.stopPropagation();
-				return this.render_gantt();
+				return $el.attr("data-opsi") === "kritis" ? this.render_gantt_kerangka() : this.render_gantt();
 			case "hari-ini":
 				if (this.skala === "pas") {
 					this.skala = "minggu";
