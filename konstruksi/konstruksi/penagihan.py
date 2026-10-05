@@ -480,3 +480,45 @@ def get_daftar():
 		p.retensi_ditahan = sum(x.retensi_sisa for x in termin)
 		p.siap_ditagih = frappe.db.count("Milestone Termin", {"project": p.name, "status": "Tercapai", "sales_invoice": ("is", "not set")})
 	return projects
+
+def hapus_transaksi(invoices):
+	"""Batalkan & hapus Sales Invoice beserta Payment Entry yang merujuknya (dan jurnal batalnya — saldo nol).
+	Ditolak bila sebuah Payment Entry juga membayar invoice lain di luar daftar."""
+	invoices = list(invoices)
+	if not invoices:
+		return []
+	pe_list = sorted({r.parent for r in frappe.get_all("Payment Entry Reference",
+		filters={"reference_doctype": "Sales Invoice", "reference_name": ("in", invoices)}, fields=["parent"])})
+	for pe in pe_list:
+		lain = frappe.get_all("Payment Entry Reference", filters={"parent": pe, "reference_name": ("not in", invoices)}, pluck="reference_name")
+		if lain:
+			frappe.throw(_("Pembayaran {0} juga membayar invoice lain ({1}); hapus manual.").format(pe, ", ".join(lain)))
+	dokumen = [("Payment Entry", x) for x in pe_list] + [("Sales Invoice", x) for x in invoices]
+	for dt, nama in dokumen:
+		doc = frappe.get_doc(dt, nama)
+		if doc.docstatus == 1:
+			doc.flags.ignore_links = True
+			doc.cancel()
+	voucher = [nama for _dt, nama in dokumen]
+	frappe.db.delete("GL Entry", {"voucher_no": ("in", voucher), "is_cancelled": 1})
+	frappe.db.delete("Payment Ledger Entry", {"voucher_no": ("in", voucher), "delinked": 1})
+	frappe.db.delete("Payment Ledger Entry", {"against_voucher_no": ("in", voucher), "delinked": 1})
+	for dt, nama in dokumen:
+		frappe.delete_doc(dt, nama, ignore_permissions=True)
+	# Tautan invoice di Milestone Termin (draft yang dihapus tidak melewati on_cancel).
+	for m in frappe.get_all("Milestone Termin", filters={"sales_invoice": ("in", invoices)}, pluck="name"):
+		frappe.db.set_value("Milestone Termin", m, "sales_invoice", None, update_modified=False)
+	return voucher
+
+
+@frappe.whitelist()
+def reset_penagihan(project, konfirmasi):
+	"""Tombol Reset Penagihan (System Manager): batalkan & hapus semua invoice uang muka / termin proyek beserta
+	pembayarannya — untuk membersihkan data uji. Konfirmasi = ID proyek."""
+	frappe.only_for("System Manager")
+	if (konfirmasi or "").strip() != project:
+		frappe.throw(_("Ketik ID proyek {0} untuk konfirmasi.").format(project))
+	invoices = frappe.get_all("Sales Invoice", filters={"project": project, "jenis_tagihan": ("is", "set")}, pluck="name")
+	dihapus = hapus_transaksi(invoices)
+	frappe.db.commit()
+	return dihapus

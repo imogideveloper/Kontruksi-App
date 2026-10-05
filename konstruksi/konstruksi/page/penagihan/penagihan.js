@@ -67,6 +67,41 @@ class HalamanPenagihan {
 		this.page.add_inner_button(__("Semua Proyek"), () => frappe.set_route("penagihan"));
 		this.page.add_inner_button(__("Milestone & Termin"), () => frappe.set_route("milestone-dan-termin", this.project));
 		this.page.add_inner_button(__("Daftar Sales Invoice"), () => frappe.set_route("List", "Sales Invoice", { project: this.project }));
+		// Membersihkan data uji: hapus semua invoice uang muka / termin proyek + pembayarannya (System Manager).
+		if (frappe.user.has_role("System Manager")) {
+			this.page.add_menu_item(__("Reset Penagihan (hapus semua transaksi)"), () => this.reset_penagihan());
+		}
+	}
+
+	reset_penagihan() {
+		const project = this.project;
+		const d = new frappe.ui.Dialog({
+			title: __("Reset Penagihan {0}", [project]),
+			fields: [
+				{
+					fieldtype: "HTML",
+					options: `<div class="alert alert-danger" style="margin-bottom:12px">
+						${__("Semua <b>invoice uang muka & termin</b> proyek ini beserta <b>pembayarannya</b> akan dibatalkan lalu <b>dihapus permanen</b> (termasuk jurnalnya). Milestone kembali siap ditagih. Gunakan hanya untuk data uji.")}</div>`,
+				},
+				{ fieldtype: "Data", fieldname: "konfirmasi", label: __("Ketik ID proyek ({0}) untuk konfirmasi", [project]), reqd: 1 },
+			],
+			primary_action_label: __("Hapus Semua Transaksi"),
+			primary_action: (v) => {
+				if ((v.konfirmasi || "").trim() !== project) {
+					frappe.msgprint(__("ID proyek tidak cocok."));
+					return;
+				}
+				frappe
+					.call({ method: KPG_API + "reset_penagihan", args: { project, konfirmasi: v.konfirmasi }, freeze: true, freeze_message: __("Menghapus transaksi…") })
+					.then((r) => {
+						d.hide();
+						frappe.show_alert({ message: __("{0} dokumen dihapus", [(r.message || []).length]), indicator: "green" });
+						this.buka(project);
+					});
+			},
+		});
+		d.get_primary_btn().removeClass("btn-primary").addClass("btn-danger");
+		d.show();
 	}
 
 	// ---------- daftar proyek ----------
