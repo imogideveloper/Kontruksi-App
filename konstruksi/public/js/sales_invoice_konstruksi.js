@@ -87,13 +87,8 @@ function persen_dari_keterangan(row) {
 	return flt(row.tax_amount) < 0 ? -persen : persen;
 }
 
-function tampilkan_persen_pajak(frm) {
-	const grid = frm.fields_dict.taxes?.grid;
-	// Docfield grid berupa salinan per dokumen: formatter dipasang di salinan invoice yang sedang dibuka.
-	const df = grid && frappe.meta.get_docfield(grid.doctype, "rate", frm.docname);
-	if (!df || df.__kpsi_persen) return;
-	const format_asli = df.formatter || frappe.form.get_formatter("Float");
-	df.formatter = (value, field, options, row) => {
+function format_persen_pajak(format_asli) {
+	return (value, field, options, row) => {
 		const induk = row?.parent && locals["Sales Invoice"]?.[row.parent];
 		if (induk?.jenis_tagihan && row.charge_type === "Actual" && !flt(value)) {
 			const persen = persen_dari_keterangan(row);
@@ -101,8 +96,24 @@ function tampilkan_persen_pajak(frm) {
 		}
 		return format_asli(value, field, options, row);
 	};
-	df.__kpsi_persen = true;
-	grid.refresh();
+}
+
+function tampilkan_persen_pajak(frm) {
+	const grid = frm.fields_dict.taxes?.grid;
+	if (!grid) return;
+	// Docfield kolom berupa salinan: per invoice (form) dan per baris (grid row, dibuat ulang setelah save / submit).
+	// Formatter dipasang di semua salinan kolom Tax Rate, lalu sel Tax Rate tiap baris digambar ulang.
+	const pasang = (df) => {
+		if (!df || df.fieldname !== "rate" || df.__kpsi_persen) return;
+		df.formatter = format_persen_pajak(df.formatter || frappe.form.get_formatter("Float"));
+		df.__kpsi_persen = true;
+	};
+	pasang(frappe.meta.get_docfield(grid.doctype, "rate", frm.docname));
+	(grid.docfields || []).forEach(pasang);
+	(grid.grid_rows || []).forEach((row) => {
+		(row.docfields || []).forEach(pasang);
+		row.refresh_field?.("rate");
+	});
 }
 
 // Tabel Items invoice proyek: kolom Warehouse disembunyikan (item jasa non-stok) dan kolom Item dilebarkan ke 6/12
