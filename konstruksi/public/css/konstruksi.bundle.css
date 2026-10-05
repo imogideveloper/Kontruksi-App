@@ -4095,3 +4095,15 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
+
+/* Task & Activity, daftar proyek: ID, nama, klien di kolom terpisah. */
+.kpa:not(.kpm2) .kpw-tabel-daftar {
+	min-width: 1240px;
+}
+
+.kpa .kpw-tabel-daftar .kpw-kode,
+.kpa .kpa-klien {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}

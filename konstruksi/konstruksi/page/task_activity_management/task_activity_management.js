@@ -148,7 +148,9 @@ class HalamanAktivitas {
 				.map((r) => {
 					const p = Math.min(flt(r.progres), 100);
 					return `<tr class="kpw-baris-proyek" data-kpa="buka" data-project="${kpa_esc(r.name)}">
-						<td><div class="kpw-proyek-nama">${kpa_esc(r.project_name)}</div><div class="kpw-proyek-id">${kpa_esc(r.name)}${r.customer ? ` · ${kpa_esc(r.customer)}` : ""}</div></td>
+						<td class="kpw-kode">${kpa_esc(r.name)}</td>
+						<td><div class="kpw-proyek-nama">${kpa_esc(r.project_name)}</div></td>
+						<td class="kpa-klien" title="${kpa_esc(r.customer || "")}">${r.customer ? kpa_esc(r.customer) : '<span class="kpw-strip">—</span>'}</td>
 						<td>${r.status_proyek ? `<span class="kpw-badge">${kpa_esc(__(r.status_proyek))}</span>` : ""}</td>
 						<td class="text-right">${r.jumlah}</td>
 						<td class="text-right">${r.berjalan}</td>
@@ -162,8 +164,8 @@ class HalamanAktivitas {
 				.join("");
 			this.$body.html(`${kepala}<div class="kpr-card kpw-tabel-card"><div class="kpw-tabel-wrap">
 				<table class="kpw-tabel kpw-tabel-daftar">
-					<colgroup><col><col style="width:120px"><col style="width:90px"><col style="width:90px"><col style="width:90px"><col style="width:90px"><col style="width:110px"><col style="width:150px"><col style="width:80px"></colgroup>
-					<thead><tr><th>${__("Proyek")}</th><th>${__("Status")}</th><th class="text-right">${__("Aktivitas")}</th><th class="text-right">${__("Berjalan")}</th>
+					<colgroup><col style="width:130px"><col><col style="width:200px"><col style="width:120px"><col style="width:90px"><col style="width:90px"><col style="width:90px"><col style="width:90px"><col style="width:110px"><col style="width:150px"><col style="width:80px"></colgroup>
+					<thead><tr><th>${__("ID Proyek")}</th><th>${__("Nama Proyek")}</th><th>${__("Klien")}</th><th>${__("Status")}</th><th class="text-right">${__("Aktivitas")}</th><th class="text-right">${__("Berjalan")}</th>
 						<th class="text-right">${__("Terlambat")}</th><th class="text-right">${__("Selesai")}</th><th class="text-right">${__("Lap. Menunggu")}</th><th>${__("Progres")}</th><th></th></tr></thead>
 					<tbody>${baris}</tbody>
 				</table></div></div>`);
