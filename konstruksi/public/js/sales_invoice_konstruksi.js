@@ -20,6 +20,8 @@ function rapikan_invoice_konstruksi(frm) {
 		grid.__kpsi_gudang = true;
 	}
 
+	tampilkan_persen_pajak(frm);
+
 	// Nama customer panjang tetap bisa dibaca utuh saat kursor diarahkan.
 	frm.fields_dict.customer?.$input?.attr("title", frm.doc.customer || "");
 }
@@ -57,6 +59,32 @@ function atur_label_mata_uang(frm, aktif) {
 	frm.__kpsi_label_aktif = aktif;
 	frm.cscript._last_currency = null;
 	frm.cscript.set_dynamic_labels();
+}
+
+// Baris pajak tagihan proyek bertipe "Actual" (nominal dibulatkan rupiah) — ERPNext selalu mengosongkan Tax Rate
+// untuk tipe ini. Persen di keterangan yang dibuat sistem Penagihan ("PPN 11%", "PPh Final 2.65% …",
+// "Pengembalian uang muka 10% …") ditampilkan di kolom Tax Rate; tanda minus untuk baris pengurang. Hanya tampilan.
+function persen_dari_keterangan(row) {
+	const cocok = /(\d+(?:[.,]\d+)?)\s*%/.exec(row.description || "");
+	if (!cocok) return null;
+	const persen = parseFloat(cocok[1].replace(",", "."));
+	return flt(row.tax_amount) < 0 ? -persen : persen;
+}
+
+function tampilkan_persen_pajak(frm) {
+	const grid = frm.fields_dict.taxes?.grid;
+	if (!grid || grid.__kpsi_persen) return;
+	const format_asli = frappe.form.get_formatter("Float");
+	grid.update_docfield_property("rate", "formatter", (value, df, options, row) => {
+		const induk = row?.parent && locals["Sales Invoice"]?.[row.parent];
+		if (induk?.jenis_tagihan && row.charge_type === "Actual" && !flt(value)) {
+			const persen = persen_dari_keterangan(row);
+			if (persen != null) return frappe.form.formatters.Percent(persen, { precision: 2 });
+		}
+		return format_asli(value, df, options, row);
+	});
+	grid.__kpsi_persen = true;
+	grid.refresh();
 }
 
 frappe.ui.form.on("Sales Invoice", {
