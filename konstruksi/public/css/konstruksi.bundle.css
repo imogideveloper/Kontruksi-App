@@ -5476,3 +5476,14 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 		margin-left: auto;
 	}
 }
+
+/* Sales Invoice tagihan proyek: nilai field read-only / terkunci (bawaan abu-abu) dibuat hitam seperti field biasa
+   supaya warna isi form konsisten. */
+.kpsi .form-layout .like-disabled-input,
+.kpsi .form-layout .like-disabled-input a,
+.kpsi .form-layout .form-control:disabled,
+.kpsi .form-layout .form-control[readonly] {
+	color: var(--text-color) !important;
+	-webkit-text-fill-color: var(--text-color);
+	opacity: 1;
+}
