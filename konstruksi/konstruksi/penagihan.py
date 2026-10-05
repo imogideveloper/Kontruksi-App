@@ -282,6 +282,25 @@ def get_penagihan(project):
 				"status": status, "sisa_termin": inv.sisa_termin})
 	um = per_nama.get(um_inv[0].name) if um_inv else None
 	submitted = [x for x in per_nama.values() if x.docstatus == 1]
+	# Layar Pembayaran: daftar invoice proyek & riwayat Payment Entry-nya.
+	label_termin = {t["invoice"].name: f"T{t['urutan']} {t['nama_milestone']}" for t in termin if t["invoice"]}
+	daftar_invoice = sorted(
+		[frappe._dict({**x, "label": _("Uang Muka") if um and x.name == um.name else label_termin.get(x.name, x.name)}) for x in per_nama.values()],
+		key=lambda x: (str(x.posting_date), x.name),
+	)
+	pembayaran = []
+	if submitted:
+		pembayaran = frappe.db.sql(
+			"""select pe.name, pe.posting_date, pe.mode_of_payment, pe.reference_no, ref.reference_name as invoice,
+				ref.allocated_amount as jumlah
+			from `tabPayment Entry Reference` ref join `tabPayment Entry` pe on pe.name = ref.parent
+			where pe.docstatus = 1 and ref.reference_doctype = 'Sales Invoice' and ref.reference_name in %s
+			order by pe.posting_date desc, pe.creation desc""",
+			(tuple(x.name for x in submitted),),
+			as_dict=True,
+		)
+		for r in pembayaran:
+			r.label = next((x["label"] for x in daftar_invoice if x["name"] == r.invoice), r.invoice)
 	ditagih = sum(x.total for x in submitted)
 	retensi_total = sum(r["retensi"] for r in retensi)
 	retensi_sisa = sum(r["sisa"] for r in retensi)
@@ -293,6 +312,8 @@ def get_penagihan(project):
 		"uang_muka": {"rincian": r_um, "invoice": um},
 		"termin": termin,
 		"retensi": retensi,
+		"invoice": daftar_invoice,
+		"pembayaran": pembayaran,
 		"alur": {
 			"uang_muka": bool(um and um.docstatus == 1) if r_um else None,
 			"termin_ditagih": len(termin_ditagih),

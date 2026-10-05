@@ -106,6 +106,7 @@ class HalamanPenagihan {
 	// ---------- satu proyek ----------
 
 	buka(project) {
+		if (this.project !== project) this.layar = null;
 		this.project = project;
 		if (this.field_project.get_value() !== project) this.field_project.set_value(project);
 		return frappe.xcall(KPG_API + "get_penagihan", { project }).then((d) => {
@@ -139,26 +140,84 @@ class HalamanPenagihan {
 				${kartu(r.piutang ? "oranye" : "abu", __("Piutang"), kpg_rp(r.piutang), __("Belum dibayar, di luar retensi"))}
 				${kartu(r.retensi_sisa > 0.5 ? (r.retensi_lewat ? "merah" : "oranye") : "abu", __("Retensi Ditahan"), kpg_rp(r.retensi_sisa), retensi_sub)}
 			</div>
-			${this.html_uang_muka()}
-			${this.html_termin()}
-			${this.html_retensi()}`);
+			<div class="kpg-layar">${this.html_layar()}</div>`);
 	}
 
 	// Panduan alur: langkah yang sudah selesai diberi tanda ✓.
-	html_alur() {
+	// Langkah alur = navigasi layar (satu tahap per layar). Bawaan: langkah pertama yang belum selesai.
+	langkah() {
 		const a = this.data.alur;
 		const k = this.data.kontrak;
-		const langkah = [];
-		if (a.uang_muka !== null) langkah.push([a.uang_muka, __("Tagih uang muka"), a.uang_muka ? __("Sudah ditagih") : __("Syarat: jaminan uang muka")]);
-		langkah.push([a.termin_total && a.termin_ditagih === a.termin_total, __("Tagih termin"), __("{0} dari {1} milestone", [a.termin_ditagih, a.termin_total])]);
-		langkah.push([a.termin_ditagih > 0 && a.piutang_termin <= 0.5, __("Catat pembayaran"),
-			a.piutang_termin > 0.5 ? __("Piutang {0}", [kpg_rp(a.piutang_termin)]) : __("Tidak ada piutang")]);
-		langkah.push([a.termin_ditagih === a.termin_total && a.termin_total > 0 && a.retensi_sisa <= 0.5, __("Tagih retensi"),
-			a.retensi_sisa > 0.5 ? __("Sisa {0} · setelah {1}", [kpg_rp(a.retensi_sisa), kpg_tgl(k.akhir_pemeliharaan)]) : __("Setelah masa pemeliharaan")]);
-		return `<div class="kpg-alur">${langkah
-			.map(([ok, judul, ket], i) => `<div class="kpg-alur-langkah ${ok ? "kpg-alur-ok" : ""}">
-				<span class="kpg-alur-no">${ok ? "✓" : i + 1}</span><div><b>${judul}</b><div class="kptl-sub-kecil">${ket}</div></div></div>`)
+		const daftar = [];
+		if (a.uang_muka !== null) {
+			daftar.push({ kunci: "uang_muka", ok: a.uang_muka, judul: __("Uang Muka"), ket: a.uang_muka ? __("Sudah ditagih") : __("Syarat: jaminan uang muka") });
+		}
+		daftar.push({ kunci: "termin", ok: a.termin_total && a.termin_ditagih === a.termin_total, judul: __("Termin"),
+			ket: __("{0} dari {1} milestone ditagih", [a.termin_ditagih, a.termin_total]) });
+		daftar.push({ kunci: "pembayaran", ok: this.data.invoice.some((x) => x.docstatus === 1) && a.piutang_termin <= 0.5, judul: __("Pembayaran"),
+			ket: a.piutang_termin > 0.5 ? __("Piutang {0}", [kpg_rp(a.piutang_termin)]) : __("Tidak ada piutang") });
+		daftar.push({ kunci: "retensi", ok: a.termin_total > 0 && a.termin_ditagih === a.termin_total && a.retensi_sisa <= 0.5, judul: __("Retensi"),
+			ket: a.retensi_sisa > 0.5 ? __("Sisa {0} · setelah {1}", [kpg_rp(a.retensi_sisa), kpg_tgl(k.akhir_pemeliharaan)]) : __("Ditagih setelah masa pemeliharaan") });
+		return daftar;
+	}
+
+	html_alur() {
+		const daftar = this.langkah();
+		if (!daftar.some((x) => x.kunci === this.layar)) this.layar = (daftar.find((x) => !x.ok) || daftar[daftar.length - 1]).kunci;
+		return `<div class="kpg-alur" role="tablist">${daftar
+			.map((x, i) => `<a class="kpg-alur-langkah ${x.ok ? "kpg-alur-ok" : ""} ${x.kunci === this.layar ? "kpg-alur-aktif" : ""}"
+				role="tab" data-kpg="layar" data-layar="${x.kunci}">
+				<span class="kpg-alur-no">${x.ok ? "✓" : i + 1}</span><div><b>${x.judul}</b><div class="kptl-sub-kecil">${x.ket}</div></div></a>`)
 			.join('<span class="kpg-alur-panah">›</span>')}</div>`;
+	}
+
+	html_layar() {
+		return { uang_muka: () => this.html_uang_muka(), termin: () => this.html_termin(), pembayaran: () => this.html_pembayaran(),
+			retensi: () => this.html_retensi() }[this.layar]();
+	}
+
+	html_pembayaran() {
+		const d = this.data;
+		const inv = d.invoice;
+		const baris = inv
+			.map((x) => `<tr>
+				<td><a href="/app/sales-invoice/${encodeURIComponent(x.name)}">${kpg_esc(x.name)}</a></td>
+				<td class="kptl-potong" title="${kpg_esc(x.label)}"><b>${kpg_esc(x.label)}</b></td>
+				<td>${kpg_tgl(x.posting_date)}</td>
+				<td class="text-right">${kpg_rp(x.total)}</td>
+				<td class="text-right">${flt(x.nilai_retensi) ? kpg_rp(x.nilai_retensi) : "—"}</td>
+				<td class="text-right">${x.docstatus === 1 ? kpg_rp(x.dibayar) : "—"}</td>
+				<td class="text-right"><b>${x.docstatus === 1 ? kpg_rp(x.sisa_termin) : "—"}</b></td>
+				<td>${kpg_status_inv(x)}</td>
+				<td class="text-right kpg-aksi">${x.docstatus === 1 && x.sisa_termin > 0.5 ? this.tombol_bayar(x.name, x.label === __("Uang Muka") ? "semua" : "termin", __("Catat Pembayaran"))
+					: x.docstatus === 0 ? `<a class="btn btn-default btn-xs" href="/app/sales-invoice/${encodeURIComponent(x.name)}">${__("Periksa & Submit")}</a>` : ""}</td>
+			</tr>`)
+			.join("");
+		const riwayat = d.pembayaran
+			.map((p) => `<tr>
+				<td>${kpg_tgl(p.posting_date)}</td>
+				<td><a href="/app/payment-entry/${encodeURIComponent(p.name)}">${kpg_esc(p.name)}</a></td>
+				<td class="kptl-potong" title="${kpg_esc(p.label)}">${kpg_esc(p.label)} <span class="kptl-sub-kecil">${kpg_esc(p.invoice)}</span></td>
+				<td>${kpg_esc(p.mode_of_payment || "—")}</td>
+				<td>${kpg_esc(p.reference_no || "—")}</td>
+				<td class="text-right"><b>${kpg_rp(p.jumlah)}</b></td>
+			</tr>`)
+			.join("");
+		return `<div class="kptl-card kpbs-tabel-kartu">
+				<div class="kpbs-tabel-judul">${__("Invoice Proyek")}<span class="kptl-sub-kecil">${__("Sisa = belum dibayar di luar retensi (retensi dipantau di layar Retensi)")}</span></div>
+				<div class="kptl-tabel-wrap"><table class="kptl-tabel kpg-tabel">
+					<colgroup><col style="width:170px"><col><col style="width:110px"><col style="width:140px"><col style="width:130px"><col style="width:140px"><col style="width:140px"><col style="width:130px"><col style="width:170px"></colgroup>
+					<thead><tr><th>${__("Invoice")}</th><th>${__("Tagihan")}</th><th>${__("Tanggal")}</th><th class="text-right">${__("Total")}</th><th class="text-right">${__("Retensi")}</th>
+						<th class="text-right">${__("Sudah Dibayar")}</th><th class="text-right">${__("Sisa")}</th><th>${__("Status")}</th><th class="text-right">${__("Aksi")}</th></tr></thead>
+					<tbody>${baris || `<tr><td colspan="9" class="kptl-kosong">${__("Belum ada invoice. Tagih uang muka / termin dulu.")}</td></tr>`}</tbody>
+				</table></div></div>
+			<div class="kptl-card kpbs-tabel-kartu">
+				<div class="kpbs-tabel-judul">${__("Riwayat Pembayaran")}</div>
+				<div class="kptl-tabel-wrap"><table class="kptl-tabel kpg-tabel">
+					<colgroup><col style="width:120px"><col style="width:190px"><col><col style="width:150px"><col style="width:170px"><col style="width:160px"></colgroup>
+					<thead><tr><th>${__("Tanggal")}</th><th>${__("Payment Entry")}</th><th>${__("Untuk Tagihan")}</th><th>${__("Cara Bayar")}</th><th>${__("No. Referensi")}</th><th class="text-right">${__("Jumlah")}</th></tr></thead>
+					<tbody>${riwayat || `<tr><td colspan="6" class="kptl-kosong">${__("Belum ada pembayaran yang diterima.")}</td></tr>`}</tbody>
+				</table></div></div>`;
 	}
 
 	tombol_bayar(inv, bagian, label) {
@@ -301,6 +360,10 @@ class HalamanPenagihan {
 	aksi(e) {
 		const $el = $(e.target).closest("[data-kpg]");
 		switch ($el.attr("data-kpg")) {
+			case "layar":
+				this.layar = $el.attr("data-layar");
+				this.$body.find(".kpg-alur-langkah").removeClass("kpg-alur-aktif").filter(`[data-layar="${this.layar}"]`).addClass("kpg-alur-aktif");
+				return this.$body.find(".kpg-layar").html(this.html_layar());
 			case "buka":
 				return frappe.set_route("penagihan", $el.attr("data-project"));
 			case "tagih-um":
