@@ -220,6 +220,7 @@ def get_milestone(project):
 		"bisa_ubah": bool(frappe.has_permission("Milestone Termin", "write")),
 		"bisa_buat": bool(frappe.has_permission("Milestone Termin", "create")),
 		"bisa_hapus": bool(frappe.has_permission("Milestone Termin", "delete")),
+		"bisa_batalkan": bisa_batalkan(),
 	}
 
 
@@ -263,6 +264,8 @@ def milestone_milik(project, name, ptype="write"):
 def simpan_milestone(project, nama_milestone, tanggal_target, bobot=0, lingkup=None, catatan=None, dokumen=None, name=None):
 	if name:
 		doc = milestone_milik(project, name)
+		if doc.tanggal_tercapai:
+			frappe.throw(_("Milestone yang sudah tercapai tidak bisa diubah; batalkan status tercapainya dulu."))
 	else:
 		frappe.has_permission("Milestone Termin", "create", throw=True)
 		doc = frappe.new_doc("Milestone Termin")
@@ -312,15 +315,36 @@ def simpan_dokumen(project, name, file_dokumen=None, catatan=None):
 	doc.save()
 
 
+PEMBATAL = ("Projects Manager", "System Manager")
+
+
+def bisa_batalkan():
+	return bool(set(PEMBATAL) & set(frappe.get_roles()))
+
+
 @frappe.whitelist()
-def batalkan_tercapai(project, name):
+def batalkan_tercapai(project, name, alasan=None):
+	"""Batalkan status tercapai (hanya Projects Manager, wajib alasan; dicatat di riwayat milestone)."""
+	if not bisa_batalkan():
+		frappe.throw(_("Hanya Projects Manager yang bisa membatalkan status tercapai."), frappe.PermissionError)
+	if not (alasan or "").strip():
+		frappe.throw(_("Isi alasan pembatalan."))
 	doc = milestone_milik(project, name)
 	if doc.sales_invoice and frappe.db.get_value("Sales Invoice", doc.sales_invoice, "docstatus") == 1:
 		frappe.throw(_("Milestone ini sudah ditagih ({0}); batalkan tagihannya dulu.").format(doc.sales_invoice))
+	tanggal = doc.tanggal_tercapai
 	doc.tanggal_tercapai = None
+	doc.flags.batal_tercapai = True
 	doc.save()
+	doc.add_comment(
+		"Comment",
+		_("Status tercapai ({0}) dibatalkan. Alasan: {1}").format(frappe.format(tanggal, "Date"), frappe.utils.escape_html(alasan.strip())),
+	)
 
 
 @frappe.whitelist()
 def hapus_milestone(project, name):
-	milestone_milik(project, name, "delete").delete()
+	doc = milestone_milik(project, name, "delete")
+	if doc.tanggal_tercapai:
+		frappe.throw(_("Milestone yang sudah tercapai tidak bisa dihapus; batalkan status tercapainya dulu."))
+	doc.delete()

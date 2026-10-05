@@ -11,6 +11,8 @@ class MilestoneTermin(Document):
 	def validate(self):
 		from konstruksi.konstruksi.milestone import daun_tercakup, dokumen_wajib_untuk, lingkup_terpakai
 
+		terkunci = self.cek_terkunci()
+
 		for row in self.lingkup:
 			if frappe.db.get_value("WBS Item", row.wbs_item, "project") != self.project:
 				frappe.throw(_("Item WBS {0} bukan milik proyek ini.").format(row.wbs_item))
@@ -24,7 +26,9 @@ class MilestoneTermin(Document):
 			dobel = sorted({frappe.db.get_value("WBS Item", w, "kode") for w in daun if w in terpakai})
 			if dobel:
 				frappe.throw(_("Item WBS {0} sudah masuk milestone lain.").format(", ".join(dobel)))
-			self.bobot = flt(sum(flt(w.bobot) for w in items if w.name in daun), 4)
+			# Milestone tercapai: bobot dibekukan (nilai termin sudah disetujui) walau bobot WBS berubah.
+			if not terkunci:
+				self.bobot = flt(sum(flt(w.bobot) for w in items if w.name in daun), 4)
 			uraian = [w.uraian for w in items if w.name in daun or w.name in {r.wbs_item for r in self.lingkup}]
 		else:
 			uraian = [self.nama_milestone or ""]
@@ -45,6 +49,20 @@ class MilestoneTermin(Document):
 				for n in dokumen_wajib_untuk(uraian + [self.nama_milestone or ""], lain + flt(self.bobot) >= 99.99)
 			],
 		)
+
+	def cek_terkunci(self):
+		"""Milestone tercapai: lingkup, bobot, & target terkunci (nilai termin sudah disetujui)."""
+		sebelum = self.get_doc_before_save()
+		if not sebelum or not sebelum.tanggal_tercapai or self.flags.batal_tercapai:
+			return False
+		berubah = (
+			flt(sebelum.bobot) != flt(self.bobot)
+			or str(sebelum.tanggal_target) != str(self.tanggal_target)
+			or {r.wbs_item for r in sebelum.lingkup} != {r.wbs_item for r in self.lingkup}
+		)
+		if berubah:
+			frappe.throw(_("Milestone sudah tercapai: lingkup, bobot, dan target tidak bisa diubah. Batalkan status tercapainya dulu."))
+		return True
 
 	def on_update(self):
 		if not self.flags.tanpa_hitung_ulang:

@@ -170,13 +170,17 @@ class HalamanMilestone {
 				const lingkup = manual
 					? '<span class="kpw-strip">—</span>'
 					: `<div class="kpm2-lingkup">${m.lingkup.map((w) => `<span class="kpw-badge" title="${kpm2_esc(w.uraian)}">${kpm2_esc(w.kode)}</span>`).join("")}</div>`;
+				// Tombol baris hanya untuk langkah maju; pembatalan ada di menu Aksi (lihat html_aksi).
 				const tombol = [];
-				if (d.bisa_ubah) {
-					tombol.push(
-						m.status === "Tercapai"
-							? `<button class="btn btn-xs btn-default" data-kpm2="batalkan" data-name="${kpm2_esc(m.name)}">${frappe.utils.icon("rotate-ccw", "xs")} ${__("Batalkan")}</button>`
-							: `<button class="btn btn-xs btn-default" data-kpm2="tercapai" data-name="${kpm2_esc(m.name)}">${frappe.utils.icon("check", "xs")} ${__("Tandai tercapai")}</button>`
-					);
+				const ditagih = m.status_tagih?.docstatus === 1;
+				if (m.status !== "Tercapai") {
+					if (d.bisa_ubah) {
+						tombol.push(`<button class="btn btn-xs btn-default" data-kpm2="tercapai" data-name="${kpm2_esc(m.name)}">${frappe.utils.icon("check", "xs")} ${__("Tandai tercapai")}</button>`);
+					}
+				} else if (ditagih) {
+					tombol.push(`<a class="btn btn-xs btn-default" href="/app/sales-invoice/${encodeURIComponent(m.sales_invoice)}">${frappe.utils.icon("file-text", "xs")} ${kpm2_esc(m.sales_invoice)}</a>`);
+				} else {
+					tombol.push(`<button class="btn btn-xs btn-default" disabled title="${__("Tagihan dibuat dari menu Penagihan (segera tersedia).")}">${frappe.utils.icon("receipt", "xs")} ${__("Buat Tagihan")}</button>`);
 				}
 				return `<tr>
 					<td class="kpw-kode">${m.urutan}</td>
@@ -239,10 +243,18 @@ class HalamanMilestone {
 		const item = (aksi, ikon, label, kelas = "") =>
 			`<a class="dropdown-item kpt-aksi-item ${kelas}" data-kpm2="${aksi}" data-name="${kpm2_esc(m.name)}">
 				<span class="kpt-aksi-ikon">${frappe.utils.icon(ikon, "sm")}</span><span>${label}</span></a>`;
+		// Isi menu mengikuti status: tercapai → lingkup & bobot terkunci (tanpa Ubah / Hapus); sudah ditagih → tanpa
+		// pembatalan. Aksi berisiko (Batalkan / Hapus) selalu di bawah, merah, dan perlu konfirmasi.
+		const tercapai = m.status === "Tercapai";
+		const ditagih = m.status_tagih?.docstatus === 1;
 		const menu = [];
-		if (d.bisa_ubah) menu.push(item("ubah", "pencil", __("Ubah Milestone")));
+		if (d.bisa_ubah && !tercapai) menu.push(item("ubah", "pencil", __("Ubah Milestone")));
+		if (d.bisa_ubah && (m.dokumen_wajib || []).length) menu.push(item("dokumen", "file-text", __("Dokumen")));
 		menu.push(item("form", "external-link", __("Buka Form")));
-		if (d.bisa_hapus && !m.sales_invoice) menu.push('<div class="dropdown-divider"></div>', item("hapus", "trash-2", __("Hapus"), "kpt-aksi-bahaya"));
+		if (tercapai && !ditagih && d.bisa_batalkan) {
+			menu.push('<div class="dropdown-divider"></div>', item("batalkan", "rotate-ccw", __("Batalkan status tercapai"), "kpt-aksi-bahaya"));
+		}
+		if (!tercapai && d.bisa_hapus) menu.push('<div class="dropdown-divider"></div>', item("hapus", "trash-2", __("Hapus"), "kpt-aksi-bahaya"));
 		return `<div class="dropdown kpt-aksi-dropdown">
 			<button class="btn btn-xs kpt-aksi-btn" data-toggle="dropdown">${__("Aksi")} ${frappe.utils.icon("down", "xs")}</button>
 			<div class="dropdown-menu dropdown-menu-right kpt-aksi-menu">${menu.join("")}</div>
@@ -258,16 +270,14 @@ class HalamanMilestone {
 			case "buka":
 				return frappe.set_route("milestone-dan-termin", $el.attr("data-project"));
 			case "ubah":
-				return this.dialog_milestone(m);
+				return m.status === "Tercapai" ? this.dialog_tercapai(m, true) : this.dialog_milestone(m);
 			case "form":
 				return frappe.set_route("Form", "Milestone Termin", name);
 			case "tercapai":
 			case "dokumen":
 				return this.dialog_tercapai(m, jenis === "dokumen");
 			case "batalkan":
-				return frappe.confirm(__("Batalkan status tercapai milestone {0}?", [kpm2_esc(m.nama_milestone)]), () =>
-					this.call("batalkan_tercapai", { name }, __("Status tercapai dibatalkan"))
-				);
+				return this.dialog_batalkan(m);
 			case "hapus":
 				return frappe.confirm(__("Hapus milestone {0}?", [kpm2_esc(m.nama_milestone)]), () => this.call("hapus_milestone", { name }, __("Milestone dihapus")));
 		}
@@ -425,6 +435,26 @@ class HalamanMilestone {
 
 		render_pohon();
 		render_otomatis();
+		dialog.show();
+	}
+
+	dialog_batalkan(m) {
+		const dialog = new frappe.ui.Dialog({
+			title: __("Batalkan Status Tercapai — {0}", [m.nama_milestone]),
+			fields: [
+				{ fieldname: "info", fieldtype: "HTML", options: `<div class="kpa-peringatan">${__(
+					"Milestone akan kembali berstatus Rencana / Terlambat dan termin {0} tidak bisa ditagih sampai ditandai tercapai lagi. Pembatalan dicatat di riwayat milestone.",
+					[kpm2_rp(m.nilai_termin)]
+				)}</div>` },
+				{ fieldname: "alasan", fieldtype: "Small Text", label: __("Alasan pembatalan"), reqd: 1 },
+			],
+			primary_action_label: __("Batalkan Status Tercapai"),
+			primary_action: (v) =>
+				this.call("batalkan_tercapai", { name: m.name, alasan: v.alasan }, __("Status tercapai dibatalkan")).then(() => dialog.hide()),
+			secondary_action_label: __("Tutup"),
+			secondary_action: () => dialog.hide(),
+		});
+		dialog.get_primary_btn().removeClass("btn-primary").addClass("btn-danger");
 		dialog.show();
 	}
 
