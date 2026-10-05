@@ -9,16 +9,10 @@ function rapikan_invoice_konstruksi(frm) {
 	frm.page.wrapper.toggleClass(KELAS_SI_KONSTRUKSI, aktif);
 	pindahkan_edit_posting(frm, aktif);
 	atur_label_mata_uang(frm, aktif);
+	atur_kolom_items(frm, aktif);
 	if (!aktif) return;
 
 	frm.toggle_display(FIELD_TIDAK_RELEVAN, false);
-
-	// Item jasa (UM/Termin) non-stok: kolom Warehouse disembunyikan di tabel item invoice ini saja.
-	const grid = frm.fields_dict.items?.grid;
-	if (grid && !grid.__kpsi_gudang) {
-		grid.set_column_disp_in_list_view("warehouse", false);
-		grid.__kpsi_gudang = true;
-	}
 
 	tampilkan_persen_pajak(frm);
 
@@ -73,17 +67,42 @@ function persen_dari_keterangan(row) {
 
 function tampilkan_persen_pajak(frm) {
 	const grid = frm.fields_dict.taxes?.grid;
-	if (!grid || grid.__kpsi_persen) return;
-	const format_asli = frappe.form.get_formatter("Float");
-	grid.update_docfield_property("rate", "formatter", (value, df, options, row) => {
+	// Docfield grid berupa salinan per dokumen: formatter dipasang di salinan invoice yang sedang dibuka.
+	const df = grid && frappe.meta.get_docfield(grid.doctype, "rate", frm.docname);
+	if (!df || df.__kpsi_persen) return;
+	const format_asli = df.formatter || frappe.form.get_formatter("Float");
+	df.formatter = (value, field, options, row) => {
 		const induk = row?.parent && locals["Sales Invoice"]?.[row.parent];
 		if (induk?.jenis_tagihan && row.charge_type === "Actual" && !flt(value)) {
 			const persen = persen_dari_keterangan(row);
 			if (persen != null) return frappe.form.formatters.Percent(persen, { precision: 2 });
 		}
-		return format_asli(value, df, options, row);
-	});
-	grid.__kpsi_persen = true;
+		return format_asli(value, field, options, row);
+	};
+	df.__kpsi_persen = true;
+	grid.refresh();
+}
+
+// Tabel Items invoice proyek: kolom Warehouse disembunyikan (item jasa non-stok) dan kolom Item dilebarkan ke 6/12
+// sehingga total kolom penuh 12 — tidak ada sisa lebar yang jatuh ke kolom tombol edit (pensil), sama seperti tabel
+// pajak. Diterapkan ulang setiap berganti dokumen; invoice biasa kembali ke kolom bawaan.
+function atur_kolom_items(frm, aktif) {
+	const grid = frm.fields_dict.items?.grid;
+	if (!grid) return;
+	const kunci = `${frm.docname}|${aktif}`;
+	if (grid.__kpsi_kunci === kunci) return;
+	grid.__kpsi_kunci = kunci;
+	if (aktif) {
+		grid.column_disp_overrides.warehouse = 1;
+		const item = frappe.meta.get_docfield(grid.doctype, "item_code", frm.docname);
+		if (item) item.columns = 6;
+	} else {
+		delete grid.column_disp_overrides.warehouse;
+	}
+	// Bangun ulang susunan kolom (seperti set_column_disp_in_list_view / reset_grid bawaan).
+	grid.visible_columns = [];
+	grid.grid_rows = [];
+	$(grid.parent).find(".grid-body .grid-row").remove();
 	grid.refresh();
 }
 
