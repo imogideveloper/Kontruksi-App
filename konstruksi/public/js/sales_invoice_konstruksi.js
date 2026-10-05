@@ -2,7 +2,7 @@
 // ERPNext yang tidak relevan untuk invoice jasa konstruksi (POS, nota debit, potong pajak, barcode, stok, kolom
 // gudang) dan rapikan tampilannya. Invoice biasa (tanpa jenis_tagihan) tetap tampil seperti bawaan.
 const KELAS_SI_KONSTRUKSI = "kpsi";
-const FIELD_TIDAK_RELEVAN = ["is_pos", "is_debit_note", "apply_tds", "scan_barcode", "update_stock", "in_words", "base_in_words", "incoterm", "named_place", "tax_category", "taxes_and_charges", "shipping_rule", "total_qty", "total", "currency_and_price_list", "use_company_roundoff_cost_center", "sec_tax_breakup"];
+const FIELD_TIDAK_RELEVAN = ["is_pos", "is_debit_note", "apply_tds", "scan_barcode", "update_stock", "in_words", "base_in_words", "incoterm", "named_place", "tax_category", "taxes_and_charges", "shipping_rule", "total_qty", "total", "currency_and_price_list", "use_company_roundoff_cost_center", "sec_tax_breakup", "time_sheet_list", "section_break_104"];
 
 function rapikan_invoice_konstruksi(frm) {
 	const aktif = Boolean(frm.doc.jenis_tagihan);
