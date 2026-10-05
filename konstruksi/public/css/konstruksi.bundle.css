@@ -5322,3 +5322,46 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpg .kpbs-tabel-judul .kptl-sub-kecil {
 	font-weight: normal;
 }
+
+/* Panduan alur Penagihan: selebar workspace, tiap langkah lebar sama. */
+.kpg .kpg-alur {
+	flex-wrap: nowrap;
+	gap: 12px;
+	padding: 14px 20px;
+}
+
+.kpg .kpg-alur-langkah {
+	flex: 1 1 0;
+	gap: 12px;
+}
+
+.kpg .kpg-alur-langkah > div {
+	min-width: 0;
+}
+
+.kpg .kpg-alur-langkah .kptl-sub-kecil {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.kpg .kpg-alur-no {
+	width: 28px;
+	height: 28px;
+	font-size: var(--text-sm);
+}
+
+.kpg .kpg-alur-panah {
+	flex: 0 0 auto;
+	font-size: 22px;
+}
+
+@media (max-width: 991px) {
+	.kpg .kpg-alur {
+		flex-wrap: wrap;
+	}
+
+	.kpg .kpg-alur-langkah {
+		flex-basis: 40%;
+	}
+}
