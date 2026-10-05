@@ -6050,7 +6050,7 @@ body[data-route^="List/Tender"] .frappe-list .level-left > .list-row-col:last-ch
 
 /* Report Trial Balance — area filter: filter utama di grid 6 kolom yang rapi, opsi (checkbox) dikumpulkan di bawah
    sebagai toggle switch modern, 3 per baris, tiap opsi dalam blok yang sama tinggi. */
-/* Grid 24 kolom: 8 filter utama satu baris (lebar sesuai isi: Company 4, Fiscal Year 2, lainnya 3), opsi 3 per baris (8). */
+/* Grid 24 kolom: 8 filter utama satu baris (lebar sesuai isi: Company 4, Fiscal Year 2, lainnya 3), opsi 4 per baris (6). */
 body[data-route^="query-report/Trial Balance"] .page-form {
 	display: grid;
 	grid-template-columns: repeat(24, minmax(0, 1fr));
@@ -6077,9 +6077,10 @@ body[data-route^="query-report/Trial Balance"] .page-form > .frappe-control[data
 	grid-column: span 2;
 }
 
+/* Opsi (7 toggle): 4 per baris → 2 baris. */
 body[data-route^="query-report/Trial Balance"] .page-form > .frappe-control[data-fieldtype="Check"] {
 	order: 2;
-	grid-column: span 8;
+	grid-column: span 6;
 	margin: 4px 0 !important;
 }
 
@@ -6117,6 +6118,7 @@ body[data-route^="query-report/Trial Balance"] .page-form > .frappe-control[data
 body[data-route^="query-report/Trial Balance"] .page-form > .frappe-control[data-fieldtype="Check"] .label-area {
 	margin: 0 !important;
 	padding: 0 !important;
+	white-space: nowrap;
 }
 
 body[data-route^="query-report/Trial Balance"] .page-form > .frappe-control[data-fieldtype="Check"] input[type="checkbox"] {
