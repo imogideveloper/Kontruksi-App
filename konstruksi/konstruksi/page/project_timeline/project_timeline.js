@@ -222,12 +222,12 @@ class HalamanTimeline {
 				<span class="kptl-legenda-item" data-kptl="legenda" data-info="terlambat"><i class="kptl-l kptl-l-terlambat"></i>${__("Terlambat")}</span>
 				<span class="kptl-legenda-item" data-kptl="legenda" data-info="belum"><i class="kptl-l kptl-l-belum"></i>${__("Belum mulai")}</span>
 				<span class="kptl-legenda-item" data-kptl="legenda" data-info="grup"><i class="kptl-l kptl-l-grup"></i>${__("Kelompok WBS")}</span>
-				<span class="kptl-legenda-item" data-kptl="legenda" data-info="kritis"><i class="kptl-l kptl-l-kritis"></i>⚡ ${__("Jalur kritis")}${this.opsi.kritis ? "" : ` <span class="kptl-sub-kecil">(${__("aktifkan di Tampilan")})</span>`}</span>
+				<span class="kptl-legenda-item" data-kptl="legenda" data-info="kritis"><i class="kptl-l kptl-l-kritis"></i>⚡ ${__("Jalur kritis")}</span>
 				<span class="kptl-legenda-item" data-kptl="legenda" data-info="milestone"><i class="kptl-l-diamond"></i>${__("Milestone")}</span>
 				<span class="kptl-legenda-item" data-kptl="legenda" data-info="hariini"><i class="kptl-l-hariini"></i>${__("Hari ini")}</span>
-				<span class="kptl-legenda-item" data-kptl="legenda" data-info="mulai"><i class="kptl-l-periode kptl-l-mulai"></i>${__("Mulai pelaksanaan")}</span>
-				<span class="kptl-legenda-item" data-kptl="legenda" data-info="selesai_kontrak"><i class="kptl-l-periode kptl-l-selesai"></i>${__("Batas selesai kontrak")}</span>
-				${this.data.project.akhir_pemeliharaan ? `<span class="kptl-legenda-item" data-kptl="legenda" data-info="pemeliharaan"><i class="kptl-l-periode kptl-l-pemeliharaan"></i>${__("Akhir pemeliharaan")}</span>` : ""}
+				<span class="kptl-legenda-item" data-kptl="legenda" data-info="mulai"><i class="kptl-l-periode kptl-l-mulai"></i>${__("Mulai")}</span>
+				<span class="kptl-legenda-item" data-kptl="legenda" data-info="selesai_kontrak"><i class="kptl-l-periode kptl-l-selesai"></i>${__("Batas selesai")}</span>
+				${this.data.project.akhir_pemeliharaan ? `<span class="kptl-legenda-item" data-kptl="legenda" data-info="pemeliharaan"><i class="kptl-l-periode kptl-l-pemeliharaan"></i>${__("Pemeliharaan")}</span>` : ""}
 			</div>
 			<div class="kptl-legenda-info" style="display:none"></div>
 			<div class="kptl-gantt"></div>`);
@@ -428,7 +428,7 @@ class HalamanTimeline {
 					<span class="kptl-legenda-item" data-kptl="legenda" data-info="rencana"><i class="kptl-k kptl-k-rencana"></i>${__("Rencana")}</span>
 					<span class="kptl-legenda-item" data-kptl="legenda" data-info="aktual"><i class="kptl-k kptl-k-aktual"></i>${__("Aktual")}</span>
 					<span class="kptl-legenda-item" data-kptl="legenda" data-info="hariini"><i class="kptl-l-hariini"></i>${__("Hari ini")}</span>
-					<span class="kptl-legenda-item" data-kptl="legenda" data-info="selesai_kontrak"><i class="kptl-l-periode kptl-l-selesai"></i>${__("Batas selesai kontrak")}</span>
+					<span class="kptl-legenda-item" data-kptl="legenda" data-info="selesai_kontrak"><i class="kptl-l-periode kptl-l-selesai"></i>${__("Batas selesai")}</span>
 				</div>
 				<div class="kptl-legenda-info" style="display:none"></div>
 				<button class="btn btn-default btn-sm" data-kptl="tabel-kurva">${frappe.utils.icon("table", "xs")} ${this.tabel_kurva ? __("Sembunyikan tabel") : __("Tabel data")}</button>

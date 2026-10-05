@@ -5001,3 +5001,18 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	color: var(--text-muted) !important;
 	cursor: pointer;
 }
+
+/* Legenda Gantt satu baris (geser ke samping bila layar sempit). */
+.kptl-isi > .kptl-legenda {
+	flex-wrap: nowrap;
+	gap: 2px 6px;
+	overflow-x: auto;
+	white-space: nowrap;
+	scrollbar-width: thin;
+}
+
+.kptl-isi > .kptl-legenda .kptl-legenda-item {
+	flex-shrink: 0;
+	gap: 5px;
+	padding: 2px 5px;
+}
