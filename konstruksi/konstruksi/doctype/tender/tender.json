@@ -217,7 +217,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 0,
-   "in_standard_filter": 0,
+   "in_standard_filter": 1,
    "label": "Status",
    "options": "Persiapan\nPenawaran Dikirim\nEvaluasi\nMenang\nKalah\nBatal / Mundur",
    "reqd": 1,
@@ -271,7 +271,7 @@
    "link_fieldname": "tender"
   }
  ],
- "modified": "2026-10-04 22:00:00.000000",
+ "modified": "2026-10-05 20:53:38.706106",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Tender",

@@ -5767,3 +5767,52 @@ body[data-route^="List/Hasil Tender"] .frappe-list .level-left > .list-row-col:l
 .body-sidebar[data-title="Konstruksi"] .standard-sidebar-item:not(.active-sidebar):has(a.item-anchor:not(.section-break)):is(:hover, :focus-within) :is(.sidebar-item-label, .sidebar-item-icon, .sidebar-item-icon .icon) {
 	color: var(--konstruksi-active-fg) !important;
 }
+
+/* List Tender: lebar kolom sesuai isi (tidak dibagi rata sehingga terpotong); nama project & pemberi kerja boleh turun
+   baris; bila layar kurang lebar, list digeser ke samping. */
+body[data-route^="List/Tender"] .frappe-list .result {
+	overflow-x: auto;
+}
+
+body[data-route^="List/Tender"] .frappe-list :is(.list-row-head, .list-row-container) {
+	min-width: 1400px;
+}
+
+body[data-route^="List/Tender"] .frappe-list .list-subject {
+	flex: 0 0 150px !important;
+	min-width: 150px;
+}
+
+body[data-route^="List/Tender"] .frappe-list .list-row-col:is([data-fieldname="nama_paket"], [data-fieldname="pemberi_kerja"]) {
+	flex: 1 1 200px !important;
+	min-width: 200px;
+	white-space: normal !important;
+	overflow: visible !important;
+	text-overflow: clip !important;
+}
+
+body[data-route^="List/Tender"] .frappe-list .kptdr-utuh {
+	white-space: normal;
+	line-height: 1.35;
+}
+
+body[data-route^="List/Tender"] .frappe-list .list-row-col[data-fieldname="jenis_project"] {
+	flex: 0 0 160px !important;
+}
+
+body[data-route^="List/Tender"] .frappe-list .list-row-col:is([data-fieldname="hps"], [data-fieldname="nilai_penawaran"]) {
+	flex: 0 0 150px !important;
+}
+
+body[data-route^="List/Tender"] .frappe-list .list-row-col[data-fieldname="batas_pemasukan"] {
+	flex: 0 0 140px !important;
+}
+
+body[data-route^="List/Tender"] .frappe-list .list-row-col[data-fieldname="penanggung_jawab"] {
+	flex: 0 0 150px !important;
+}
+
+body[data-route^="List/Tender"] .frappe-list .level-left > .list-row-col:last-child {
+	flex: 0 0 150px !important;
+	margin-right: 0;
+}

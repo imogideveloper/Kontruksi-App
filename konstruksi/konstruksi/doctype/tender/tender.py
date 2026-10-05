@@ -64,3 +64,27 @@ def get_next_kode(tanggal=None):
 	prefix = get_kode_prefix(tanggal)
 	current = cint(frappe.db.get_value("Series", prefix, "current", order_by="name"))
 	return f"{prefix}{current + 1:03d}"
+
+
+STATUS_PROSES = ("Persiapan", "Penawaran Dikirim", "Evaluasi")
+
+
+@frappe.whitelist()
+def get_ringkasan_list():
+	"""Kartu di atas list Tender: jumlah per status, tenggat pemasukan ≤ 7 hari (masih Persiapan), total HPS dalam proses."""
+	from frappe.utils import add_days, get_datetime, now_datetime
+
+	rows = frappe.get_list("Tender", fields=["status", "hps", "batas_pemasukan"], limit_page_length=0)
+	per_status = {}
+	for r in rows:
+		per_status[r.status] = per_status.get(r.status, 0) + 1
+	sekarang = now_datetime()
+	batas = add_days(sekarang, 7)
+	tenggat = sum(1 for r in rows if r.status == "Persiapan" and r.batas_pemasukan and get_datetime(r.batas_pemasukan) <= batas)
+	return {
+		"total": len(rows),
+		"per_status": per_status,
+		"tenggat_7_hari": tenggat,
+		"batas_7_hari": str(batas.date()),
+		"hps_proses": sum(flt(r.hps) for r in rows if r.status in STATUS_PROSES),
+	}
