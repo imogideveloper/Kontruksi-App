@@ -5393,3 +5393,18 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kpg .kpg-kartu-baris {
 	margin-bottom: 14px;
 }
+
+/* Sales Invoice tagihan proyek (kpsi, sales_invoice_konstruksi.js): label Customer lebih ringkas supaya nama
+   customer yang panjang tidak terpotong; nama item jasa di tabel item boleh turun baris. */
+@media (min-width: 768px) {
+	.kpsi .form-layout .frappe-control[data-fieldname="customer"] > .form-group {
+		grid-template-columns: 96px minmax(0, 1fr) !important;
+	}
+}
+
+.kpsi .frappe-control[data-fieldname="items"] .grid-static-col[data-fieldname="item_code"] .static-area {
+	white-space: normal;
+	overflow: visible;
+	text-overflow: clip;
+	line-height: 1.4;
+}

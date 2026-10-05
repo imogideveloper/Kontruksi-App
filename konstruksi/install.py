@@ -398,7 +398,7 @@ AKUN_PENAGIHAN = {
 CUSTOM_FIELD_PENAGIHAN = {
 	"Sales Invoice": [
 		{"fieldname": "penagihan_proyek_section", "fieldtype": "Section Break", "label": "Penagihan Proyek",
-			"insert_after": "project", "collapsible": 1, "depends_on": "eval:doc.jenis_tagihan"},
+			"insert_after": "project", "collapsible": 0, "depends_on": "eval:doc.jenis_tagihan"},
 		{"fieldname": "jenis_tagihan", "fieldtype": "Select", "label": "Jenis Tagihan", "options": "\nUang Muka\nTermin",
 			"insert_after": "penagihan_proyek_section", "read_only": 1, "in_standard_filter": 1, "allow_on_submit": 0},
 		{"fieldname": "kontrak_project", "fieldtype": "Link", "label": "Kontrak Project", "options": "Kontrak Project",

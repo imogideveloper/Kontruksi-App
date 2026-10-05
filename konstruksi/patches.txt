@@ -36,3 +36,4 @@ konstruksi.patches.v1_0.buat_kalender_project
 konstruksi.patches.v1_0.buat_wbs
 konstruksi.patches.v1_0.buat_wbs #aktivitas
 konstruksi.patches.v1_0.buat_penagihan
+konstruksi.patches.v1_0.buat_penagihan #section-terbuka
