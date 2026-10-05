@@ -4848,3 +4848,79 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 .kptl-grup-tgl {
 	top: 13px;
 }
+
+/* Timeline: penanda periode kontrak (mulai, batas selesai, akhir pemeliharaan) — garis penuh + label di header. */
+.kptl {
+	--kptl-mulai: #15803d;
+	--kptl-batas: #d97706;
+	--kptl-pemeliharaan: #64748b;
+}
+
+[data-theme="dark"] .kptl {
+	--kptl-mulai: #34a865;
+	--kptl-batas: #f59e0b;
+	--kptl-pemeliharaan: #94a3b8;
+}
+
+.kptl-garis-periode {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	z-index: 2;
+	width: 0;
+	margin-left: -1px;
+}
+
+.kptl-garis-mulai { border-left: 2px dashed var(--kptl-mulai); }
+.kptl-garis-selesai { border-left: 3px solid var(--kptl-batas); }
+.kptl-garis-pemeliharaan { border-left: 2px dashed var(--kptl-pemeliharaan); }
+
+.kptl-track-header {
+	position: relative;
+}
+
+.kptl-h-penanda {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 24px;
+	pointer-events: none;
+}
+
+.kptl-penanda {
+	position: absolute;
+	top: 3px;
+	z-index: 1;
+	max-width: 220px;
+	padding: 1px 7px;
+	border-radius: 4px;
+	color: #fff;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 16px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* Label di sisi dalam garis: Mulai ke kanan, Selesai / Pemeliharaan ke kiri. */
+.kptl-penanda-kiri { transform: translateX(1px); }
+.kptl-penanda-kanan { transform: translateX(calc(-100% - 1px)); }
+
+.kptl-penanda-mulai { background: var(--kptl-mulai); }
+.kptl-penanda-selesai { background: var(--kptl-batas); }
+.kptl-penanda-pemeliharaan { background: var(--kptl-pemeliharaan); }
+
+.kptl-l-periode {
+	display: inline-block;
+	width: 0;
+	height: 12px;
+}
+
+.kptl-l-mulai { border-left: 2px dashed var(--kptl-mulai); }
+.kptl-l-selesai { border-left: 3px solid var(--kptl-batas); }
+.kptl-l-pemeliharaan { border-left: 2px dashed var(--kptl-pemeliharaan); }
+
+.kptl-k-batas { stroke: var(--kptl-batas); stroke-width: 3; }
+.kptl-k-batas-label { fill: var(--kptl-batas); font-size: 11px; font-weight: 600; }

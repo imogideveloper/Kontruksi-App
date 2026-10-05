@@ -208,6 +208,9 @@ class HalamanTimeline {
 				<span><i class="kptl-l kptl-l-kritis"></i>${__("Jalur kritis")}</span>
 				<span><i class="kptl-l-diamond"></i>${__("Milestone")}</span>
 				<span><i class="kptl-l-hariini"></i>${__("Hari ini")}</span>
+				<span><i class="kptl-l-periode kptl-l-mulai"></i>${__("Mulai pelaksanaan")}</span>
+				<span><i class="kptl-l-periode kptl-l-selesai"></i>${__("Batas selesai kontrak")}</span>
+				${this.data.project.akhir_pemeliharaan ? `<span><i class="kptl-l-periode kptl-l-pemeliharaan"></i>${__("Akhir pemeliharaan")}</span>` : ""}
 			</div>
 			<div class="kptl-gantt"></div>`);
 		this.render_gantt();
@@ -359,10 +362,25 @@ class HalamanTimeline {
 		}
 		if (x_hari_ini >= 0 && x_hari_ini <= lebar) latar.push(`<div class="kptl-hari-ini" style="left:${x_hari_ini}px"></div>`);
 
+		// Penanda periode kontrak: garis di seluruh tinggi Gantt + label di header.
+		// Mulai = awal hari mulai; Batas selesai & akhir pemeliharaan = akhir harinya.
+		const penanda = [];
+		if (p.mulai) penanda.push({ kelas: "mulai", kiri: x(p.mulai), teks: `▶ ${__("Mulai")} ${kptl_teks_tgl(p.mulai)}`, rata: "kiri" });
+		if (p.selesai) penanda.push({ kelas: "selesai", kiri: x(p.selesai) + px, teks: `■ ${__("Selesai kontrak")} ${kptl_teks_tgl(p.selesai)}`, rata: "kanan" });
+		if (p.akhir_pemeliharaan) {
+			penanda.push({ kelas: "pemeliharaan", kiri: x(p.akhir_pemeliharaan) + px, teks: `${__("Akhir pemeliharaan")} ${kptl_teks_tgl(p.akhir_pemeliharaan)}`, rata: "kanan" });
+		}
+		penanda.forEach((m) => latar.push(`<div class="kptl-garis-periode kptl-garis-${m.kelas}" style="left:${m.kiri}px"></div>`));
+		const label_penanda = penanda
+			.filter((m) => m.kiri >= 0 && m.kiri <= lebar)
+			.map((m) => `<div class="kptl-penanda kptl-penanda-${m.kelas} kptl-penanda-${m.rata}" style="left:${m.kiri}px" title="${kptl_esc(m.teks)}">${kptl_esc(m.teks)}</div>`)
+			.join("");
+
 		$g.html(`<div class="kptl-scroll"><div class="kptl-kanvas" style="width:${KPTL_LABEL_W + lebar}px">
 			<div class="kptl-row kptl-header">
 				<div class="kptl-label kptl-label-header">${__("Aktivitas")}</div>
-				<div class="kptl-track kptl-track-header"><div class="kptl-h-atas">${atas.join("")}</div><div class="kptl-h-bawah">${bawah.join("")}</div></div>
+				<div class="kptl-track kptl-track-header"><div class="kptl-h-atas">${atas.join("")}</div><div class="kptl-h-bawah">${bawah.join("")}</div>
+					<div class="kptl-h-penanda">${label_penanda}</div></div>
 			</div>
 			<div class="kptl-badan"><div class="kptl-latar" style="left:${KPTL_LABEL_W}px;width:${lebar}px">${latar.join("")}</div>${baris.join("")}</div>
 		</div></div>`);
@@ -391,6 +409,7 @@ class HalamanTimeline {
 					<span><i class="kptl-k kptl-k-rencana"></i>${__("Rencana")}</span>
 					<span><i class="kptl-k kptl-k-aktual"></i>${__("Aktual")}</span>
 					<span><i class="kptl-l-hariini"></i>${__("Hari ini")}</span>
+					<span><i class="kptl-l-periode kptl-l-selesai"></i>${__("Batas selesai kontrak")}</span>
 				</div>
 				<button class="btn btn-default btn-sm" data-kptl="tabel-kurva">${frappe.utils.icon("table", "xs")} ${this.tabel_kurva ? __("Sembunyikan tabel") : __("Tabel data")}</button>
 			</div>
@@ -427,12 +446,15 @@ class HalamanTimeline {
 		}
 		const hari_ini = new Date();
 		const xh = sx(kptl_iso(hari_ini));
+		const xs = this.data.project.selesai ? sx(this.data.project.selesai) : null;
 		const label_akhir = (p, k, kelas, nama) =>
 			p ? `<text class="kptl-k-label ${kelas}" x="${sx(p.tanggal) + 8}" y="${sy(p[k]) + 4}">${nama} ${kptl_persen(p[k])}</text>` : "";
 		$k.html(`<svg class="kptl-kurva-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${__("Kurva S rencana vs aktual")}">
 			${grid}${bulan.join("")}
 			<line class="kptl-k-sumbu-garis" x1="${m.kiri}" x2="${m.kiri + iw}" y1="${m.atas + ih}" y2="${m.atas + ih}"/>
 			${xh >= m.kiri && xh <= m.kiri + iw ? `<line class="kptl-k-hariini" x1="${xh}" x2="${xh}" y1="${m.atas}" y2="${m.atas + ih}"/>` : ""}
+			${xs != null ? `<line class="kptl-k-batas" x1="${xs}" x2="${xs}" y1="${m.atas}" y2="${m.atas + ih}"/>
+				<text class="kptl-k-batas-label" x="${xs - 6}" y="${m.atas + 12}" text-anchor="end">■ ${__("Selesai kontrak")} ${kptl_teks_tgl(this.data.project.selesai)}</text>` : ""}
 			<path class="kptl-k-rencana-garis" d="${garis("rencana")}"/>
 			<path class="kptl-k-aktual-garis" d="${garis("aktual")}"/>
 			${akhir_aktual ? `<circle class="kptl-k-titik" cx="${sx(akhir_aktual.tanggal)}" cy="${sy(akhir_aktual.aktual)}" r="5"/>` : ""}
