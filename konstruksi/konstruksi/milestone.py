@@ -382,8 +382,19 @@ def get_aktivitas_milestone(project, name):
 		"Tahapan Aktivitas", filters={"parent": ("in", [t.name for t in tasks]), "parenttype": "Task"}, fields=["parent", "nama_tahap", "bobot"]
 	):
 		bobot.setdefault(b.parent, {})[b.nama_tahap] = flt(b.bobot)
+	# Aktivitas penerus (Dependent Tasks) yang sudah Selesai — diperingatkan bila pendahulunya dibuka kembali.
+	penerus = {}
+	for d in frappe.db.sql(
+		"""select dep.task as pendahulu, t.name, t.subject, t.wbs_item from `tabTask Depends On` dep
+		join `tabTask` t on t.name = dep.parent
+		where dep.parenttype = 'Task' and dep.task in %s and t.status = 'Completed'""",
+		(tuple(t.name for t in tasks),),
+		as_dict=True,
+	):
+		penerus.setdefault(d.pendahulu, []).append({"name": d.name, "subject": d.subject, "kode_wbs": kode.get(d.wbs_item, "")})
 	for t in tasks:
 		t.kode_wbs = kode.get(t.wbs_item, "")
+		t.penerus_selesai = penerus.get(t.name, [])
 		t.bobot_tahap = bobot.get(t.name, {})
 		t.laporan = laporan.get(t.name, [])
 		for r in t.laporan:
@@ -443,6 +454,11 @@ def batalkan_tercapai(project, name, alasan=None, laporan_batal=None):
 	if doc.sales_invoice and frappe.db.get_value("Sales Invoice", doc.sales_invoice, "docstatus") == 1:
 		frappe.throw(_("Milestone ini sudah ditagih ({0}); batalkan tagihannya dulu.").format(doc.sales_invoice))
 	tanggal = doc.tanggal_tercapai
+	# Dokumen wajib membuktikan capaian yang dibatalkan: file lama dicatat di riwayat lalu dikosongkan, sehingga saat
+	# ditandai tercapai lagi wajib upload dokumen baru sesuai progres terbaru.
+	arsip = [(d.nama_dokumen, d.file) for d in doc.dokumen_wajib if d.file]
+	for d in doc.dokumen_wajib:
+		d.file = None
 	# Milestone dibatalkan dulu supaya laporan di lingkupnya boleh diubah (lihat aktivitas.revisi_laporan).
 	doc.tanggal_tercapai = None
 	doc.flags.batal_tercapai = True
@@ -456,6 +472,17 @@ def batalkan_tercapai(project, name, alasan=None, laporan_batal=None):
 		)
 		+ (_(" Laporan progres ikut dibatalkan: {0}.").format("; ".join(dibatalkan)) if dibatalkan else ""),
 	)
+	if arsip:
+		doc.add_comment(
+			"Comment",
+			_("Dokumen capaian sebelumnya (diarsipkan karena pembatalan, wajib upload ulang saat tercapai lagi):")
+			+ "<ul>"
+			+ "".join(
+				f'<li>{frappe.utils.escape_html(n)}: <a href="{frappe.utils.escape_html(f)}" target="_blank">{frappe.utils.escape_html(f.split("/")[-1])}</a></li>'
+				for n, f in arsip
+			)
+			+ "</ul>",
+		)
 	return {"laporan_dibatalkan": len(dibatalkan)}
 
 

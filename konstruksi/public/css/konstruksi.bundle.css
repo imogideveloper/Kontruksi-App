@@ -4057,3 +4057,29 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	margin-top: 10px;
 	font-size: var(--text-sm);
 }
+
+/* Peringatan aktivitas penerus yang sudah selesai saat pendahulunya dibuka kembali. */
+.kpm2-ab-peringatan {
+	margin-top: 10px;
+}
+
+.kpm2-ab-peringatan ul,
+.kpa-peringatan ul {
+	margin: 6px 0 0;
+	padding-left: 18px;
+}
+
+.kpa-tanda-oranye {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 1px 8px;
+	border-radius: 999px;
+	background: var(--kpr-oranye-bg, #fff1e6);
+	color: var(--kpr-oranye, #c2410c);
+	font-weight: 500;
+}
+
+.kpa-tanda-oranye .icon {
+	stroke: currentColor;
+}

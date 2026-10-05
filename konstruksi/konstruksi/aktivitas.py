@@ -181,7 +181,11 @@ def get_aktivitas(project):
 				t.exp_start_date and pt.exp_end_date and pt.status != "Completed"
 				and get_datetime(t.exp_start_date).date() <= get_datetime(pt.exp_end_date).date()
 			)
-			t.predecessor.append({"name": p, "subject": pt.subject, "mendahului": mendahului})
+			t.predecessor.append({"name": p, "subject": pt.subject, "mendahului": mendahului, "selesai": pt.status == "Completed"})
+		# Aktivitas sudah Selesai tapi pendahulunya dibuka kembali (mis. laporannya dibatalkan / direvisi).
+		t.pendahulu_dibuka = (
+			[x["subject"] for x in t.predecessor if not x["selesai"]] if t.status == "Completed" else []
+		)
 	tasks.sort(key=lambda t: (not t.kode_wbs, kunci_kode(t.kode_wbs), str(t.exp_start_date or ""), t.subject))
 
 	pj = frappe.get_all(

@@ -296,7 +296,8 @@ class HalamanAktivitas {
 					return `<tr>
 						<td class="kpw-kode">${kpa_esc(t.kode_wbs)}</td>
 						<td class="kpa-wrap"><a class="kpa-judul" data-kpa="ubah" data-name="${kpa_esc(t.name)}">${kpa_esc(t.subject)}</a>${setelah}
-							${t.laporan_menunggu ? `<div class="kpa-sub kpa-oranye">${__("{0} laporan menunggu persetujuan", [t.laporan_menunggu])}</div>` : ""}</td>
+							${t.laporan_menunggu ? `<div class="kpa-sub kpa-oranye">${__("{0} laporan menunggu persetujuan", [t.laporan_menunggu])}</div>` : ""}
+							${(t.pendahulu_dibuka || []).length ? `<div class="kpa-sub"><span class="kpa-tanda-oranye" title="${__("Aktivitas ini sudah Selesai, tapi pendahulunya dibuka kembali (laporannya dibatalkan / direvisi). Periksa apakah aktivitas ini masih valid.")}">${frappe.utils.icon("triangle-alert", "xs")} ${__("Pendahulu dibuka kembali")}: ${t.pendahulu_dibuka.map(kpa_esc).join(", ")}</span></div>` : ""}</td>
 						<td class="kpa-wrap">${t.pj ? `<div>${kpa_esc(t.pj_nama)}</div><div class="kpa-sub">${kpa_esc(t.pj_jabatan || "")}</div>` : '<span class="kpw-strip">—</span>'}</td>
 						<td>${kpa_tgl(t.exp_start_date)} – ${kpa_tgl(t.exp_end_date)}</td>
 						<td class="text-right">${t.durasi_hk ? `${t.durasi_hk} hk` : ""}</td>
@@ -729,6 +730,13 @@ class HalamanAktivitas {
 					description: __("Semula {0} {1}. Isi 0 untuk membatalkan laporan ini.", [kpa_angka(r.volume), r.satuan || ""]) },
 			{ fieldname: "pratinjau", fieldtype: "HTML" },
 		];
+		// Penerus yang sudah Selesai ikut terdampak bila progres aktivitas ini turun.
+		const penerus = this.data.aktivitas.filter((x) => x.status === "Completed" && (x.predecessor || []).some((p) => p.name === r.task));
+		if (penerus.length) {
+			fields.push({ fieldname: "penerus", fieldtype: "HTML", options: `<div class="kpa-peringatan">${__(
+				"Aktivitas berikut sudah Selesai dan berjalan setelah aktivitas ini — periksa kembali setelah revisi:"
+			)}<ul>${penerus.map((x) => `<li>${kpa_esc(x.kode_wbs)} ${kpa_esc(x.subject)}</li>`).join("")}</ul></div>` });
+		}
 		const dialog = new frappe.ui.Dialog({
 			title: __("Revisi Laporan Progres — {0}", [r.name]),
 			size: "large",

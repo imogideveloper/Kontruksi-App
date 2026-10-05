@@ -470,6 +470,10 @@ class HalamanMilestone {
 				{ fieldname: "alasan", fieldtype: "Select", label: __("Alasan Pembatalan"), reqd: 1, options: ["", ...ALASAN] },
 				{ fieldname: "alasan_lain", fieldtype: "Small Text", label: __("Alasan Lainnya"),
 					depends_on: `eval:doc.alasan==${JSON.stringify(LAINNYA)}`, mandatory_depends_on: `eval:doc.alasan==${JSON.stringify(LAINNYA)}` },
+				{ fieldname: "dokumen_info", fieldtype: "HTML", options: (m.dokumen_wajib || []).some((x) => x.file)
+					? `<div class="kpa-form-ket">${__("{0} dokumen capaian yang sudah di-upload akan diarsipkan ke riwayat milestone; saat ditandai tercapai lagi wajib upload dokumen baru.",
+						[(m.dokumen_wajib || []).filter((x) => x.file).length])}</div>`
+					: "" },
 				{ fieldname: "aktivitas_section", fieldtype: "Section Break", label: __("Aktivitas yang Ikut Dibatalkan") },
 				{ fieldname: "aktivitas", fieldtype: "HTML" },
 			],
@@ -526,12 +530,14 @@ class HalamanMilestone {
 							.join("")}`)
 						.join("")}</tbody>
 				</table></div>
-				<div class="kpm2-ab-ringkas"></div>`
+				<div class="kpm2-ab-ringkas"></div>
+				<div class="kpm2-ab-penerus"></div>`
 				: `<div class="kpa-form-ket">${__("Tidak ada aktivitas di lingkup milestone ini.")}</div>`
 		);
 		const perbarui = () => {
 			let n_lap = 0;
 			let n_akt = 0;
+			const penerus = [];
 			akt.forEach((t, ti) => {
 				const aktif = $a.find(`[data-akt="${ti}"]`).prop("checked");
 				$a.find(`tr[data-baris="${ti}"]`).toggle(aktif);
@@ -548,7 +554,10 @@ class HalamanMilestone {
 						turun += (flt(r.volume) / flt(t.target_volume)) * 100;
 					}
 				});
-				if (turun > 0.0001) n_akt++;
+				if (turun > 0.0001) {
+					n_akt++;
+					(t.penerus_selesai || []).forEach((x) => penerus.push(`${kpm2_esc(x.kode_wbs)} ${kpm2_esc(x.subject)} (${__("setelah")} ${kpm2_esc(t.subject)})`));
+				}
 				// Progres tersimpan dibatasi 100%; laporan berlebih (realisasi > target) diperhitungkan dari realisasi.
 				const asal = t.metode_progres === "Tahapan" || !flt(t.target_volume) ? flt(t.progress) : (flt(t.realisasi_volume) / flt(t.target_volume)) * 100;
 				const baru = Math.min(Math.max(asal - turun, 0), 100);
@@ -558,6 +567,12 @@ class HalamanMilestone {
 						: `<span class="kpa-sub">${__("Progres")} ${persen(t.progress)}</span>`
 				);
 			});
+			$a.find(".kpm2-ab-penerus").html(
+				penerus.length
+					? `<div class="kpa-peringatan kpm2-ab-peringatan">${__("Aktivitas berikut sudah Selesai tapi pendahulunya akan dibuka kembali — periksa di Task & Activity:")}
+						<ul>${[...new Set(penerus)].map((x) => `<li>${x}</li>`).join("")}</ul></div>`
+					: ""
+			);
 			$a.find(".kpm2-ab-ringkas").html(
 				n_lap
 					? __("{0} laporan dibatalkan · {1} aktivitas kembali bisa dilaporkan", [`<b>${n_lap}</b>`, `<b>${n_akt}</b>`])
