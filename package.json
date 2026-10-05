@@ -1,0 +1,8 @@
+{
+	"name": "konstruksi",
+	"private": true,
+	"description": "Dependensi frontend app konstruksi",
+	"dependencies": {
+		"html-to-image": "1.11.13"
+	}
+}
