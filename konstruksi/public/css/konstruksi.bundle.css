@@ -3197,8 +3197,9 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	min-width: 240px;
 }
 
+/* Lebar tetap kolom ≈ 1.190px + kolom Aktivitas (min. ±240px); geser ke samping bila layar kurang lebar. */
 .kpa-tabel {
-	min-width: 1180px;
+	min-width: 1430px;
 }
 
 .kpa-tabel td {

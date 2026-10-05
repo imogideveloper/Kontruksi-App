@@ -255,7 +255,7 @@ class HalamanAktivitas {
 				</div>
 			</div>
 			<div class="kpw-tabel-wrap"><table class="kpw-tabel kpa-tabel">
-				<colgroup><col style="width:60px"><col><col style="width:150px"><col style="width:150px"><col style="width:190px"><col style="width:70px">
+				<colgroup><col style="width:60px"><col><col style="width:150px"><col style="width:150px"><col style="width:220px"><col style="width:70px">
 					<col style="width:90px"><col style="width:190px"><col style="width:110px"><col style="width:150px"></colgroup>
 				<thead><tr><th>${__("WBS")}</th><th>${__("Aktivitas")}</th><th>${__("PJ")}</th><th>${__("Posisi / Jabatan")}</th><th>${__("Jadwal")}</th><th class="text-right">${__("Durasi")}</th>
 					<th>${__("Prioritas")}</th><th>${__("Progres")}</th><th>${__("Status")}</th><th></th></tr></thead>
