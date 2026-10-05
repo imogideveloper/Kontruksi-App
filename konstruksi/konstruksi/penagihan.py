@@ -39,6 +39,7 @@ def data_kontrak(project):
 		nilai_kontrak=flt(p.nilai_kontrak or k.nilai_kontrak_terkini or k.nilai_kontrak), ppn=ppn,
 		um_persen=flt(k.uang_muka_persen), um_nilai=flt(k.nilai_uang_muka), retensi_persen=flt(k.retensi_persen),
 		pph_persen=flt(k.pph_final_persen), jaminan_um=k.jaminan_uang_muka_diserahkan, akhir_pemeliharaan=k.akhir_pemeliharaan,
+		tanggal_selesai=k.tanggal_selesai, skema_retensi=k.get("skema_retensi") or SKEMA_RETENSI_FHO,
 		nomor_kontrak=k.nomor_kontrak, cost_center=p.cost_center, nilai_kontrak_awal=flt(k.nilai_kontrak),
 	)
 
@@ -186,21 +187,54 @@ def buat_tagihan_termin(project, milestone):
 	return si.name
 
 
+SKEMA_RETENSI_FHO = "Cair di Akhir Pemeliharaan"
+SKEMA_RETENSI_SEPARUH = "50% PHO / 50% FHO"
+SKEMA_RETENSI_JAMINAN = "Diganti Jaminan Pemeliharaan"
+
+
+def bagian_retensi(k, retensi, posting):
+	"""[(jatuh tempo, nominal, keterangan)] retensi sesuai skema kontrak. PHO = Tanggal Selesai, FHO = Akhir Pemeliharaan."""
+	posting = getdate(posting)
+	fho = getdate(k.akhir_pemeliharaan) if k.akhir_pemeliharaan else getdate(add_days(posting, 180))
+	pho = getdate(k.tanggal_selesai) if k.tanggal_selesai else fho
+	tgl = lambda d: max(d, posting)  # noqa: E731
+	persen = flt(k.retensi_persen, 2)
+	if k.skema_retensi == SKEMA_RETENSI_SEPARUH:
+		pertama = flt(retensi / 2, 0)
+		return [
+			(tgl(pho), pertama, _("Retensi {0}% — 50% saat serah terima pertama (PHO)").format(persen)),
+			(tgl(fho), retensi - pertama, _("Retensi {0}% — 50% setelah masa pemeliharaan (FHO)").format(persen)),
+		]
+	if k.skema_retensi == SKEMA_RETENSI_JAMINAN:
+		return [(tgl(pho), retensi, _("Retensi {0}% (cair saat PHO, diganti jaminan pemeliharaan)").format(persen))]
+	return [(tgl(fho), retensi, _("Retensi {0}% (dibayar setelah masa pemeliharaan)").format(persen))]
+
+
 def atur_jadwal_retensi(si, k):
-	"""Jadwal pembayaran: (1) dibayar sekarang = total − retensi, (2) retensi jatuh tempo akhir pemeliharaan."""
+	"""Jadwal pembayaran: (1) dibayar sekarang = total − retensi, (2..) retensi sesuai skema retensi kontrak."""
 	if not flt(si.nilai_retensi):
 		return
 	total = flt(si.rounded_total or si.grand_total)
 	retensi = min(flt(si.nilai_retensi), total)
-	jatuh_tempo_retensi = k.akhir_pemeliharaan or add_days(si.posting_date, 180)
 	posting = getdate(si.posting_date)
 	si.payment_terms_template = None
-	si.set("payment_schedule", [
-		{"due_date": getdate(si.due_date) if si.due_date else posting, "payment_amount": total - retensi,
-			"invoice_portion": (total - retensi) / total * 100, "description": _("Pembayaran termin")},
-		{"due_date": max(getdate(jatuh_tempo_retensi), posting), "payment_amount": retensi, "invoice_portion": retensi / total * 100,
-			"description": _("Retensi {0}% (dibayar setelah masa pemeliharaan)").format(flt(k.retensi_persen, 2))},
-	])
+	jadwal = [{"due_date": getdate(si.due_date) if si.due_date else posting, "payment_amount": total - retensi,
+		"invoice_portion": (total - retensi) / total * 100, "description": _("Pembayaran termin")}]
+	for jatuh_tempo, nilai, ket in bagian_retensi(k, retensi, posting):
+		jadwal.append({"due_date": jatuh_tempo, "payment_amount": nilai, "invoice_portion": nilai / total * 100, "description": ket})
+	si.set("payment_schedule", jadwal)
+
+
+def jatuh_tempo_retensi_berikut(invoice, diterima):
+	"""Jatuh tempo bagian retensi berikutnya yang belum terbayar (jadwal pembayaran baris ke-2 dst.)."""
+	rows = frappe.get_all("Payment Schedule", filters={"parent": invoice, "parenttype": "Sales Invoice", "idx": (">", 1)},
+		fields=["due_date", "payment_amount"], order_by="idx asc")
+	sisa = flt(diterima)
+	for r in rows:
+		if sisa + 0.5 < flt(r.payment_amount):
+			return r.due_date
+		sisa -= flt(r.payment_amount)
+	return rows[-1].due_date if rows else None
 
 
 def uraian_tagihan(doc):
@@ -290,7 +324,7 @@ def get_penagihan(project):
 			row["tunggu_um"] = tunggu_um
 		termin.append(row)
 		if inv and inv.docstatus == 1 and flt(inv.nilai_retensi):
-			jatuh_tempo = k.akhir_pemeliharaan or inv.due_date
+			jatuh_tempo = jatuh_tempo_retensi_berikut(inv.name, inv.retensi_diterima) or k.akhir_pemeliharaan or inv.due_date
 			status = "Lunas" if inv.retensi_sisa <= 0.5 else ("Jatuh Tempo" if jatuh_tempo and getdate(jatuh_tempo) <= hari_ini else "Ditahan")
 			retensi.append({"urutan": m.urutan, "nama_milestone": m.nama_milestone, "invoice": inv.name, "retensi": flt(inv.nilai_retensi),
 				"diterima": inv.retensi_diterima, "sisa": inv.retensi_sisa, "jatuh_tempo": str(jatuh_tempo) if jatuh_tempo else None,

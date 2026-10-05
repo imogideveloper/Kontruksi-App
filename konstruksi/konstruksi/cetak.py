@@ -123,9 +123,10 @@ def data_invoice(doc):
 	# Retensi: jadwal pembayaran terakhir jatuh tempo akhir masa pemeliharaan.
 	retensi = None
 	if flt(doc.get("nilai_retensi")) and len(doc.payment_schedule or []) > 1:
-		akhir = doc.payment_schedule[-1]
+		bagian = doc.payment_schedule[1:]
+		nilai = sum(flt(x.payment_amount) for x in bagian)
 		retensi = frappe._dict(
-			dibayar=uang(total - flt(akhir.payment_amount)), nilai=uang(akhir.payment_amount), jatuh_tempo=tanggal_indonesia(akhir.due_date)
+			dibayar=uang(total - nilai), nilai=uang(nilai), jatuh_tempo=" & ".join(tanggal_indonesia(x.due_date) for x in bagian)
 		)
 
 	bank = frappe.db.get_value(

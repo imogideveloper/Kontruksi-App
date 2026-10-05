@@ -52,6 +52,7 @@
   "nilai_uang_muka",
   "pembayaran_column",
   "retensi_persen",
+  "skema_retensi",
   "pph_section",
   "jenis_jasa",
   "kualifikasi_usaha",
@@ -403,6 +404,15 @@
    "description": "Ditahan dari tiap pembayaran, dibayar setelah masa pemeliharaan."
   },
   {
+   "fieldname": "skema_retensi",
+   "fieldtype": "Select",
+   "label": "Skema Retensi",
+   "options": "Cair di Akhir Pemeliharaan\n50% PHO / 50% FHO\nDiganti Jaminan Pemeliharaan",
+   "default": "Cair di Akhir Pemeliharaan",
+   "depends_on": "eval:flt(doc.retensi_persen) > 0",
+   "description": "Jatuh tempo retensi di invoice termin. PHO = Tanggal Selesai pekerjaan, FHO = Akhir Pemeliharaan. Jaminan Pemeliharaan: retensi cair saat PHO."
+  },
+  {
    "fieldname": "pph_section",
    "fieldtype": "Section Break",
    "label": "PPh Final"
@@ -627,7 +637,7 @@
    "link_fieldname": "kontrak_project"
   }
  ],
- "modified": "2026-10-06 12:00:00.000000",
+ "modified": "2026-10-05 19:39:20.413202",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kontrak Project",
