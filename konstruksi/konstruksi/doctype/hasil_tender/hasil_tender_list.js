@@ -1,5 +1,5 @@
 // List Hasil Tender: kartu ringkasan (total, menang + win rate, kalah, nilai dimenangkan) dan kolom
-// Kode · Project · Pemberi Kerja · Hasil · HPS · Penawaran Kita (% HPS) · Pemenang & Harga · Selisih · Tgl. Pengumuman · Kontrak.
+// Kode · Project · Pemberi Kerja · HPS · Penawaran Kita (% HPS) · Pemenang & Harga · Selisih · Tgl. Pengumuman · Kontrak · Hasil.
 // Keterangan & tanggal pengajuan dibaca di form.
 const KOLOM_SEBELUM_HASIL = ["nama_project", "pemberi_kerja"];
 const KOLOM_SESUDAH_HASIL = ["hps", "penawaran_kita", "pemenang", "selisih_persen", "tanggal_pengumuman"];
@@ -84,9 +84,10 @@ frappe.listview_settings["Hasil Tender"] = {
 				{ type: "Subject", df: { ...frappe.meta.get_docfield("Hasil Tender", "tender"), label: __("Kode") } },
 				{ type: "Tag" },
 				...KOLOM_SEBELUM_HASIL.map((fieldname) => ({ type: "Field", df: get_df(fieldname) })),
-				{ type: "Status" },
 				...KOLOM_SESUDAH_HASIL.map((fieldname) => ({ type: "Field", df: get_df(fieldname) })),
 				{ type: "Field", df: { fieldname: "kontrak", fieldtype: "Data", label: JUDUL_KOLOM.kontrak } },
+				// Hasil (status) di kolom paling kanan.
+				{ type: "Status" },
 			];
 		};
 		listview.setup_columns();
