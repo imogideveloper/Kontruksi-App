@@ -2,7 +2,10 @@
 // ERPNext yang tidak relevan untuk invoice jasa konstruksi (POS, nota debit, potong pajak, barcode, stok, kolom
 // gudang) dan rapikan tampilannya. Invoice biasa (tanpa jenis_tagihan) tetap tampil seperti bawaan.
 const KELAS_SI_KONSTRUKSI = "kpsi";
-const FIELD_TIDAK_RELEVAN = ["is_pos", "is_debit_note", "apply_tds", "scan_barcode", "update_stock", "in_words", "base_in_words", "incoterm", "named_place", "tax_category", "taxes_and_charges", "shipping_rule", "total_qty", "total", "currency_and_price_list", "use_company_roundoff_cost_center", "sec_tax_breakup", "time_sheet_list", "section_break_104"];
+const FIELD_TIDAK_RELEVAN = ["is_pos", "is_debit_note", "apply_tds", "scan_barcode", "update_stock", "in_words", "base_in_words", "incoterm", "named_place", "tax_category", "taxes_and_charges", "shipping_rule", "total_qty", "total", "currency_and_price_list", "use_company_roundoff_cost_center", "sec_tax_breakup",
+	// Uang muka ditagih lewat invoice uang muka & dipotong per termin — fitur Advance Payments tidak dipakai (risiko
+	// potongan ganda). Template syarat bayar menimpa jadwal retensi buatan sistem.
+	"advances_section", "ignore_default_payment_terms_template", "payment_terms_template", "time_sheet_list", "section_break_104"];
 
 const FIELD_MATA_UANG_PERUSAHAAN = [
 	"base_total", "base_net_total", "base_total_taxes_and_charges", "base_discount_amount", "base_grand_total",
@@ -14,6 +17,7 @@ function rapikan_invoice_konstruksi(frm) {
 	frm.page.wrapper.toggleClass(KELAS_SI_KONSTRUKSI, aktif);
 	pindahkan_edit_posting(frm, aktif);
 	pindahkan_disable_rounded(frm, aktif);
+	pindahkan_jadwal_bayar(frm, aktif);
 	atur_label_mata_uang(frm, aktif);
 	atur_kolom_items(frm, aktif);
 	if (!aktif) return;
@@ -60,6 +64,22 @@ function pindahkan_disable_rounded(frm, aktif) {
 		sebelum.length ? cek.insertAfter(sebelum) : cek.prependTo(induk);
 		kiri.remove();
 	}
+}
+
+// Jadwal pembayaran (Payment Terms: bagian dibayar sekarang + retensi) dipindah ke tab Payments, paling atas;
+// invoice biasa: dikembalikan ke tab Terms. Visibilitas tab dihitung ulang dari isi DOM-nya.
+function pindahkan_jadwal_bayar(frm, aktif) {
+	const jadwal = frm.fields_dict.payment_schedule_section?.wrapper;
+	const tab = (frm.layout?.tabs || []).find((t) => t.df?.fieldname === "payments_tab")?.wrapper;
+	if (!jadwal?.length || !tab?.length) return;
+	if (!frm.__kpsi_posisi_jadwal) frm.__kpsi_posisi_jadwal = { induk: jadwal.parent(), sebelum: jadwal.prev() };
+	if (aktif) {
+		jadwal.prependTo(tab);
+	} else {
+		const { induk, sebelum } = frm.__kpsi_posisi_jadwal;
+		sebelum.length ? jadwal.insertAfter(sebelum) : jadwal.prependTo(induk);
+	}
+	setTimeout(() => (frm.layout?.tabs || []).forEach((t) => t.refresh?.()), 0);
 }
 
 // Label tanpa akhiran mata uang ("Rate", bukan "Rate (IDR)"): ERPNext menambahkannya lewat frm.set_currency_labels;
