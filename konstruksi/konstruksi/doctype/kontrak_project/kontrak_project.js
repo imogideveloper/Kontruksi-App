@@ -103,7 +103,10 @@ const kontrak_events = {
 
 // Ringkasan & checklist ikut berubah sebelum disimpan supaya isian langsung terlihat hasilnya.
 [...new Set([...FIELD_RINGKASAN, ...FIELD_KELENGKAPAN])].forEach((fieldname) => {
+	// Handler yang sudah ada (mis. kualifikasi_usaha → muat tarif PPh) tetap dijalankan, bukan tertimpa.
+	const sebelumnya = kontrak_events[fieldname];
 	kontrak_events[fieldname] = (frm) => {
+		sebelumnya?.(frm);
 		// Tarif PPh mengikuti yang berlaku pada tanggal kontrak.
 		if (fieldname === "tanggal_kontrak") muat_tarif_pph(frm);
 		if (FIELD_RINGKASAN.includes(fieldname)) {
