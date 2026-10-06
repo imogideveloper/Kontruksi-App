@@ -6205,3 +6205,65 @@ body[data-route^="query-report/Trial Balance"] .dt-scrollable .dt-row:hover .dt-
 body[data-route^="query-report/Trial Balance"] .dt-scrollable .dt-row:hover .dt-cell:first-child {
 	box-shadow: inset 3px 0 0 var(--konstruksi-active-accent);
 }
+
+/* Notifikasi di tengah layar (mis. setelah Tender tersimpan): kartu putih dengan ikon centang, muncul & hilang halus. */
+.kp-notif-tengah {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	z-index: 1060;
+	min-width: 280px;
+	max-width: 420px;
+	padding: 24px 32px 20px;
+	border-radius: 14px;
+	background: var(--card-bg, #fff);
+	box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.08);
+	text-align: center;
+	cursor: pointer;
+	opacity: 0;
+	transform: translate(-50%, -46%) scale(0.96);
+	transition: opacity 0.2s ease, transform 0.2s ease;
+	pointer-events: auto;
+}
+
+.kp-notif-tengah.kp-notif-tampil {
+	opacity: 1;
+	transform: translate(-50%, -50%) scale(1);
+}
+
+.kp-notif-ikon {
+	width: 52px;
+	height: 52px;
+	margin: 0 auto 12px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(21, 128, 61, 0.12);
+	color: #15803d;
+}
+
+.kp-notif-ikon .icon {
+	width: 26px;
+	height: 26px;
+	stroke: currentColor;
+	stroke-width: 2.5;
+}
+
+.kp-notif-judul {
+	font-size: var(--text-lg, 16px);
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.kp-notif-ket {
+	margin-top: 4px;
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.kp-notif-tengah {
+		transition: none;
+	}
+}

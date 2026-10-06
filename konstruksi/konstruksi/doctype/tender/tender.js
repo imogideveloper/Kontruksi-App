@@ -18,6 +18,17 @@ frappe.ui.form.on("Tender", {
 		set_pratinjau_kode(frm);
 	},
 
+	before_save(frm) {
+		frm.__kp_tender_baru = frm.is_new();
+	},
+
+	after_save(frm) {
+		notifikasi_tengah(
+			frm.__kp_tender_baru ? __("Tender berhasil dibuat") : __("Perubahan tender tersimpan"),
+			`${frm.doc.name} · ${frm.doc.nama_paket || ""}`
+		);
+	},
+
 	jenis_project(frm) {
 		frm.fields_dict.jenis_project?.__kp_select?.val(frm.doc.jenis_project || "");
 	},
@@ -166,4 +177,18 @@ function jenis_project_dropdown(frm) {
 			frm.__kp_jenis_project = rows;
 			pasang(rows);
 		});
+}
+
+// Notifikasi di tengah layar setelah tender tersimpan (hilang sendiri ±1,8 detik, bisa diklik untuk menutup).
+function notifikasi_tengah(judul, keterangan) {
+	$(".kp-notif-tengah").remove();
+	const $n = $(`<div class="kp-notif-tengah" role="status" aria-live="polite">
+		<div class="kp-notif-ikon">${frappe.utils.icon("check", "lg")}</div>
+		<div class="kp-notif-judul">${frappe.utils.escape_html(judul)}</div>
+		${keterangan ? `<div class="kp-notif-ket">${frappe.utils.escape_html(keterangan)}</div>` : ""}
+	</div>`).appendTo("body");
+	const tutup = () => $n.removeClass("kp-notif-tampil") && setTimeout(() => $n.remove(), 250);
+	$n.on("click", tutup);
+	requestAnimationFrame(() => $n.addClass("kp-notif-tampil"));
+	setTimeout(tutup, 1800);
 }
