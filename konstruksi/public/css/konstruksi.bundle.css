@@ -1843,6 +1843,23 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 	}
 }
 
+/* Dashboard Project Master: enam kartu (termasuk Biaya Aktual vs RAP). */
+.kpm-kartu-6 {
+	grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+@media (max-width: 1399px) {
+	.kpm-kartu-6 {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 767px) {
+	.kpm-kartu-6 {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
 /* List Project Master: kartu ringkasan bisa diklik sebagai filter; lebar kolom Periode & Klien cukup untuk isinya. */
 a.kpm-kartu-filter,
 a.kpm-kartu-filter:hover {
@@ -3925,11 +3942,11 @@ body[data-route^="List/Penugasan Personel"] .frappe-list .level-left > .list-row
 	color: var(--text-color);
 }
 
-/* Sidebar Konstruksi sedikit lebih lebar supaya label menu panjang (mis. "Task & Activity Management",
-   "Template Kebutuhan Personel") tampil utuh dalam satu baris. Hanya saat sidebar Konstruksi aktif; sidebar
-   modul lain tetap lebar bawaan (220px). Placeholder & konten utama ikut bergeser lewat variabel yang sama. */
+/* Sidebar (semua modul) sedikit lebih lebar supaya label menu panjang (mis. "Task & Activity Management",
+   "Template Kebutuhan Personel") tampil utuh dalam satu baris. Placeholder & konten utama ikut bergeser lewat
+   variabel yang sama. */
 @media (min-width: 768px) {
-	body:has(.body-sidebar[data-title="Konstruksi"]) {
+	body {
 		--sidebar-width: 268px;
 	}
 }
@@ -5691,72 +5708,72 @@ body[data-route^="List/Hasil Tender"] .frappe-list .level-left > .list-row-col:l
 	margin-right: 0;
 }
 
-/* Sidebar Konstruksi mode ringkas (ikon saja, tombol ‹ di bawah sidebar / Ctrl+/): sedikit lebih lebar, scrollbar
+/* Sidebar (semua modul) mode ringkas (ikon saja, tombol ‹ di bawah sidebar / Ctrl+/): sedikit lebih lebar, scrollbar
    disembunyikan (tetap bisa digulir) supaya tidak menutupi ikon, ikon lebih besar & berada di tengah. */
-.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] {
+.body-sidebar-container:not(.expanded) .body-sidebar {
 	width: 68px;
 	padding-left: 6px;
 	padding-right: 6px;
 }
 
-.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .body-sidebar-top {
+.body-sidebar-container:not(.expanded) .body-sidebar .body-sidebar-top {
 	scrollbar-width: none;
 }
 
-.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .body-sidebar-top::-webkit-scrollbar {
+.body-sidebar-container:not(.expanded) .body-sidebar .body-sidebar-top::-webkit-scrollbar {
 	display: none;
 }
 
-.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .standard-sidebar-item .item-anchor {
+.body-sidebar-container:not(.expanded) .body-sidebar .standard-sidebar-item .item-anchor {
 	height: 46px;
 	justify-content: center;
 }
 
-.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .standard-sidebar-item .sidebar-item-icon {
+.body-sidebar-container:not(.expanded) .body-sidebar .standard-sidebar-item .sidebar-item-icon {
 	padding: 6px;
 }
 
-.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .standard-sidebar-item .sidebar-item-icon :is(svg, .icon) {
+.body-sidebar-container:not(.expanded) .body-sidebar .standard-sidebar-item .sidebar-item-icon :is(svg, .icon) {
 	width: 32px !important;
 	height: 32px !important;
 	stroke-width: 1.5;
 }
 
-/* Sidebar Konstruksi mode ringkas: ikon membesar halus saat disorot (hover / fokus keyboard). */
-.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .standard-sidebar-item .sidebar-item-icon {
+/* Sidebar (semua modul) mode ringkas: ikon membesar halus saat disorot (hover / fokus keyboard). */
+.body-sidebar-container:not(.expanded) .body-sidebar .standard-sidebar-item .sidebar-item-icon {
 	transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 	transform-origin: center;
 }
 
-.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .standard-sidebar-item:is(:hover, :focus-within) .sidebar-item-icon {
+.body-sidebar-container:not(.expanded) .body-sidebar .standard-sidebar-item:is(:hover, :focus-within) .sidebar-item-icon {
 	transform: scale(1.18);
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .standard-sidebar-item .sidebar-item-icon {
+	.body-sidebar-container:not(.expanded) .body-sidebar .standard-sidebar-item .sidebar-item-icon {
 		transition: none;
 	}
 }
 
-/* Sidebar Konstruksi mode ringkas: hanya ikon — label, shortcut (Ctrl+K), kontrol, dan judul header disembunyikan
+/* Sidebar (semua modul) mode ringkas: hanya ikon — label, shortcut (Ctrl+K), kontrol, dan judul header disembunyikan
    (sidebar 68px lebih lebar dari bawaan sehingga huruf pertama label sempat terlihat). */
-.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .standard-sidebar-item .item-anchor > :not(.sidebar-item-icon),
-.body-sidebar-container:not(.expanded) .body-sidebar[data-title="Konstruksi"] .sidebar-header :is(.title-container, .drop-icon) {
+.body-sidebar-container:not(.expanded) .body-sidebar .standard-sidebar-item .item-anchor > :not(.sidebar-item-icon),
+.body-sidebar-container:not(.expanded) .body-sidebar .sidebar-header :is(.title-container, .drop-icon) {
 	display: none !important;
 }
 
-/* Sidebar Konstruksi: menu yang disorot kursor (belum diklik) diberi blok warna — nada lebih muda dari menu aktif,
+/* Sidebar (semua modul): menu yang disorot kursor (belum diklik) diberi blok warna — nada lebih muda dari menu aktif,
    tanpa garis aksen kiri, supaya tetap beda dengan menu yang sedang dibuka. */
-.body-sidebar[data-title="Konstruksi"] .standard-sidebar-item:not(.active-sidebar):has(a.item-anchor:not(.section-break)) {
+.body-sidebar .standard-sidebar-item:not(.active-sidebar):has(a.item-anchor:not(.section-break)) {
 	transition: background-color 0.15s ease;
 }
 
-.body-sidebar[data-title="Konstruksi"] .standard-sidebar-item:not(.active-sidebar):has(a.item-anchor:not(.section-break)):is(:hover, :focus-within) {
+.body-sidebar .standard-sidebar-item:not(.active-sidebar):has(a.item-anchor:not(.section-break)):is(:hover, :focus-within) {
 	background-color: color-mix(in srgb, var(--konstruksi-active-bg) 65%, transparent) !important;
 	border-radius: var(--konstruksi-block-radius) !important;
 }
 
-.body-sidebar[data-title="Konstruksi"] .standard-sidebar-item:not(.active-sidebar):has(a.item-anchor:not(.section-break)):is(:hover, :focus-within) :is(.sidebar-item-label, .sidebar-item-icon, .sidebar-item-icon .icon) {
+.body-sidebar .standard-sidebar-item:not(.active-sidebar):has(a.item-anchor:not(.section-break)):is(:hover, :focus-within) :is(.sidebar-item-label, .sidebar-item-icon, .sidebar-item-icon .icon) {
 	color: var(--konstruksi-active-fg) !important;
 }
 

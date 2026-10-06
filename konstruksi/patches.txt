@@ -45,3 +45,4 @@ konstruksi.patches.v1_0.isi_template_rab
 konstruksi.patches.v1_0.isi_penawaran_rab
 konstruksi.patches.v1_0.hitung_ringkasan_rab
 konstruksi.patches.v1_0.wbs_ikut_nilai_kontrak
+konstruksi.patches.v1_0.buat_pengadaan

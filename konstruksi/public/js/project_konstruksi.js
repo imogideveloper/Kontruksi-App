@@ -368,6 +368,15 @@
 		const bar = (v, kelas = "kpr-progress-biru") =>
 			`<div class="kpr-progress ${kelas}"><div style="width: ${Math.min(Math.max(flt(v), 0), 100)}%"></div></div>`;
 
+		// Realisasi biaya (pembelian + personel + klaim) dibanding RAP dari RAB; oranye bila melewati RAP.
+		const kartu_biaya = (b) => {
+			const lewat = flt(b.rap) && flt(b.total) > flt(b.rap);
+			const sub = flt(b.rap)
+				? bar(b.persen_rap, lewat ? "" : "kpr-progress-biru") +
+				  __("{0} dari RAP {1}", [persen(b.persen_rap), format_currency(b.rap, "IDR", 0)])
+				: __("RAP belum ada (isi Harga Pokok di RAB)");
+			return kartu("wallet", lewat ? "oranye" : "hijau", __("Biaya Aktual"), format_currency(b.total, "IDR", 0), sub);
+		};
 		// Progres di belakang rencana lebih dari 10 poin = oranye.
 		const tertinggal = flt(d.progres_rencana) - flt(d.progres_aktual) > 10;
 
@@ -386,7 +395,7 @@
 					.filter(Boolean)
 					.join('<span class="kpr-titik">•</span>')}</div>
 			</div>
-			<div class="kpr-kartu-baris kpm-kartu-5">
+			<div class="kpr-kartu-baris kpm-kartu-6">
 				${kartu(
 					"trending-up",
 					tertinggal ? "oranye" : "biru",
@@ -398,6 +407,7 @@
 				${kartu("users", "biru", __("Tim"), `${cint(d.tim)} <span>${__("orang")}</span>`, __("Anggota di tabel Users"))}
 				${kartu("list-checks", "hijau", __("Aktivitas"), cint(d.aktivitas), __("{0} selesai", [cint(d.aktivitas_selesai)]))}
 				${kartu("circle-alert", cint(d.isu_terbuka) ? "oranye" : "hijau", __("Isu Terbuka"), cint(d.isu_terbuka), __("Dari menu Issue"))}
+				${kartu_biaya(d.biaya || {})}
 			</div>
 		</div>`;
 	}

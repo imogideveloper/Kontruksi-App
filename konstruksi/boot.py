@@ -9,6 +9,7 @@ import frappe
 ROLE_BAGIAN = {
 	"Tender & Kontrak": {"Projects Manager"},
 	"Keuangan": {"Accounts User", "Accounts Manager"},
+	"Pengadaan": {"Purchase User", "Purchase Manager", "Accounts User", "Accounts Manager", "Projects Manager"},
 	"SDM Proyek": {"HR User", "HR Manager", "Projects Manager"},
 	"Data Proyek": {"Projects Manager", "Projects User"},
 	"Konfigurasi": set(),

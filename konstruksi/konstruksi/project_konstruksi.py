@@ -136,6 +136,8 @@ def set_status_erpnext(doc, method=None):
 
 @frappe.whitelist()
 def get_dashboard(project):
+	from konstruksi.konstruksi.pengadaan import realisasi_biaya
+
 	"""Angka dashboard Project Master: progres vs rencana, waktu, tim, aktivitas, isu, milestone berikutnya."""
 	doc = frappe.get_doc("Project", project)
 	doc.check_permission("read")
@@ -164,6 +166,7 @@ def get_dashboard(project):
 		"aktivitas_selesai": frappe.db.count("Task", {"project": project, "status": "Completed"}),
 		"isu_terbuka": frappe.db.count("Issue", {"project": project, "status": ("not in", ("Resolved", "Closed"))}),
 		"milestone": milestone[0] if milestone else None,
+		"biaya": realisasi_biaya(project),
 	}
 
 

@@ -484,6 +484,74 @@ def buat_penagihan_default():
 		).insert(ignore_permissions=True)
 
 
+# Pengadaan proyek (opsi "langsung dibebankan"): material dikirim langsung ke site, jadi item biaya proyek non-stok dan
+# Purchase Invoice langsung menjurnal ke Beban Pokok Proyek per jenis biaya, ditandai Project (+ Item WBS).
+AKUN_BIAYA_PROYEK_INDUK = ("Beban Pokok Proyek", "Direct Expenses")
+# Item Group (di bawah "Biaya Proyek") → akun beban di bawah Beban Pokok Proyek.
+ITEM_GROUP_BIAYA_PROYEK = "Biaya Proyek"
+JENIS_BIAYA_PROYEK = (
+	("Material Proyek", "Beban Material Proyek"),
+	("Subkontraktor", "Beban Subkontraktor"),
+	("Sewa Alat", "Beban Sewa Alat"),
+	("Upah Tukang", "Beban Upah Tukang"),
+	("Biaya Proyek Lain", "Beban Proyek Lain-lain"),
+)
+CUSTOM_FIELD_PENGADAAN = {
+	doctype: [
+		{"fieldname": "wbs_item", "fieldtype": "Link", "label": "Item WBS", "options": "WBS Item", "insert_after": "project",
+			"depends_on": "eval:doc.project", "search_index": 1,
+			"description": "Pekerjaan WBS yang dibiayai; untuk realisasi biaya per item WBS."},
+		{"fieldname": "jenis_biaya", "fieldtype": "Data", "label": "Jenis Biaya", "fetch_from": "item_code.item_group",
+			"read_only": 1, "insert_after": "wbs_item", "hidden": 1},
+	]
+	for doctype in ("Purchase Order Item", "Purchase Invoice Item")
+}
+
+
+def akun_biaya_proyek(company, nama=None):
+	"""Akun Beban Pokok Proyek (group, nama=None) atau akun anaknya; dibuat bila belum ada."""
+	abbr = frappe.get_cached_value("Company", company, "abbr")
+	induk_nama, kakek = AKUN_BIAYA_PROYEK_INDUK
+	induk = f"{induk_nama} - {abbr}"
+	if not frappe.db.exists("Account", induk):
+		parent = frappe.db.get_value("Account", {"company": company, "account_name": kakek, "is_group": 1})
+		if not parent:
+			return None
+		frappe.get_doc({"doctype": "Account", "account_name": induk_nama, "parent_account": parent, "company": company,
+			"root_type": "Expense", "is_group": 1}).insert(ignore_permissions=True)
+	if not nama:
+		return induk
+	akun = f"{nama} - {abbr}"
+	if not frappe.db.exists("Account", akun):
+		frappe.get_doc({"doctype": "Account", "account_name": nama, "parent_account": induk, "company": company,
+			"root_type": "Expense", "account_type": "Cost of Goods Sold"}).insert(ignore_permissions=True)
+	return akun
+
+
+def buat_pengadaan_default():
+	"""Akun & Item Group biaya proyek, field Item WBS di PO / PI Item, filter Project di list PO & PI."""
+	from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	create_custom_fields(CUSTOM_FIELD_PENGADAAN, update=True)
+	companies = frappe.get_all("Company", pluck="name")
+	if not frappe.db.exists("Item Group", ITEM_GROUP_BIAYA_PROYEK):
+		frappe.get_doc({"doctype": "Item Group", "item_group_name": ITEM_GROUP_BIAYA_PROYEK, "parent_item_group": "All Item Groups",
+			"is_group": 1}).insert(ignore_permissions=True)
+	for grup, akun in JENIS_BIAYA_PROYEK:
+		doc = (frappe.get_doc("Item Group", grup) if frappe.db.exists("Item Group", grup)
+			else frappe.get_doc({"doctype": "Item Group", "item_group_name": grup, "parent_item_group": ITEM_GROUP_BIAYA_PROYEK}))
+		ada = {d.company for d in doc.item_group_defaults}
+		for c in companies:
+			if c not in ada and akun_biaya_proyek(c, akun):
+				doc.append("item_group_defaults", {"company": c, "expense_account": akun_biaya_proyek(c, akun)})
+		doc.flags.ignore_permissions = True
+		doc.save()
+	for doctype in ("Purchase Order", "Purchase Invoice"):
+		for prop, nilai in (("in_standard_filter", 1), ("in_list_view", 1)):
+			make_property_setter(doctype, "project", prop, nilai, "Check", validate_fields_for_doctype=False)
+
+
 def after_install():
 	from konstruksi.konstruksi.template_rab import isi_template_rab_default
 
@@ -492,6 +560,7 @@ def after_install():
 	buat_biaya_personel_default()
 	buat_wbs_default()
 	buat_penagihan_default()
+	buat_pengadaan_default()
 	buat_jenis_project_default()
 	buat_template_dokumen_default()
 	isi_template_rab_default()

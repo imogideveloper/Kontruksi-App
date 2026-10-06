@@ -54,6 +54,8 @@ doctype_js = {
 	"Task": "public/js/task_konstruksi.js",
 	"Sales Invoice": "public/js/sales_invoice_konstruksi.js",
 	"Payment Entry": "public/js/payment_entry_konstruksi.js",
+	"Purchase Order": "public/js/pengadaan_konstruksi.js",
+	"Purchase Invoice": "public/js/pengadaan_konstruksi.js",
 }
 # Project: Gross Margin ikut memotong biaya personel (gaji); turunan dari override HRMS.
 override_doctype_class = {"Project": "konstruksi.overrides.project.KonstruksiProject"}
@@ -208,6 +210,13 @@ doc_events = {
 	# Penerimaan tagihan proyek: No. referensi bank hanya wajib untuk cek / giro.
 	"Payment Entry": {
 		"before_validate": "konstruksi.konstruksi.penagihan.isi_referensi_pembayaran",
+	},
+	# Pengadaan proyek: Project baris dari header, wajib Project untuk item biaya proyek, akun Beban Pokok Proyek.
+	"Purchase Order": {
+		"before_validate": "konstruksi.konstruksi.pengadaan.lengkapi_pengadaan",
+	},
+	"Purchase Invoice": {
+		"before_validate": "konstruksi.konstruksi.pengadaan.lengkapi_pengadaan",
 	},
 	# Progres item WBS mengikuti Task yang terhubung.
 	"Task": {

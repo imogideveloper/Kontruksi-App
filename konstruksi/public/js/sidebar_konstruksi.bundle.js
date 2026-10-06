@@ -5,7 +5,8 @@
 //
 // Catatan: dari /desk/konstruksi Frappe menyimpan judul sidebar dalam huruf kecil ("konstruksi"); disamakan ke label.
 const SIDEBAR_KONSTRUKSI = "Konstruksi";
-const DOCTYPE_PENAGIHAN = ["Sales Invoice", "Payment Entry"];
+// Penagihan & pengadaan proyek: selalu di sidebar Konstruksi (bukan Accounting / Payments / Buying).
+const DOCTYPE_PENAGIHAN = ["Sales Invoice", "Payment Entry", "Purchase Order", "Purchase Invoice"];
 const sidebar_konstruksi = (judul) => String(judul || "").toLowerCase() === SIDEBAR_KONSTRUKSI.toLowerCase();
 
 // app_ready dipicu di dalam constructor frappe.Application, sebelum frappe.app terisi; pasang sesudahnya.
