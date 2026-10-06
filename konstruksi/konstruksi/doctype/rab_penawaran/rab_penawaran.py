@@ -182,8 +182,22 @@ def kirim_xlsx(nama_file, baris_item, catatan=None):
 
 
 @frappe.whitelist()
-def download_template():
+def download_template(tender=None):
+	"""Template Excel RAB. Bila tender dipilih & Jenis Project-nya punya Template RAB: berisi struktur pekerjaan itu
+	(kode, uraian, satuan; volume & harga dikosongkan untuk diisi). Selain itu: baris contoh."""
 	frappe.has_permission("RAB Penawaran", "read", throw=True)
+	if tender:
+		jenis = frappe.db.get_value("Tender", tender, ["jenis_project", "nama_paket"], as_dict=True) or frappe._dict()
+		rows = frappe.get_all("Jenis Project RAB", filters={"parent": jenis.jenis_project, "parenttype": "Jenis Project"},
+			fields=["kode_wbs", "uraian_pekerjaan", "satuan"], order_by="idx asc") if jenis.jenis_project else []
+		if rows:
+			kirim_xlsx(
+				f"Template RAB {jenis.nama_paket or tender}",
+				rows,
+				catatan=f"Struktur pekerjaan dari template Jenis Project {jenis.jenis_project}. Isi Volume & Harga Satuan, "
+				"hapus / tambah baris sesuai lingkup tender, lalu upload lewat Excel → Upload Excel.",
+			)
+			return
 	contoh = [
 		{"kode_wbs": "1", "uraian_pekerjaan": "Pekerjaan Persiapan"},
 		{"kode_wbs": "1.1", "uraian_pekerjaan": "Pembersihan lokasi", "spesifikasi": "Termasuk buang puing", "satuan": "m2",

@@ -16,7 +16,9 @@ frappe.ui.form.on("RAB Penawaran", {
 		const terkunci = harga_terkunci(frm);
 		const hak = hak_rab(frm);
 		frm.add_custom_button(__("Download Template"), () => {
-			window.open(`/api/method/${RAB_METHOD}.download_template`);
+			// Tender dipilih → template berisi struktur pekerjaan Jenis Project tender itu.
+			const q = frm.doc.tender ? `?tender=${encodeURIComponent(frm.doc.tender)}` : "";
+			window.open(`/api/method/${RAB_METHOD}.download_template${q}`);
 		}, __("Excel"));
 		if (!frm.is_new()) {
 			frm.add_custom_button(__("Download Isi RAB"), () => {
