@@ -51,3 +51,5 @@ konstruksi.patches.v1_0.buat_pengadaan #project-di-atas
 konstruksi.patches.v1_0.buat_pengadaan #keterangan-project
 konstruksi.patches.v1_0.buat_pengadaan #urutan-wbs-pembulatan
 konstruksi.patches.v1_0.buat_pengadaan #harga-beli
+konstruksi.patches.v1_0.buat_pengadaan #project-kanan
+konstruksi.patches.v1_0.buat_pengadaan #wbs-setelah-description

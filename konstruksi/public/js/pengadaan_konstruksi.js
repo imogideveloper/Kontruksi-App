@@ -48,20 +48,37 @@
 		"base_total_taxes_and_charges", "base_totals_section", "base_grand_total", "base_rounding_adjustment",
 		"base_rounded_total", "base_discount_amount",
 	];
-	// Kolom tabel Items: Item · Item WBS · Qty · Satuan · Harga · Jumlah (Required By per baris = tanggal di atas;
-	// Target Warehouse tidak dipakai).
-	const KOLOM_ITEM_PO = { item_code: 2, wbs_item: 2, qty: 1, uom: 1, rate: 2, amount: 2 };
+	// Kolom tabel Items: Item Code · Description · Item WBS · Qty · UOM · Rate · Amount (Required By per baris = tanggal
+	// di atas; Target Warehouse tidak dipakai). Lebar sebenarnya diatur CSS (.kppo, proporsional seperti tabel RAB).
+	const KOLOM_ITEM_PO = ["item_code", "description", "wbs_item", "qty", "uom", "rate", "amount"];
 	const KOLOM_ITEM_PO_SEMBUNYI = ["schedule_date", "warehouse"];
+
+	// Kolom Item Code cukup kodenya (bawaan ERPNext: "kode: nama item" + titik indikator stok); nama/uraian ada di
+	// kolom Description.
+	function format_kode_item(value) {
+		if (!value) return "";
+		const esc = frappe.utils.escape_html(value);
+		return `<a href="/app/item/${encodeURIComponent(value)}" data-doctype="Item" data-name="${esc}" data-value="${esc}">${esc}</a>`;
+	}
 
 	function atur_kolom_item_po(frm) {
 		const grid = frm.fields_dict.items?.grid;
 		if (!grid || grid.__kppo_kunci === frm.docname) return;
 		grid.__kppo_kunci = frm.docname;
 		KOLOM_ITEM_PO_SEMBUNYI.forEach((fn) => (grid.column_disp_overrides[fn] = 1));
-		Object.entries(KOLOM_ITEM_PO).forEach(([fn, lebar]) => {
+		KOLOM_ITEM_PO.forEach((fn) => {
 			const df = frappe.meta.get_docfield(grid.doctype, fn, frm.docname);
-			if (df) Object.assign(df, { in_list_view: 1, columns: lebar });
+			if (df) Object.assign(df, { in_list_view: 1, columns: 1 });
 		});
+		// Dipasang di docfield dasar (salinan untuk baris baru dibuat dari sini), salinan dokumen, dan salinan tiap baris
+		// yang sudah ada (mis. baris pertama dokumen baru yang dibuat sebelum script ini jalan).
+		[
+			frappe.meta.docfield_map?.[grid.doctype]?.item_code,
+			frappe.meta.get_docfield(grid.doctype, "item_code", frm.docname),
+			...(frm.doc.items || []).map((row) => frappe.meta.get_docfield(grid.doctype, "item_code", row.name)),
+		]
+			.filter(Boolean)
+			.forEach((df) => (df.formatter = format_kode_item));
 		grid.visible_columns = [];
 		grid.grid_rows = [];
 		$(grid.parent).find(".grid-body .grid-row").remove();

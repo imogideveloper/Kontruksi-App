@@ -6419,8 +6419,29 @@ body[data-route^="List/Dokumen Tender"] .frappe-list .level-left > .list-row-col
 	display: none !important;
 }
 
-/* Nama item & item WBS boleh turun baris (tidak terpotong). */
-.kppo .frappe-control[data-fieldname="items"] .grid-static-col:is([data-fieldname="item_code"], [data-fieldname="wbs_item"]) .static-area {
+/* Tabel Items: lebar kolom pasti, proporsional dari sisa lebar tabel (119px = checkbox 31 + No. 48 + pensil 40),
+   sama saat baris diedit — seperti tabel Item Pekerjaan RAB. Total bobot 93. */
+.kppo .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="item_code"] { flex: 0 0 calc((100% - 119px) * 13 / 93); max-width: none; }
+.kppo .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="description"] { flex: 0 0 calc((100% - 119px) * 24 / 93); max-width: none; }
+.kppo .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="wbs_item"] { flex: 0 0 calc((100% - 119px) * 17 / 93); max-width: none; }
+.kppo .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="qty"] { flex: 0 0 calc((100% - 119px) * 7 / 93); max-width: none; }
+.kppo .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="uom"] { flex: 0 0 calc((100% - 119px) * 7 / 93); max-width: none; }
+.kppo .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="rate"] { flex: 0 0 calc((100% - 119px) * 12 / 93); max-width: none; }
+.kppo .frappe-control[data-fieldname="items"] .data-row > .col[data-fieldname="amount"] { flex: 0 0 calc((100% - 119px) * 13 / 93); max-width: none; }
+
+/* Kolom pensil (edit baris) / pengaturan kolom di ujung kanan semua tabel: 40px seperti tabel RAB. */
+.kppo .form-grid .data-row > .col:last-child {
+	flex: 0 0 40px !important;
+	max-width: 40px !important;
+	min-width: 40px !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	justify-content: center;
+	text-align: center;
+}
+
+/* Item, Description & Item WBS boleh turun baris (tidak terpotong). */
+.kppo .frappe-control[data-fieldname="items"] .grid-static-col:is([data-fieldname="item_code"], [data-fieldname="description"], [data-fieldname="wbs_item"]) .static-area {
 	white-space: normal;
 	overflow: visible;
 	text-overflow: clip;
