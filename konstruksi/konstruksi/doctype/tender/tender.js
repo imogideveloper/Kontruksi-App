@@ -10,6 +10,8 @@ frappe.ui.form.on("Tender", {
 		frm.set_query("jenis_project", () => ({
 			query: "konstruksi.konstruksi.doctype.jenis_project.jenis_project.cari_jenis_project",
 		}));
+		// Pilihan Penanggung Jawab: nama & jabatan (dari Data Personel yang memakai user itu), bisa dicari lewat jabatan.
+		frm.set_query("penanggung_jawab", () => ({ query: "konstruksi.konstruksi.tim_proyek.cari_approver" }));
 	},
 
 	onload(frm) {
