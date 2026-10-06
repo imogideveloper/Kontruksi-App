@@ -646,9 +646,19 @@ def buat_pengadaan_default():
 		doc.flags.ignore_permissions = True
 		doc.save()
 	buat_item_biaya_proyek()
+	import json
+
 	for doctype in ("Purchase Order", "Purchase Invoice"):
 		for prop, nilai in (("in_standard_filter", 1), ("in_list_view", 1)):
 			make_property_setter(doctype, "project", prop, nilai, "Check", validate_fields_for_doctype=False)
+		# Project bawaannya di section Accounting Dimensions yang terlipat: pindah ke atas, tepat di bawah Supplier.
+		frappe.clear_cache(doctype=doctype)
+		urutan = [df.fieldname for df in frappe.get_meta(doctype).fields if df.fieldname != "project"]
+		if "supplier_name" in urutan:
+			urutan.insert(urutan.index("supplier_name") + 1, "project")
+			make_property_setter(doctype, None, "field_order", json.dumps(urutan), "Data", for_doctype=True)
+		make_property_setter(doctype, "project", "description",
+			"Wajib untuk pembelian item biaya proyek; terisi ke semua baris item.", "Small Text", validate_fields_for_doctype=False)
 
 
 def after_install():
