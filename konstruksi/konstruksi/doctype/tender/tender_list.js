@@ -102,12 +102,22 @@ function muat_ringkasan_tdr(listview) {
 	});
 }
 
+// Filter tiap kartu ringkasan.
+const FILTER_KARTU_TDR = (d) => ({
+	persiapan: [["Tender", "status", "=", "Persiapan"]],
+	proses: [["Tender", "status", "in", ["Penawaran Dikirim", "Evaluasi"]]],
+	tenggat: [["Tender", "status", "=", "Persiapan"], ["Tender", "batas_pemasukan", "<=", `${d.batas_7_hari} 23:59:59`]],
+});
+
 function render_ringkasan_tdr(listview) {
 	const d = ringkasan_tdr;
 	if (!d) return;
 	const s = d.per_status || {};
-	const kartu = (kunci, label, nilai, sub, filter) => `<a href="#" class="kpm-kartu kpm-kartu-filter" data-kunci="${kunci}"
-		title="${__("Tampilkan tender: {0}", [label])}">
+	// Kartu aktif = filter list saat ini sama dengan filter kartu itu (menyala); klik lagi → filter dilepas.
+	const kini = (listview.filter_area?.get() || []).map((f) => `${f[1]}|${f[2]}|${JSON.stringify(f[3])}`).sort().join(";");
+	const sama = (kunci) => kini && kini === (FILTER_KARTU_TDR(d)[kunci] || []).map((f) => `${f[1]}|${f[2]}|${JSON.stringify(f[3])}`).sort().join(";");
+	const kartu = (kunci, label, nilai, sub) => `<a href="#" class="kpm-kartu kpm-kartu-filter ${sama(kunci) ? "kpm-kartu-aktif" : ""}" data-kunci="${kunci}"
+		title="${sama(kunci) ? __("Klik untuk menampilkan semua tender") : __("Tampilkan tender: {0}", [label])}">
 		<div class="kpm-kartu-label">${label}</div><div class="kpm-kartu-nilai">${nilai}</div>${sub ? `<div class="kpm-sub">${sub}</div>` : ""}</a>`;
 	const proses = cint(s["Penawaran Dikirim"]) + cint(s.Evaluasi);
 	listview.page.main.find(".kpm-ringkasan").remove();
@@ -118,13 +128,10 @@ function render_ringkasan_tdr(listview) {
 		<div class="kpm-kartu"><div class="kpm-kartu-label">${__("Total HPS dalam Proses")}</div>
 			<div class="kpm-kartu-nilai">${format_currency(d.hps_proses, "IDR", 0)}</div></div>
 	</div>`);
-	const filter = {
-		persiapan: [["Tender", "status", "=", "Persiapan"]],
-		proses: [["Tender", "status", "in", ["Penawaran Dikirim", "Evaluasi"]]],
-		tenggat: [["Tender", "status", "=", "Persiapan"], ["Tender", "batas_pemasukan", "<=", `${d.batas_7_hari} 23:59:59`]],
-	};
 	listview.page.main.find(".kpm-kartu-filter").on("click", function (e) {
 		e.preventDefault();
-		listview.filter_area.clear(false).then(() => listview.filter_area.add(filter[$(this).attr("data-kunci")]));
+		const kunci = $(this).attr("data-kunci");
+		const lepas = sama(kunci);
+		listview.filter_area.clear(lepas).then(() => !lepas && listview.filter_area.add(FILTER_KARTU_TDR(d)[kunci]));
 	});
 }
