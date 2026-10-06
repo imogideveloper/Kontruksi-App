@@ -106,7 +106,7 @@ function muat_ringkasan_tdr(listview) {
 const FILTER_KARTU_TDR = (d) => ({
 	persiapan: [["Tender", "status", "=", "Persiapan"]],
 	proses: [["Tender", "status", "in", ["Penawaran Dikirim", "Evaluasi"]]],
-	tenggat: [["Tender", "status", "=", "Persiapan"], ["Tender", "batas_pemasukan", "<=", `${d.batas_7_hari} 23:59:59`]],
+	tenggat: [["Tender", "name", "in", (d.tenggat_nama || []).length ? d.tenggat_nama : ["-"]]],
 });
 
 function render_ringkasan_tdr(listview) {

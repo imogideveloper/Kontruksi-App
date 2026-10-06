@@ -74,17 +74,19 @@ def get_ringkasan_list():
 	"""Kartu di atas list Tender: jumlah per status, tenggat pemasukan ≤ 7 hari (masih Persiapan), total HPS dalam proses."""
 	from frappe.utils import add_days, get_datetime, now_datetime
 
-	rows = frappe.get_list("Tender", fields=["status", "hps", "batas_pemasukan"], limit_page_length=0)
+	rows = frappe.get_list("Tender", fields=["name", "status", "hps", "batas_pemasukan"], limit_page_length=0)
 	per_status = {}
 	for r in rows:
 		per_status[r.status] = per_status.get(r.status, 0) + 1
 	sekarang = now_datetime()
 	batas = add_days(sekarang, 7)
-	tenggat = sum(1 for r in rows if r.status == "Persiapan" and r.batas_pemasukan and get_datetime(r.batas_pemasukan) <= batas)
+	tenggat = [r.name for r in rows if r.status == "Persiapan" and r.batas_pemasukan and get_datetime(r.batas_pemasukan) <= batas]
 	return {
 		"total": len(rows),
 		"per_status": per_status,
-		"tenggat_7_hari": tenggat,
+		"tenggat_7_hari": len(tenggat),
+		# Kartu "Tenggat ≤ 7 Hari" memfilter list lewat daftar ID (filter Datetime di bar filter rawan salah konversi format).
+		"tenggat_nama": tenggat,
 		"batas_7_hari": str(batas.date()),
 		"hps_proses": sum(flt(r.hps) for r in rows if r.status in STATUS_PROSES),
 	}
