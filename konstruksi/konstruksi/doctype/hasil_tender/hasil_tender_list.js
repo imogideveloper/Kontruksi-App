@@ -1,14 +1,15 @@
 // List Hasil Tender: kartu ringkasan (total, menang + win rate, kalah, nilai dimenangkan) dan kolom
-// Kode · Project · Pemberi Kerja · HPS · Penawaran Kita · Pemenang & Harga · Selisih · Tgl. Pengumuman · Kontrak · Hasil.
+// Kode · Project · Pemberi Kerja · HPS · Penawaran Kita · Pemenang · Harga Pemenang · Selisih · Tgl. Pengumuman · Kontrak · Hasil.
 // Keterangan & tanggal pengajuan dibaca di form.
 const KOLOM_SEBELUM_HASIL = ["nama_project", "pemberi_kerja"];
-const KOLOM_SESUDAH_HASIL = ["hps", "penawaran_kita", "pemenang", "selisih_persen", "tanggal_pengumuman"];
+const KOLOM_SESUDAH_HASIL = ["hps", "penawaran_kita", "pemenang", "harga_pemenang", "selisih_persen", "tanggal_pengumuman"];
 const JUDUL_KOLOM = {
 	nama_project: __("Project"),
 	pemberi_kerja: __("Pemberi Kerja"),
 	hps: __("HPS"),
 	penawaran_kita: __("Penawaran Kita"),
-	pemenang: __("Pemenang · Harga"),
+	pemenang: __("Pemenang"),
+	harga_pemenang: __("Harga Pemenang"),
 	selisih_persen: __("Selisih"),
 	tanggal_pengumuman: __("Tgl. Pengumuman"),
 	kontrak: __("Kontrak"),
@@ -48,9 +49,10 @@ frappe.listview_settings["Hasil Tender"] = {
 		// Pemenang & harganya; saat kita menang cukup "Perusahaan kita" (harga = penawaran kita).
 		pemenang(value, df, doc) {
 			if (doc.hasil === "Menang") return `<span class="text-success">${__("Perusahaan kita")}</span>`;
-			if (!value) return KOSONG;
-			const harga = flt(doc.harga_pemenang) ? `<div class="kpm-sub">${rp_ht(doc.harga_pemenang)}</div>` : "";
-			return `<div class="kpm-dua-baris"><div class="ellipsis" title="${esc_ht(value)}">${esc_ht(value)}</div>${harga}</div>`;
+			return value ? `<span class="ellipsis" title="${esc_ht(value)}">${esc_ht(value)}</span>` : KOSONG;
+		},
+		harga_pemenang(value) {
+			return flt(value) ? `<span>${rp_ht(value)}</span>` : KOSONG;
 		},
 		selisih_persen(value, df, doc) {
 			value = flt(value);

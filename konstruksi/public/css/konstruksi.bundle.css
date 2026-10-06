@@ -5656,7 +5656,7 @@ body[data-route^="List/Hasil Tender"] .frappe-list .result {
 }
 
 body[data-route^="List/Hasil Tender"] .frappe-list :is(.list-row-head, .list-row-container) {
-	min-width: 1460px;
+	min-width: 1610px;
 }
 
 body[data-route^="List/Hasil Tender"] .frappe-list .list-subject {
@@ -5689,6 +5689,10 @@ body[data-route^="List/Hasil Tender"] .frappe-list .list-row-col:is([data-fieldn
 
 body[data-route^="List/Hasil Tender"] .frappe-list .list-row-col[data-fieldname="pemenang"] {
 	flex: 0 0 180px !important;
+}
+
+body[data-route^="List/Hasil Tender"] .frappe-list .list-row-col[data-fieldname="harga_pemenang"] {
+	flex: 0 0 150px !important;
 }
 
 body[data-route^="List/Hasil Tender"] .frappe-list .list-row-col[data-fieldname="selisih_persen"] {
