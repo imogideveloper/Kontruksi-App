@@ -28,12 +28,6 @@ frappe.ui.form.on("RAB Penawaran", {
 			frm.add_custom_button(__("Upload Excel"), () => upload_excel(frm), __("Excel"));
 		}
 
-		// Struktur pekerjaan standar dari master Jenis Project tender ini (tanpa harga). Selalu tampil di RAB yang bisa
-		// diedit; syarat (tender dipilih, harga belum dikunci) dicek saat diklik supaya user tahu alasannya.
-		if (Boolean(frm.perm?.[0]?.write) && frm.doc.docstatus === 0) {
-			frm.add_custom_button(__("Generate Template RAB"), () => muat_template_rab(frm)).addClass("btn-primary-light");
-		}
-
 		// Penawaran sudah diajukan: item & harga dikunci di tabel item, Harga Satuan Pokok (biaya) tetap bisa diisi.
 		if (terkunci) {
 			frm.dashboard.set_headline(
