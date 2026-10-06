@@ -91,7 +91,7 @@
 	});
 
 	// -----------------------------------------------------------------------
-	// Tab Tim Proyek: ringkasan, kebutuhan personel (dari Template Kebutuhan Personel), daftar penugasan.
+	// Tab Tim Proyek: ringkasan & satu tabel personel — jabatan yang belum terisi (Template Kebutuhan Personel) di atas, lalu penugasan.
 
 	const TIM_METHOD = "konstruksi.konstruksi.tim_proyek";
 	const SKK_BERMASALAH = ["Belum Ada", "Kedaluwarsa", "Habis Saat Bertugas"];
@@ -118,23 +118,21 @@
 			SKK_BERMASALAH.includes(status)
 				? `<span class="kpt-skk" title="${esc(__("SKK {0}", [__(status)]))}">${frappe.utils.icon("circle-alert", "xs")} SKK</span>`
 				: "";
-		const perlu = (d.perlu || [])
+		// Jabatan dari Template Kebutuhan Personel yang belum terisi: baris abu-abu paling atas di tabel personel.
+		const baris_perlu = (d.perlu || [])
+			.slice()
+			.sort((x, y) => cint(y.wajib) - cint(x.wajib))
 			.map(
-				(k) => `<div class="kpt-keb" title="${esc(k.tugas)}">
-					<span class="kpt-titik ${k.wajib ? "kpt-titik-wajib" : ""}"></span>
-					<div class="kpt-keb-info"><b>${esc(__(k.jabatan))}</b>
-						<span>${k.wajib ? __("wajib") : __("disarankan")}${k.kurang > 1 ? ` · ${__("kurang {0} orang", [k.kurang])}` : ""}</span></div>
-					${bisa ? `<button class="btn btn-xs btn-default kpt-tugaskan" data-jabatan="${esc(k.jabatan)}">${frappe.utils.icon("add", "xs")} ${__("Tugaskan")}</button>` : ""}
-				</div>`
-			)
-			.join("");
-		const terisi = (d.terisi || [])
-			.map(
-				(k) => `<div class="kpt-keb" title="${esc(k.tugas)}">
-					<span class="kpt-centang">${frappe.utils.icon("check", "xs")}</span>
-					<div class="kpt-keb-info"><b>${esc(__(k.jabatan))}</b><span>${k.personel.map((p) => esc(p.nama)).join(", ")}</span></div>
-					${k.personel.map((p) => skk_chip(p.status_skk)).join("")}
-				</div>`
+				(k) => `<tr class="kpt-baris-kosong">
+					<td><span class="kpt-kosong-nama">${__("— Belum ada —")}</span></td>
+					<td><b>${esc(__(k.jabatan))}</b>
+						<span class="kpt-label ${k.wajib ? "kpt-label-wajib" : "kpt-label-saran"}">${k.wajib ? __("wajib") : __("disarankan")}</span>
+						${k.kurang > 1 ? `<div class="text-muted small">${__("kurang {0} orang", [k.kurang])}</div>` : ""}</td>
+					<td colspan="7" class="text-muted small kpt-tugas">${k.tugas ? esc(k.tugas) : __("Jabatan ini dibutuhkan proyek tapi belum ada personel yang ditugaskan.")}</td>
+					<td class="text-right kpt-aksi">${
+						bisa ? `<button class="btn btn-xs btn-default kpt-tugaskan" data-jabatan="${esc(k.jabatan)}">${frappe.utils.icon("add", "xs")} ${__("Tugaskan")}</button>` : ""
+					}</td>
+				</tr>`
 			)
 			.join("");
 
@@ -171,32 +169,27 @@
 					`<div class="kpr-progress ${lengkap ? "kpr-progress-ok" : ""}"><div style="width: ${persen_wajib}%"></div></div>`
 				)}
 			</div>
-			<div class="kpr-card">
-				<div class="kpr-judul">${__("Kebutuhan Personel")}
-					<a class="btn btn-xs btn-default kpt-atur" href="/app/template-kebutuhan-personel">${frappe.utils.icon("setting-gear", "xs")} ${__("Atur kebutuhan")}</a>
-				</div>
-				<div class="kpt-keb-grid">
-					<div><div class="kpt-keb-judul">${__("Perlu diisi")} <span>${(d.perlu || []).length}</span></div>
-						${perlu || `<div class="kpr-muted">${__("Semua kebutuhan sudah terisi.")}</div>`}</div>
-					<div><div class="kpt-keb-judul">${__("Sudah terisi")} <span>${(d.terisi || []).length}</span></div>
-						${terisi || `<div class="kpr-muted">${__("Belum ada personel ditugaskan.")}</div>`}</div>
-				</div>
-				<div class="kpr-catatan">${__("Kebutuhan dari Template Kebutuhan Personel sesuai jenis & nilai proyek. Arahkan kursor ke jabatan untuk melihat tugasnya.")}</div>
-			</div>
 			<div class="kpr-card kpt-tabel-card">
-				<div class="kpr-judul">${__("Personel Ditugaskan")}
-					${bisa ? `<button class="btn btn-sm btn-primary kpt-tugaskan kpt-tugaskan-utama">${frappe.utils.icon("add", "xs")} ${__("Tugaskan Personel")}</button>` : ""}
+				<div class="kpr-judul">${__("Tim Proyek")}
+					<span class="kpt-ringkas">${__("{0} personel ditugaskan", [cint(d.jumlah_personel)])}${
+						(d.perlu || []).length ? ` · <span class="kpt-ringkas-kurang">${__("{0} jabatan belum terisi", [(d.perlu || []).length])}</span>` : ""
+					}</span>
+					<span class="kpt-judul-aksi">
+						<a class="btn btn-xs btn-default kpt-atur" href="/app/template-kebutuhan-personel" title="${__("Kebutuhan jabatan per jenis & nilai proyek")}">${frappe.utils.icon("setting-gear", "xs")} ${__("Atur kebutuhan")}</a>
+						${bisa ? `<button class="btn btn-sm btn-primary kpt-tugaskan kpt-tugaskan-utama">${frappe.utils.icon("add", "xs")} ${__("Tugaskan Personel")}</button>` : ""}
+					</span>
 				</div>
 				${
-					baris
+					baris || baris_perlu
 						? `<div class="kp-tabel-wrap"><table class="kp-tabel kpt-tabel">
 							<thead><tr><th>${__("Nama")}</th><th>${__("Jabatan")}</th><th>${__("Akses Sistem")}</th><th>${__("Kontak")}</th>
 								<th>${__("Periode Tugas")}</th><th class="text-right">${__("Alokasi")}</th>
 								<th class="text-right" title="${__("Dari Timesheet yang sudah submit")}">${__("Jam Kerja")}</th>
 								<th class="text-right" title="${__("Dari Timesheet yang sudah submit")}">${__("Biaya Timesheet")}</th>
 								<th class="text-right" title="${__("Dari Expense Claim yang sudah submit")}">${__("Expense Claim")}</th><th></th></tr></thead>
-							<tbody>${baris}</tbody></table></div>`
-						: `<div class="kpr-muted">${__("Belum ada personel. Klik Tugaskan Personel atau tombol Tugaskan di kebutuhan.")}</div>`
+							<tbody>${baris_perlu}${baris}</tbody></table></div>
+							<div class="kpr-catatan">${__("Baris abu-abu: jabatan dari Template Kebutuhan Personel (sesuai jenis & nilai proyek) yang belum ada personelnya.")}</div>`
+						: `<div class="kpr-muted">${__("Belum ada personel. Klik Tugaskan Personel.")}</div>`
 				}
 			</div>
 		</div>`;
