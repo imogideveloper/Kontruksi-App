@@ -260,3 +260,28 @@ def get_template_rab(tender):
 	rows = frappe.get_all("Jenis Project RAB", filters={"parent": jenis, "parenttype": "Jenis Project"},
 		fields=["kode_wbs", "uraian_pekerjaan", "satuan"], order_by="idx asc")
 	return {"jenis_project": jenis, "rows": rows}
+
+
+FIELD_DARI_TENDER = {"nama_project": "nama_paket", "pemberi_kerja": "pemberi_kerja", "hps": "hps", "status_ppn": "status_ppn", "tarif_ppn": "tarif_ppn"}
+
+
+def sinkron_dari_tender(tender, method=None):
+	"""Tender.on_update: salin Nama Project, Pemberi Kerja, HPS, Status & Tarif PPN ke RAB Penawaran tender itu, lalu
+	hitung ulang total, PPN & persen HPS. db_update (bukan save) supaya kunci harga RAB tidak menggagalkan simpan Tender."""
+	from frappe.utils import now
+
+	from konstruksi.api import beri_tahu_form
+
+	for name in frappe.get_all("RAB Penawaran", filters={"tender": tender.name, "docstatus": ("<", 2)}, pluck="name"):
+		doc = frappe.get_doc("RAB Penawaran", name)
+		berubah = False
+		for field_rab, field_tender in FIELD_DARI_TENDER.items():
+			if doc.get(field_rab) != tender.get(field_tender):
+				doc.set(field_rab, tender.get(field_tender))
+				berubah = True
+		if not berubah:
+			continue
+		doc.hitung_total()
+		doc.modified = now()
+		doc.db_update_all()
+		beri_tahu_form("RAB Penawaran", name)
