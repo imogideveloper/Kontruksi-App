@@ -5781,7 +5781,7 @@ body[data-route^="List/Tender"] .frappe-list .result {
 }
 
 body[data-route^="List/Tender"] .frappe-list :is(.list-row-head, .list-row-container) {
-	min-width: 1400px;
+	min-width: 1490px;
 }
 
 body[data-route^="List/Tender"] .frappe-list .list-subject {
@@ -5815,7 +5815,7 @@ body[data-route^="List/Tender"] .frappe-list .list-row-col[data-fieldname="batas
 }
 
 body[data-route^="List/Tender"] .frappe-list .list-row-col[data-fieldname="penanggung_jawab"] {
-	flex: 0 0 150px !important;
+	flex: 0 0 240px !important;
 }
 
 body[data-route^="List/Tender"] .frappe-list .level-left > .list-row-col:last-child {
@@ -6271,4 +6271,77 @@ body[data-route^="query-report/Trial Balance"] .dt-scrollable .dt-row:hover .dt-
 	.kp-notif-tengah {
 		transition: none;
 	}
+}
+
+/* List Dokumen Tender: lebar kolom sesuai isi — tidak terpotong & tidak turun baris (teks satu baris); bila layar
+   kurang lebar, list digeser ke samping. */
+body[data-route^="List/Dokumen Tender"] .frappe-list .result {
+	overflow-x: auto;
+}
+
+body[data-route^="List/Dokumen Tender"] .frappe-list :is(.list-row-head, .list-row-container) {
+	min-width: 1240px;
+}
+
+body[data-route^="List/Dokumen Tender"] .frappe-list .list-row-col,
+body[data-route^="List/Dokumen Tender"] .frappe-list .list-row-col * {
+	white-space: nowrap !important;
+}
+
+/* Frappe membatasi max-width kolom di layar sempit; dilepas supaya lebar minimal di bawah berlaku. */
+body[data-route^="List/Dokumen Tender"] .frappe-list :is(.list-row-col, .list-subject) {
+	max-width: none !important;
+	flex-shrink: 0 !important;
+}
+
+body[data-route^="List/Dokumen Tender"] .frappe-list .level-left {
+	flex: 1 0 auto;
+	min-width: 0;
+}
+
+body[data-route^="List/Dokumen Tender"] .frappe-list .list-subject {
+	flex: 0 0 200px !important;
+	min-width: 200px;
+}
+
+body[data-route^="List/Dokumen Tender"] .frappe-list .list-row-col[data-fieldname="nama_project"] {
+	flex: 1 0 180px !important;
+	min-width: 180px;
+}
+
+body[data-route^="List/Dokumen Tender"] .frappe-list .list-row-col[data-fieldname="pemberi_kerja"] {
+	flex: 1 0 230px !important;
+	min-width: 230px;
+}
+
+body[data-route^="List/Dokumen Tender"] .frappe-list .list-row-col[data-fieldname="batas_pemasukan"] {
+	flex: 0 0 165px !important;
+}
+
+body[data-route^="List/Dokumen Tender"] .frappe-list .list-row-col[data-fieldname="persen_lengkap"] {
+	flex: 0 0 170px !important;
+}
+
+/* Kolom status (mis. "Kurang 8 dokumen") paling kanan. */
+body[data-route^="List/Dokumen Tender"] .frappe-list .level-left > .list-row-col:last-child {
+	flex: 0 0 170px !important;
+	margin-right: 0;
+}
+
+body[data-route^="List/Dokumen Tender"] .frappe-list .level-left > .list-row-col:last-child .indicator-pill {
+	max-width: none;
+}
+
+/* List dengan lebar kolom sesuai isi (Tender, Hasil Tender, Dokumen Tender): aturan list global di atas memaksa
+   baris selebar layar & kolom menyusut (flex-shrink 1) — di layar sempit kolom jadi terpotong. Untuk list ini baris
+   boleh lebih lebar dari layar (digeser ke samping) dan kolom tidak menyusut di bawah lebarnya. */
+:is(body[data-route^="List/Tender"], body[data-route^="List/Hasil Tender"], body[data-route^="List/Dokumen Tender"])
+	.layout-main-section-wrapper .frappe-list .result-container .result .list-row-container {
+	width: auto !important;
+}
+
+:is(body[data-route^="List/Tender"], body[data-route^="List/Hasil Tender"], body[data-route^="List/Dokumen Tender"])
+	.layout-main-section-wrapper .frappe-list .result-container .result .list-row-container .level-left .list-row-col:not(.list-subject) {
+	flex-shrink: 0 !important;
+	max-width: none !important;
 }
