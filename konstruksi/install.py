@@ -547,13 +547,13 @@ ITEM_BIAYA_PROYEK = (
 	("MAT-KABEL", "Kabel Listrik NYM", "Material Proyek", "m'", "Instalasi listrik."),
 	("MAT-ASPAL", "Aspal Hotmix (AC-WC/AC-BC)", "Material Proyek", "Ton", "Lapis perkerasan aspal."),
 	# Subkontraktor
-	("SUB-TANAH", "Subkon Pekerjaan Tanah", "Subkontraktor", "Ls", "Galian, timbunan, pemadatan."),
-	("SUB-PONDASI", "Subkon Pondasi / Tiang Pancang", "Subkontraktor", "Ls", "Bore pile, tiang pancang, mini pile."),
-	("SUB-STRUKTUR", "Subkon Pekerjaan Struktur", "Subkontraktor", "Ls", "Beton bertulang / struktur utama."),
-	("SUB-BAJA", "Subkon Struktur Baja", "Subkontraktor", "Ls", "Fabrikasi & erection baja."),
-	("SUB-ARSITEKTUR", "Subkon Pekerjaan Arsitektur", "Subkontraktor", "Ls", "Finishing, kusen, plafon, lantai."),
-	("SUB-MEP", "Subkon Mekanikal, Elektrikal & Plumbing", "Subkontraktor", "Ls", "Instalasi listrik, air, tata udara."),
-	("SUB-JALAN", "Subkon Perkerasan Jalan", "Subkontraktor", "Ls", "Penghamparan agregat & aspal."),
+	("SUB-TANAH", "Subkon Pekerjaan Tanah", "Subkontraktor", "m3", "Borongan galian, timbunan & pemadatan per m3."),
+	("SUB-PONDASI", "Subkon Pondasi / Tiang Pancang", "Subkontraktor", "m'", "Bore pile / tiang pancang / mini pile per meter."),
+	("SUB-STRUKTUR", "Subkon Pekerjaan Struktur", "Subkontraktor", "m3", "Beton bertulang komplit (besi, bekisting, cor) per m3."),
+	("SUB-BAJA", "Subkon Struktur Baja", "Subkontraktor", "Kg", "Fabrikasi & erection baja per kg."),
+	("SUB-ARSITEKTUR", "Subkon Pekerjaan Arsitektur", "Subkontraktor", "m2", "Finishing, kusen, plafon, lantai per m2 bangunan."),
+	("SUB-MEP", "Subkon Mekanikal, Elektrikal & Plumbing", "Subkontraktor", "m2", "Instalasi listrik, air, tata udara per m2 bangunan."),
+	("SUB-JALAN", "Subkon Perkerasan Jalan", "Subkontraktor", "m2", "Penghamparan agregat & aspal per m2."),
 	# Sewa alat
 	("ALAT-EXCAVATOR", "Sewa Excavator", "Sewa Alat", "Jam", "Termasuk operator; BBM sesuai kontrak sewa."),
 	("ALAT-DUMP-TRUCK", "Sewa Dump Truck", "Sewa Alat", "Rit", "Angkutan material / buangan per ritase."),
@@ -576,7 +576,7 @@ ITEM_BIAYA_PROYEK = (
 	("UPAH-TUKANG-LISTRIK", "Upah Tukang Listrik", "Upah Tukang", "OH", "Per orang-hari."),
 	("UPAH-KEPALA-TUKANG", "Upah Kepala Tukang", "Upah Tukang", "OH", "Per orang-hari."),
 	("UPAH-MANDOR", "Upah Mandor", "Upah Tukang", "OH", "Per orang-hari."),
-	("UPAH-BORONGAN", "Upah Borongan Pekerjaan", "Upah Tukang", "Ls", "Upah borongan per paket pekerjaan."),
+	("UPAH-BORONGAN", "Upah Borongan Pekerjaan", "Upah Tukang", "m2", "Upah borongan bangunan per m2."),
 	# Biaya proyek lain
 	("LAIN-MOBILISASI", "Mobilisasi & Demobilisasi", "Biaya Proyek Lain", "Ls", "Pengiriman alat & personel ke/dari site."),
 	("LAIN-ANGKUTAN", "Angkutan Material", "Biaya Proyek Lain", "Rit", "Ongkos kirim material yang ditagih terpisah."),
@@ -591,13 +591,52 @@ ITEM_BIAYA_PROYEK = (
 )
 
 
+# Harga beli acuan (Price List "Standard Buying", per satuan item) — estimasi pasar 2026, ubah sesuai harga supplier.
+HARGA_BELI_ACUAN = {
+	"MAT-SEMEN": 68000, "MAT-PASIR-BETON": 320000, "MAT-PASIR-URUG": 220000, "MAT-SPLIT": 360000, "MAT-BATU-KALI": 280000,
+	"MAT-AGREGAT-A": 380000, "MAT-AGREGAT-B": 330000, "MAT-TANAH-URUG": 150000, "MAT-READYMIX": 1050000,
+	"MAT-BESI-POLOS": 14500, "MAT-BESI-ULIR": 15000, "MAT-WIREMESH": 650000, "MAT-KAWAT-BENDRAT": 25000,
+	"MAT-BATA-MERAH": 900, "MAT-BATA-RINGAN": 750000, "MAT-MORTAR": 95000, "MAT-KAYU-BEKISTING": 3500000,
+	"MAT-MULTIPLEK": 185000, "MAT-PAKU": 22000, "MAT-BAJA-RINGAN": 95000, "MAT-PENUTUP-ATAP": 85000, "MAT-KERAMIK": 95000,
+	"MAT-GYPSUM": 75000, "MAT-HOLLOW": 32000, "MAT-CAT": 45000, "MAT-PIPA-PVC": 85000, "MAT-KABEL": 9000,
+	"MAT-ASPAL": 1350000,
+	"SUB-TANAH": 95000, "SUB-PONDASI": 425000, "SUB-STRUKTUR": 4750000, "SUB-BAJA": 38000, "SUB-ARSITEKTUR": 650000,
+	"SUB-MEP": 400000, "SUB-JALAN": 195000,
+	"ALAT-EXCAVATOR": 450000, "ALAT-DUMP-TRUCK": 350000, "ALAT-VIBRO-ROLLER": 400000, "ALAT-CRANE": 850000,
+	"ALAT-CONCRETE-PUMP": 950000, "ALAT-MOLEN": 250000, "ALAT-VIBRATOR": 150000, "ALAT-STAMPER": 200000,
+	"ALAT-SCAFFOLDING": 50000, "ALAT-GENSET": 650000, "ALAT-POMPA": 200000, "ALAT-TOTAL-STATION": 750000,
+	"UPAH-PEKERJA": 150000, "UPAH-TUKANG-BATU": 185000, "UPAH-TUKANG-KAYU": 185000, "UPAH-TUKANG-BESI": 185000,
+	"UPAH-TUKANG-CAT": 180000, "UPAH-TUKANG-LISTRIK": 200000, "UPAH-KEPALA-TUKANG": 210000, "UPAH-MANDOR": 225000,
+	"UPAH-BORONGAN": 1150000,
+	"LAIN-MOBILISASI": 15000000, "LAIN-ANGKUTAN": 450000, "LAIN-DIREKSI-KEET": 25000000, "LAIN-LISTRIK-AIR": 3500000,
+	"LAIN-K3": 7500000, "LAIN-KEAMANAN": 4500000, "LAIN-PENGUJIAN": 7500000, "LAIN-PERIZINAN": 5000000,
+	"LAIN-DOKUMENTASI": 3000000, "LAIN-PEMBERSIHAN": 4000000,
+}
+PRICE_LIST_BELI = "Standard Buying"
+
+
+def item_dipakai(item_code):
+	return any(
+		frappe.db.exists(dt, {"item_code": item_code})
+		for dt in ("Purchase Order Item", "Purchase Invoice Item", "Purchase Receipt Item", "Material Request Item", "Bin")
+	)
+
+
 def buat_item_biaya_proyek():
-	"""Satuan konstruksi & item biaya proyek standar (yang belum ada saja; item yang sudah diubah user tidak ditimpa)."""
+	"""Satuan konstruksi, item biaya proyek standar, dan harga beli acuannya (yang belum ada saja; item & harga yang
+	sudah diubah user tidak ditimpa). Satuan item standar yang belum pernah ditransaksikan disamakan dengan daftar."""
 	for nama, bulat in UOM_KONSTRUKSI:
 		if not frappe.db.exists("UOM", nama):
 			frappe.get_doc({"doctype": "UOM", "uom_name": nama, "must_be_whole_number": bulat}).insert(ignore_permissions=True)
 	for kode, nama, grup, satuan, ket in ITEM_BIAYA_PROYEK:
 		if frappe.db.exists("Item", kode):
+			item = frappe.get_doc("Item", kode)
+			if item.stock_uom != satuan and not item_dipakai(kode):
+				item.stock_uom = satuan
+				item.uoms = []
+				item.description = ket
+				item.save(ignore_permissions=True)
+				frappe.db.delete("Item Price", {"item_code": kode, "uom": ("!=", satuan)})
 			continue
 		frappe.get_doc(
 			{
@@ -605,6 +644,15 @@ def buat_item_biaya_proyek():
 				"is_stock_item": 0, "is_purchase_item": 1, "is_sales_item": 0, "include_item_in_manufacturing": 0,
 				"is_fixed_asset": 0, "description": ket,
 			}
+		).insert(ignore_permissions=True)
+	if not frappe.db.exists("Price List", PRICE_LIST_BELI):
+		return
+	for kode, nama, grup, satuan, ket in ITEM_BIAYA_PROYEK:
+		harga = HARGA_BELI_ACUAN.get(kode)
+		if not harga or frappe.db.exists("Item Price", {"item_code": kode, "price_list": PRICE_LIST_BELI}):
+			continue
+		frappe.get_doc(
+			{"doctype": "Item Price", "item_code": kode, "price_list": PRICE_LIST_BELI, "uom": satuan, "price_list_rate": harga}
 		).insert(ignore_permissions=True)
 
 

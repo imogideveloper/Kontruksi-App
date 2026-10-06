@@ -50,7 +50,7 @@
 	];
 	// Kolom tabel Items: Item · Item WBS · Qty · Satuan · Harga · Jumlah (Required By per baris = tanggal di atas;
 	// Target Warehouse tidak dipakai).
-	const KOLOM_ITEM_PO = { item_code: 3, wbs_item: 2, qty: 1, uom: 1, rate: 1, amount: 2 };
+	const KOLOM_ITEM_PO = { item_code: 2, wbs_item: 2, qty: 1, uom: 1, rate: 2, amount: 2 };
 	const KOLOM_ITEM_PO_SEMBUNYI = ["schedule_date", "warehouse"];
 
 	function atur_kolom_item_po(frm) {

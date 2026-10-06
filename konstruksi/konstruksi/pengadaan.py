@@ -60,7 +60,7 @@ def lengkapi_pengadaan(doc, method=None):
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def cari_wbs(doctype, txt, searchfield, start, page_len, filters):
-	"""Pilihan Item WBS: pekerjaan (bukan induk) dari Project baris, dicari lewat kode / uraian."""
+	"""Pilihan Item WBS: pekerjaan (bukan induk) dari Project baris, dicari lewat kode / uraian / ID."""
 	project = (filters or {}).get("project")
 	if not project:
 		return []
@@ -69,7 +69,8 @@ def cari_wbs(doctype, txt, searchfield, start, page_len, filters):
 	rows = frappe.get_list(
 		"WBS Item",
 		filters={"project": project, "is_group": 0},
-		or_filters={"kode": ("like", f"%{txt}%"), "uraian": ("like", f"%{txt}%")},
+		# name ikut dicari: Frappe memvalidasi pilihan link dengan menjalankan query ini memakai ID terpilih.
+		or_filters={"name": ("like", f"%{txt}%"), "kode": ("like", f"%{txt}%"), "uraian": ("like", f"%{txt}%")},
 		fields=["name", "kode", "uraian", "satuan"],
 		limit_page_length=0,
 	)
