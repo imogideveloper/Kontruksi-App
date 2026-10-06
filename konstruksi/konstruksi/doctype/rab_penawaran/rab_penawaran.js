@@ -28,9 +28,10 @@ frappe.ui.form.on("RAB Penawaran", {
 			frm.add_custom_button(__("Upload Excel"), () => upload_excel(frm), __("Excel"));
 		}
 
-		// Struktur pekerjaan standar dari master Jenis Project tender ini (tanpa harga).
-		if (hak.ubah_harga && frm.doc.tender) {
-			frm.add_custom_button(__("Muat Template RAB"), () => muat_template_rab(frm));
+		// Struktur pekerjaan standar dari master Jenis Project tender ini (tanpa harga). Selalu tampil di RAB yang bisa
+		// diedit; syarat (tender dipilih, harga belum dikunci) dicek saat diklik supaya user tahu alasannya.
+		if (Boolean(frm.perm?.[0]?.write) && frm.doc.docstatus === 0) {
+			frm.add_custom_button(__("Generate Template RAB"), () => muat_template_rab(frm)).addClass("btn-primary-light");
 		}
 
 		// Penawaran sudah diajukan: item & harga dikunci di tabel item, Harga Satuan Pokok (biaya) tetap bisa diisi.
@@ -512,9 +513,17 @@ function pasang_event_rab(frm, $w, state, items) {
 	});
 }
 
-// Muat Template RAB: isi item dari tabel Template RAB di master Jenis Project tender. Bila RAB sudah berisi, pilih
+// Generate Template RAB: isi item dari tabel Template RAB di master Jenis Project tender. Bila RAB sudah berisi, pilih
 // ganti semua atau tambahkan di bawah (kode kelompok template digeser setelah kelompok terakhir).
 function muat_template_rab(frm) {
+	if (!frm.doc.tender) {
+		frappe.msgprint(__("Pilih Tender dulu: template diambil dari Jenis Project tender tersebut."));
+		return;
+	}
+	if (harga_terkunci(frm)) {
+		frappe.msgprint(__("Penawaran sudah diajukan di Dokumen Tender: item RAB dikunci, template tidak bisa dimuat."));
+		return;
+	}
 	frappe.call({ method: `${RAB_METHOD}.get_template_rab`, args: { tender: frm.doc.tender } }).then((r) => {
 		const { jenis_project, rows } = r.message || {};
 		if (!rows?.length) {
@@ -547,7 +556,7 @@ function muat_template_rab(frm) {
 		};
 		if (!isi) return terapkan("ganti");
 		const d = new frappe.ui.Dialog({
-			title: __("Muat Template RAB — {0}", [jenis_project]),
+			title: __("Generate Template RAB — {0}", [jenis_project]),
 			fields: [{
 				fieldtype: "Select", fieldname: "mode", label: __("RAB ini sudah berisi {0} item", [isi]), reqd: 1,
 				options: [
@@ -556,7 +565,7 @@ function muat_template_rab(frm) {
 				],
 				default: "tambah",
 			}],
-			primary_action_label: __("Muat"),
+			primary_action_label: __("Generate"),
 			primary_action: (v) => {
 				d.hide();
 				terapkan(v.mode);
