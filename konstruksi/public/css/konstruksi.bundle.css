@@ -1843,24 +1843,6 @@ body[data-route^="Form/Dokumen Tender"] .frappe-control[data-fieldname="persen_l
 	}
 }
 
-.kpm-milestone {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	padding: 12px 20px;
-}
-
-.kpm-milestone-label {
-	font-size: var(--text-sm);
-	font-weight: 500;
-	color: var(--text-muted);
-}
-
-.kpm-milestone-isi {
-	margin-left: auto;
-	color: var(--text-color);
-}
-
 /* List Project Master: kartu ringkasan bisa diklik sebagai filter; lebar kolom Periode & Klien cukup untuk isinya. */
 a.kpm-kartu-filter,
 a.kpm-kartu-filter:hover {

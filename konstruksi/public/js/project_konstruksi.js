@@ -337,9 +337,6 @@
 
 		// Progres di belakang rencana lebih dari 10 poin = oranye.
 		const tertinggal = flt(d.progres_rencana) - flt(d.progres_aktual) > 10;
-		const milestone = d.milestone
-			? `<b>${esc(d.milestone.subject)}</b>${d.milestone.exp_end_date ? ` · ${tanggal(d.milestone.exp_end_date)}` : ""}`
-			: `<span class="kpr-muted">${__("Belum ada milestone (tandai Task sebagai milestone)")}</span>`;
 
 		return `<div class="kpm-dashboard kpr">
 			<div class="kpr-card kpr-kepala">
@@ -368,11 +365,6 @@
 				${kartu("users", "biru", __("Tim"), `${cint(d.tim)} <span>${__("orang")}</span>`, __("Anggota di tabel Users"))}
 				${kartu("list-checks", "hijau", __("Aktivitas"), cint(d.aktivitas), __("{0} selesai", [cint(d.aktivitas_selesai)]))}
 				${kartu("circle-alert", cint(d.isu_terbuka) ? "oranye" : "hijau", __("Isu Terbuka"), cint(d.isu_terbuka), __("Dari menu Issue"))}
-			</div>
-			<div class="kpr-card kpm-milestone">
-				<span class="kpr-ikon kpr-ikon-oranye">${frappe.utils.icon("flag", "sm")}</span>
-				<span class="kpm-milestone-label">${__("Milestone / Termin Berikutnya")}</span>
-				<span class="kpm-milestone-isi">${milestone}</span>
 			</div>
 		</div>`;
 	}
