@@ -18,12 +18,17 @@ frappe.ui.form.on("Tender", {
 		set_pratinjau_kode(frm);
 	},
 
+	jenis_project(frm) {
+		frm.fields_dict.jenis_project?.__kp_select?.val(frm.doc.jenis_project || "");
+	},
+
 	tanggal(frm) {
 		// Tahun pada kode mengikuti tahun Tanggal.
 		set_pratinjau_kode(frm);
 	},
 
 	refresh(frm) {
+		jenis_project_dropdown(frm);
 		if (!frm.is_new()) {
 			frm.add_custom_button(__("Dokumen Tender"), () => {
 				frappe
@@ -131,4 +136,34 @@ function update_persen_hps_note(frm) {
 	}
 
 	frm.set_df_property("persen_hps", "description", note);
+}
+
+// Jenis Project tampil sebagai dropdown (seperti Metode Pemilihan), isi dari master Jenis Project urut kolom Urutan.
+// Field tetap Link (validasi, filter list & relasi ke Kontrak tidak berubah); input link disembunyikan.
+function jenis_project_dropdown(frm) {
+	const field = frm.fields_dict.jenis_project;
+	if (!field?.$wrapper) return;
+	const pasang = (rows) => {
+		let $sel = field.__kp_select;
+		if (!$sel) {
+			const $input = field.$wrapper.find(".control-input");
+			$sel = $(`<select class="form-control ellipsis"></select>`);
+			$input.find(".link-field").hide();
+			$input.addClass("flex align-center").append($sel, `<div class="select-icon">${frappe.utils.icon("select", "sm")}</div>`);
+			$sel.on("change", () => frm.set_value("jenis_project", $sel.val() || ""));
+			field.__kp_select = $sel;
+		}
+		const nilai = frm.doc.jenis_project || "";
+		const opsi = rows.map((r) => r.name);
+		if (nilai && !opsi.includes(nilai)) opsi.push(nilai);
+		$sel.html([`<option value=""></option>`, ...opsi.map((n) => `<option value="${frappe.utils.escape_html(n)}">${frappe.utils.escape_html(n)}</option>`)].join(""));
+		$sel.val(nilai);
+	};
+	if (frm.__kp_jenis_project) return pasang(frm.__kp_jenis_project);
+	frappe.db
+		.get_list("Jenis Project", { filters: { disabled: 0 }, fields: ["name"], order_by: "urutan asc, name asc", limit: 0 })
+		.then((rows) => {
+			frm.__kp_jenis_project = rows;
+			pasang(rows);
+		});
 }
