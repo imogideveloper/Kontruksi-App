@@ -4,7 +4,8 @@
 """Work Breakdown Structure (WBS) proyek.
 
 - WBS dibuat otomatis dari RAB Penawaran tender proyek saat Project Master dibuat (kode, uraian, spesifikasi, satuan,
-  volume, harga satuan). Harga RAB = harga kontrak (sebelum PPN).
+  volume, harga satuan). Harga satuan RAB disesuaikan proporsional supaya total WBS = nilai kontrak awal sebelum PPN
+  (nilai penawaran kita), karena jumlah item RAB bisa berbeda dari angka penawaran yang diajukan.
 - Item induk (punya sub-item) = jumlah sub-itemnya; bobot = jumlah harga ÷ total WBS (sebelum PPN).
 - Progres item = rata-rata progres Task yang terhubung (field wbs_item di Task); induk = rata-rata tertimbang nilai.
 """
@@ -87,8 +88,46 @@ def buat_dari_rab(project):
 			doc.flags.induk_terdekat = nama_per_kode.get(induk, "")
 		doc.insert()
 		nama_per_kode[kode] = doc.name
+	sesuaikan_harga_kontrak(project)
 	hitung_ulang(project)
 	return len(baris)
+
+
+def nilai_kontrak_awal_sebelum_ppn(project):
+	"""Nilai kontrak awal (= nilai penawaran kita, sebelum addendum) tanpa PPN."""
+	kontrak = frappe.db.get_value("Project", project, "kontrak_project")
+	if not kontrak:
+		return 0
+	k = frappe.db.get_value("Kontrak Project", kontrak, ["nilai_kontrak", "status_ppn", "tarif_ppn"], as_dict=True)
+	if not k or not flt(k.nilai_kontrak):
+		return 0
+	tarif = flt(k.tarif_ppn) if k.status_ppn == "PPN" else 0
+	return flt(flt(k.nilai_kontrak) / (1 + tarif / 100), 2)
+
+
+def sesuaikan_harga_kontrak(project):
+	"""Skala harga satuan item WBS dari RAB (bukan induk) supaya totalnya = nilai kontrak awal sebelum PPN.
+	Item tambahan (mis. dari addendum) tidak diubah. Sisa pembulatan ditaruh di item bervolume terkecil."""
+	target = nilai_kontrak_awal_sebelum_ppn(project)
+	items = frappe.get_all(
+		"WBS Item",
+		filters={"project": project, "sumber": "RAB Penawaran", "is_group": 0},
+		fields=["name", "volume", "harga_satuan"],
+	)
+	total = sum(flt(i.volume) * flt(i.harga_satuan) for i in items)
+	if not target or not total or abs(total - target) < 1:
+		return False
+	faktor = target / total
+	for i in items:
+		i.harga_baru = flt(flt(i.harga_satuan) * faktor, 2)
+	sisa = target - sum(flt(i.volume) * i.harga_baru for i in items)
+	penyeimbang = min((i for i in items if flt(i.volume) > 0 and flt(i.harga_satuan)), key=lambda i: flt(i.volume), default=None)
+	if penyeimbang:
+		penyeimbang.harga_baru = flt(penyeimbang.harga_baru + sisa / flt(penyeimbang.volume), 2)
+	for i in items:
+		if flt(i.harga_baru, 2) != flt(i.harga_satuan, 2):
+			frappe.db.set_value("WBS Item", i.name, "harga_satuan", i.harga_baru, update_modified=False)
+	return True
 
 
 def progres_task(project):
