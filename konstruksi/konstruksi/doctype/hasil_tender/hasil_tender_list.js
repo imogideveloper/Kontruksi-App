@@ -40,10 +40,10 @@ frappe.listview_settings["Hasil Tender"] = {
 			return value ? `<span class="kpht-utuh" title="${esc_ht(value)}">${esc_ht(value)}</span>` : KOSONG;
 		},
 		hps(value) {
-			return flt(value) ? rp_ht(value) : KOSONG;
+			return flt(value) ? `<span>${rp_ht(value)}</span>` : KOSONG;
 		},
 		penawaran_kita(value) {
-			return flt(value) ? rp_ht(value) : KOSONG;
+			return flt(value) ? `<span>${rp_ht(value)}</span>` : KOSONG;
 		},
 		// Pemenang & harganya; saat kita menang cukup "Perusahaan kita" (harga = penawaran kita).
 		pemenang(value, df, doc) {
@@ -63,7 +63,7 @@ frappe.listview_settings["Hasil Tender"] = {
 		tanggal_pengumuman(value) {
 			if (!value) return KOSONG;
 			const m = moment(value);
-			return `${m.format("DD")} ${BULAN_HT[m.month()]} ${m.format("YYYY")}`;
+			return `<span>${m.format("DD")} ${BULAN_HT[m.month()]} ${m.format("YYYY")}</span>`;
 		},
 		// Kolom virtual: Kontrak Project dari tender ini (hanya relevan bila menang).
 		kontrak(value, df, doc) {

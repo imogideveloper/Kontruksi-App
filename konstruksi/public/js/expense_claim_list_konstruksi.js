@@ -34,7 +34,7 @@
 			project(value) {
 				if (!value) return `<span class="text-muted">${__("Belum diisi")}</span>`;
 				const judul = frappe.utils.get_link_title("Project", value);
-				return frappe.utils.escape_html(judul ? `${judul} · ${value}` : value);
+				return `<span class="ellipsis">${frappe.utils.escape_html(judul ? `${judul} · ${value}` : value)}</span>`;
 			},
 		},
 

@@ -20,7 +20,7 @@ frappe.listview_settings["Addendum"] = {
 			return `<span class="ellipsis" title="${esc}">${esc}</span>`;
 		},
 		urutan(value) {
-			return cint(value) ? __("Ke-{0}", [cint(value)]) : KOSONG_ADDENDUM;
+			return cint(value) ? `<span>${__("Ke-{0}", [cint(value)])}</span>` : KOSONG_ADDENDUM;
 		},
 		selisih_nilai(value) {
 			value = flt(value);
@@ -32,7 +32,7 @@ frappe.listview_settings["Addendum"] = {
 			)}</span>`;
 		},
 		tambah_hari(value) {
-			return cint(value) ? __("+{0} hari", [cint(value)]) : KOSONG_ADDENDUM;
+			return cint(value) ? `<span>${__("+{0} hari", [cint(value)])}</span>` : KOSONG_ADDENDUM;
 		},
 	},
 

@@ -33,6 +33,8 @@ frappe.listview_settings["Tender"] = {
 		return [__(doc.status), colors[doc.status] || "gray", "status,=," + doc.status];
 	},
 
+	// Formatter wajib mengembalikan HTML (bukan teks polos): Frappe menjalankan $(hasil) untuk mengukur lebar kolom,
+	// teks polos seperti email / "Rp 3.000" dibaca jQuery sebagai selector → error dan baris list tidak tergambar.
 	formatters: {
 		nama_paket(value) {
 			return value ? `<span class="kpm-utama kptdr-utuh" title="${esc_tdr(value)}">${esc_tdr(value)}</span>` : KOSONG_TDR;
@@ -45,10 +47,10 @@ frappe.listview_settings["Tender"] = {
 			return `<div class="kpm-dua-baris"><div>${esc_tdr(value) || "—"}</div><div class="kpm-sub">${esc_tdr(doc.metode_pemilihan)}</div></div>`;
 		},
 		hps(value) {
-			return flt(value) ? format_currency(value, "IDR", 0) : KOSONG_TDR;
+			return flt(value) ? `<span>${format_currency(value, "IDR", 0)}</span>` : KOSONG_TDR;
 		},
 		nilai_penawaran(value) {
-			return flt(value) ? format_currency(value, "IDR", 0) : KOSONG_TDR;
+			return flt(value) ? `<span>${format_currency(value, "IDR", 0)}</span>` : KOSONG_TDR;
 		},
 		// Tanggal + sisa waktu (hanya selama Persiapan): merah ≤ 3 hari / lewat, oranye ≤ 7 hari.
 		batas_pemasukan(value, df, doc) {
@@ -67,7 +69,8 @@ frappe.listview_settings["Tender"] = {
 			return `<div class="kpm-dua-baris"><div>${tanggal}</div>${sub ? `<div class="kpm-sub">${sub}</div>` : ""}</div>`;
 		},
 		penanggung_jawab(value) {
-			return value ? esc_tdr(frappe.user_info(value).fullname) : KOSONG_TDR;
+			const nama = ringkasan_tdr?.pj_nama?.[value] || frappe.user_info(value).fullname;
+			return value ? `<span class="ellipsis" title="${esc_tdr(value)}">${esc_tdr(nama)}</span>` : KOSONG_TDR;
 		},
 	},
 
@@ -99,6 +102,8 @@ function muat_ringkasan_tdr(listview) {
 	frappe.call("konstruksi.konstruksi.doctype.tender.tender.get_ringkasan_list").then((r) => {
 		ringkasan_tdr = r.message;
 		render_ringkasan_tdr(listview);
+		// Gambar ulang baris supaya kolom PJ memakai nama lengkap.
+		listview.render_list?.();
 	});
 }
 

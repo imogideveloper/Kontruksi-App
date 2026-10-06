@@ -70,7 +70,7 @@
 				return value ? `<span class="ellipsis" title="${esc(value)}">${esc(value)}</span>` : kosong;
 			},
 			jenis_project(value) {
-				return value ? esc(value) : kosong;
+				return value ? `<span>${esc(value)}</span>` : kosong;
 			},
 			nilai_kontrak(value, df, doc) {
 				if (!flt(value)) return kosong;
@@ -83,10 +83,10 @@
 			// Kolom Periode: mulai – selesai.
 			expected_start_date(value, df, doc) {
 				if (!value) return `<span class="text-muted">${__("Menunggu SPMK")}</span>`;
-				return `${tanggal(value)} – ${tanggal(doc.expected_end_date)}`;
+				return `<span>${tanggal(value)} – ${tanggal(doc.expected_end_date)}</span>`;
 			},
 			project_manager(value) {
-				return value ? esc(frappe.user_info(value).fullname) : kosong;
+				return value ? `<span>${esc(frappe.user_info(value).fullname)}</span>` : kosong;
 			},
 		},
 

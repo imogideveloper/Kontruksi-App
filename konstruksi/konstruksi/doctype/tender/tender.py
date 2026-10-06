@@ -74,7 +74,7 @@ def get_ringkasan_list():
 	"""Kartu di atas list Tender: jumlah per status, tenggat pemasukan ≤ 7 hari (masih Persiapan), total HPS dalam proses."""
 	from frappe.utils import add_days, get_datetime, now_datetime
 
-	rows = frappe.get_list("Tender", fields=["name", "status", "hps", "batas_pemasukan"], limit_page_length=0)
+	rows = frappe.get_list("Tender", fields=["name", "status", "hps", "batas_pemasukan", "penanggung_jawab"], limit_page_length=0)
 	per_status = {}
 	for r in rows:
 		per_status[r.status] = per_status.get(r.status, 0) + 1
@@ -89,4 +89,7 @@ def get_ringkasan_list():
 		"tenggat_nama": tenggat,
 		"batas_7_hari": str(batas.date()),
 		"hps_proses": sum(flt(r.hps) for r in rows if r.status in STATUS_PROSES),
+		# Nama lengkap PJ untuk kolom list (info user di browser belum tentu memuat semua user).
+		"pj_nama": dict(frappe.get_all("User", filters={"name": ("in", list({r.penanggung_jawab for r in rows if r.penanggung_jawab}) or [""])},
+			fields=["name", "full_name"], as_list=True)),
 	}

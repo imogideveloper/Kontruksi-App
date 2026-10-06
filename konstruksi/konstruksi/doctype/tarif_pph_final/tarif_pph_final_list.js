@@ -32,10 +32,10 @@ frappe.listview_settings["Tarif PPh Final"] = {
 			return `<b>${format_number(flt(value), null, 2).replace(/[.,]?0+$/, "")}%</b>`;
 		},
 		berlaku_mulai(value) {
-			return value ? frappe.datetime.str_to_user(value) : "";
+			return value ? `<span>${frappe.datetime.str_to_user(value)}</span>` : "";
 		},
 		dasar_hukum(value) {
-			return value ? frappe.utils.escape_html(value) : `<span class="text-muted">—</span>`;
+			return value ? `<span class="ellipsis">${frappe.utils.escape_html(value)}</span>` : `<span class="text-muted">—</span>`;
 		},
 	},
 
