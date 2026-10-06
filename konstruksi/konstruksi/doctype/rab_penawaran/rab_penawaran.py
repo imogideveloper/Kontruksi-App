@@ -73,7 +73,8 @@ class RABPenawaran(Document):
 		for item in self.items:
 			item.bobot = flt(item.jumlah_harga / self.total_sebelum_ppn * 100, 2) if self.total_sebelum_ppn else 0
 
-		self.persen_hps = flt(self.total_rab / flt(self.hps) * 100, 2) if flt(self.hps) else 0
+		# Persen HPS memakai Nilai Penawaran Kita dari Tender (angka yang diajukan), bukan total item RAB.
+		self.persen_hps = flt(flt(self.nilai_penawaran) / flt(self.hps) * 100, 2) if flt(self.hps) else 0
 
 		self.total_biaya = sum(flt(item.jumlah_biaya) for item in self.items)
 		self.estimasi_margin = flt(self.total_sebelum_ppn) - flt(self.total_biaya) if self.total_biaya else 0
@@ -262,11 +263,18 @@ def get_template_rab(tender):
 	return {"jenis_project": jenis, "rows": rows}
 
 
-FIELD_DARI_TENDER = {"nama_project": "nama_paket", "pemberi_kerja": "pemberi_kerja", "hps": "hps", "status_ppn": "status_ppn", "tarif_ppn": "tarif_ppn"}
+FIELD_DARI_TENDER = {
+	"nama_project": "nama_paket",
+	"pemberi_kerja": "pemberi_kerja",
+	"hps": "hps",
+	"nilai_penawaran": "nilai_penawaran",
+	"status_ppn": "status_ppn",
+	"tarif_ppn": "tarif_ppn",
+}
 
 
 def sinkron_dari_tender(tender, method=None):
-	"""Tender.on_update: salin Nama Project, Pemberi Kerja, HPS, Status & Tarif PPN ke RAB Penawaran tender itu, lalu
+	"""Tender.on_update: salin Nama Project, Pemberi Kerja, HPS, Nilai Penawaran, Status & Tarif PPN ke RAB Penawaran tender itu, lalu
 	hitung ulang total, PPN & persen HPS. db_update (bukan save) supaya kunci harga RAB tidak menggagalkan simpan Tender."""
 	from frappe.utils import now
 

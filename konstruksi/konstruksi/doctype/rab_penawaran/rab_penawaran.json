@@ -15,6 +15,7 @@
   "pemberi_kerja",
   "ringkasan_column",
   "hps",
+  "nilai_penawaran",
   "status_ppn",
   "tarif_ppn",
   "total_sebelum_ppn",
@@ -97,6 +98,15 @@
    "read_only": 1
   },
   {
+   "description": "Dari menu Tender.",
+   "fetch_from": "tender.nilai_penawaran",
+   "fieldname": "nilai_penawaran",
+   "fieldtype": "Currency",
+   "label": "Nilai Penawaran Kita (Rp)",
+   "options": "IDR",
+   "read_only": 1
+  },
+  {
    "fetch_from": "tender.status_ppn",
    "fieldname": "status_ppn",
    "fieldtype": "Data",
@@ -134,10 +144,10 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval:doc.hps && doc.total_rab",
+   "depends_on": "eval:doc.hps && doc.nilai_penawaran",
    "fieldname": "persen_hps",
    "fieldtype": "Percent",
-   "label": "Total RAB / HPS (%)",
+   "label": "Penawaran / HPS (%)",
    "precision": "2",
    "read_only": 1
   },
@@ -148,33 +158,33 @@
    "permlevel": 1
   },
   {
+   "description": "Menjadi Estimated Cost di Project Master.",
    "fieldname": "total_biaya",
    "fieldtype": "Currency",
    "label": "Total Biaya / RAP (Rp)",
    "options": "IDR",
-   "read_only": 1,
    "permlevel": 1,
    "print_hide": 1,
-   "description": "Menjadi Estimated Cost di Project Master."
+   "read_only": 1
   },
   {
+   "description": "Total sebelum PPN − total biaya.",
    "fieldname": "estimasi_margin",
    "fieldtype": "Currency",
    "label": "Estimasi Margin (Rp)",
    "options": "IDR",
-   "read_only": 1,
    "permlevel": 1,
    "print_hide": 1,
-   "description": "Total sebelum PPN − total biaya."
+   "read_only": 1
   },
   {
+   "description": "Margin dibanding total sebelum PPN.",
    "fieldname": "persen_margin",
    "fieldtype": "Percent",
    "label": "Estimasi Margin (%)",
-   "read_only": 1,
    "permlevel": 1,
    "print_hide": 1,
-   "description": "Margin dibanding total sebelum PPN."
+   "read_only": 1
   },
   {
    "fieldname": "rab_tree_section",
@@ -186,11 +196,11 @@
    "label": "Item Pekerjaan"
   },
   {
+   "description": "Disembunyikan: item diisi lewat tabel Item Pekerjaan di atas (rab_penawaran.js).",
    "fieldname": "items_section",
    "fieldtype": "Section Break",
-   "label": "Edit Item (Tabel)",
    "hidden": 1,
-   "description": "Disembunyikan: item diisi lewat tabel Item Pekerjaan di atas (rab_penawaran.js)."
+   "label": "Edit Item (Tabel)"
   },
   {
    "fieldname": "items",
@@ -201,7 +211,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-06 20:00:00.000000",
+ "modified": "2026-10-06 14:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "RAB Penawaran",
@@ -236,15 +246,15 @@
    "role": "Projects User"
   },
   {
-   "role": "System Manager",
    "permlevel": 1,
    "read": 1,
+   "role": "System Manager",
    "write": 1
   },
   {
-   "role": "Projects Manager",
    "permlevel": 1,
    "read": 1,
+   "role": "Projects Manager",
    "write": 1
   }
  ],

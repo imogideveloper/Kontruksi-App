@@ -87,7 +87,7 @@ function hitung_total(frm) {
 	frm.doc.total_sebelum_ppn = total;
 	frm.doc.total_ppn = total_ppn;
 	frm.doc.total_rab = total + total_ppn;
-	frm.doc.persen_hps = flt(frm.doc.hps) ? flt((frm.doc.total_rab / flt(frm.doc.hps)) * 100, 2) : 0;
+	frm.doc.persen_hps = flt(frm.doc.hps) ? flt((flt(frm.doc.nilai_penawaran) / flt(frm.doc.hps)) * 100, 2) : 0;
 
 	const total_biaya = items.reduce((sum, item) => sum + flt(item.jumlah_biaya), 0);
 	frm.doc.total_biaya = total_biaya;
