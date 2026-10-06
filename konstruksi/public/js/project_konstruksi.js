@@ -267,7 +267,7 @@
 			fields: [
 				{ fieldname: "employee", fieldtype: "Link", options: "Employee", label: __("Personel"), reqd: 1, ignore_user_permissions: 1,
 					// Hanya personel dengan jabatan yang sama dengan "Jabatan di Proyek" (kosong = semua personel).
-					get_query: () => ({ query: `${TIM_METHOD}.cari_personel`, filters: { designation: d.get_value("jabatan") || "" } }),
+					get_query: () => ({ query: `${TIM_METHOD}.cari_personel_nama`, filters: { designation: d.get_value("jabatan") || "" } }),
 					// Jabatan diisi dari designation personel, kecuali sudah ditentukan (mis. dari tombol Tugaskan kebutuhan).
 					onchange() {
 						const employee = d.get_value("employee");
@@ -301,7 +301,39 @@
 					});
 			},
 		});
+		tampilkan_nama_personel(d.fields_dict.employee);
 		d.show();
+	}
+
+	// Field Personel di dialog menampilkan nama karyawan, bukan ID (HR-EMP-…): di daftar pilihan nama jadi judul tebal
+	// (jabatan, department, ID di bawahnya) dan setelah dipilih yang tertulis nama. Nilai yang disimpan tetap ID.
+	// Hanya untuk field ini — Employee di tempat lain tetap tampil sebagai ID.
+	function tampilkan_nama_personel(ctrl) {
+		const aw = ctrl?.awesomplete;
+		if (!aw) return;
+		ctrl.is_title_link = () => true;
+		let proto = Object.getPrototypeOf(aw);
+		let asli;
+		while (proto && !(asli = Object.getOwnPropertyDescriptor(proto, "list"))) proto = Object.getPrototypeOf(proto);
+		if (!asli?.set) return;
+		Object.defineProperty(aw, "list", {
+			configurable: true,
+			get() {
+				return asli.get ? asli.get.call(this) : this._list;
+			},
+			set(items) {
+				// Diubah langsung (bukan disalin): Frappe lalu mencatat label ini sebagai judul link tiap ID.
+				(items || []).forEach((item) => {
+					// Deskripsi dari cari_personel_nama: "nama<TAB>jabatan · department".
+					if (item.__nama || !item.description?.includes("\t")) return;
+					const [nama, lain] = item.description.split("\t");
+					item.label = nama;
+					item.description = [lain, item.value].filter(Boolean).join(" · ");
+					item.__nama = true;
+				});
+				asli.set.call(this, items);
+			},
+		});
 	}
 
 	// Project milik modul Projects ERPNext, jadi bila dibuka dari luar sidebar Konstruksi (pencarian, link, notifikasi)

@@ -183,6 +183,18 @@ def cari_personel(doctype, txt, searchfield, start, page_len, filters):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
+def cari_personel_nama(doctype, txt, searchfield, start, page_len, filters):
+	"""Seperti cari_personel, untuk dialog Tugaskan Personel yang menampilkan nama sebagai judul pilihan: kolom kedua =
+	"nama<TAB>jabatan · department". Nama bisa mengandung koma (gelar "S.T."), jadi tidak bisa dipisah dari deskripsi
+	berkoma bawaan Frappe."""
+	return [
+		(name, f"{nama}\t{' · '.join(filter(None, (jabatan, dept)))}")
+		for name, nama, jabatan, dept in cari_personel(doctype, txt, searchfield, start, page_len, filters)
+	]
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
 def cari_approver(doctype, txt, searchfield, start, page_len, filters):
 	"""Pilihan Expense Approver dengan jabatan (dari Data Personel yang memakai user itu).
 
