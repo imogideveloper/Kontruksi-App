@@ -94,16 +94,19 @@ frappe.listview_settings["Hasil Tender"] = {
 		muat_ringkasan_ht(listview);
 	},
 
+	// Tiap list di-refresh: angka kartu & tautan Kontrak dihitung ulang.
 	refresh(listview) {
 		render_ringkasan_ht(listview);
+		muat_ringkasan_ht(listview, false);
 	},
 };
 
-function muat_ringkasan_ht(listview) {
+function muat_ringkasan_ht(listview, gambar_ulang = true) {
 	frappe.call("konstruksi.konstruksi.doctype.hasil_tender.hasil_tender.get_ringkasan_list").then((r) => {
+		const kontrak_berubah = JSON.stringify(r.message?.kontrak || {}) !== JSON.stringify(ringkasan_ht.kontrak || {});
 		ringkasan_ht = r.message || { kontrak: {} };
 		render_ringkasan_ht(listview);
-		listview.render_list?.();
+		if (gambar_ulang || kontrak_berubah) listview.render_list?.();
 	});
 }
 

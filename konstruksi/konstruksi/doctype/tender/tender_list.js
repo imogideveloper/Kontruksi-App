@@ -93,17 +93,20 @@ frappe.listview_settings["Tender"] = {
 		muat_ringkasan_tdr(listview);
 	},
 
+	// Tiap list di-refresh (kembali dari form, simpan / hapus tender, filter berubah): angka kartu dihitung ulang.
 	refresh(listview) {
 		render_ringkasan_tdr(listview);
+		muat_ringkasan_tdr(listview, false);
 	},
 };
 
-function muat_ringkasan_tdr(listview) {
+function muat_ringkasan_tdr(listview, gambar_ulang = true) {
 	frappe.call("konstruksi.konstruksi.doctype.tender.tender.get_ringkasan_list").then((r) => {
+		const nama_baru = Object.keys(r.message?.pj_nama || {}).some((u) => !ringkasan_tdr?.pj_nama?.[u]);
 		ringkasan_tdr = r.message;
 		render_ringkasan_tdr(listview);
-		// Gambar ulang baris supaya kolom PJ memakai nama lengkap.
-		listview.render_list?.();
+		// Gambar ulang baris supaya kolom PJ memakai nama lengkap (hanya bila ada PJ yang namanya belum dimuat).
+		if (gambar_ulang || nama_baru) listview.render_list?.();
 	});
 }
 

@@ -121,6 +121,7 @@
 		refresh(listview) {
 			bawaan.refresh && bawaan.refresh(listview);
 			render_ringkasan(listview);
+			muat_ringkasan(listview);
 		},
 	};
 
