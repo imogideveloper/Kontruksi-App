@@ -278,7 +278,12 @@ body[data-route^="Form/RAB Penawaran"] .frappe-control[data-fieldname="items"] .
 	cursor: pointer;
 }
 
+/* Toolbar tabel RAB: Generate Template RAB & + Kelompok berdampingan di kanan. */
 .rab-tree .rab-tambah-kelompok {
+	margin-left: 6px;
+}
+
+.rab-tree :not(td) > .rab-generate-template {
 	margin-left: auto;
 }
 

@@ -345,7 +345,11 @@ function render_rab_tree(frm) {
 
 	if (!rows) {
 		rows = `<tr><td colspan="${kolom}" class="rab-kosong">${
-			items.length ? __("Tidak ada item yang cocok.") : __("Belum ada item. Klik + Kelompok untuk mulai, atau Excel → Upload Excel.")
+			items.length
+				? __("Tidak ada item yang cocok.")
+				: `<div>${__("Belum ada item.")}</div>
+					${hak.ubah_harga ? `<button class="btn btn-primary btn-sm rab-generate-template" style="margin:10px 0 6px">${frappe.utils.icon("list", "sm")} ${__("Generate Template RAB")}</button>` : ""}
+					<div class="text-muted small">${__("Struktur pekerjaan sesuai Jenis Project tender — atau klik + Kelompok / Excel → Upload Excel.")}</div>`
 		}</td></tr>`;
 	}
 	const total_biaya = flt(frm.doc.total_biaya);
@@ -378,7 +382,8 @@ function render_rab_tree(frm) {
 				</label>
 				${
 					hak.ubah_harga
-						? `<button class="btn btn-default btn-sm rab-tambah-kelompok">${frappe.utils.icon("add", "sm")} ${__("Kelompok")}</button>`
+						? `<button class="btn btn-default btn-sm rab-generate-template">${frappe.utils.icon("list", "sm")} ${__("Generate Template RAB")}</button>
+							<button class="btn btn-default btn-sm rab-tambah-kelompok">${frappe.utils.icon("add", "sm")} ${__("Kelompok")}</button>`
 						: ""
 				}
 			</div>
@@ -486,6 +491,7 @@ function pasang_event_rab(frm, $w, state, items) {
 		frm.fields_dict.rab_tree.$wrapper.find(`.rab-input[data-row="${row.name}"][data-field="uraian_pekerjaan"]`).focus();
 	};
 	$w.find(".rab-tambah-kelompok").on("click", () => tambah(kode_berikutnya(items, null)));
+	$w.find(".rab-generate-template").on("click", () => muat_template_rab(frm));
 	$w.find(".rab-tambah-anak").on("click", function (e) {
 		e.stopPropagation();
 		const grup = $(this).attr("data-grup");
