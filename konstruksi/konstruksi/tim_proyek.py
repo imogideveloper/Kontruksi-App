@@ -308,11 +308,63 @@ def ditugaskan(project, employee, tanggal=None):
 	return False
 
 
+def jabatan_penugasan(project, employee, tanggal=None):
+	"""Jabatan personel di proyek (penugasan yang mencakup `tanggal`, atau yang terbaru)."""
+	rows = frappe.get_all(
+		"Penugasan Personel",
+		filters={"project": project, "employee": employee},
+		fields=["jabatan", "tanggal_mulai", "tanggal_selesai"],
+		order_by="tanggal_mulai desc",
+	)
+	if tanggal:
+		t = getdate(tanggal)
+		for p in rows:
+			if getdate(p.tanggal_mulai) <= t and (not p.tanggal_selesai or t <= getdate(p.tanggal_selesai)):
+				return p.jabatan
+	return rows[0].jabatan if rows else None
+
+
+def isi_tarif_timesheet(doc):
+	"""Baris Timesheet ke proyek konstruksi yang tarif biayanya 0 (Activity Type kosong / bawaan ERPNext tanpa tarif,
+	mis. Communication): Activity Type diganti sesuai jabatan personel di proyek supaya biaya personel tercatat."""
+	from erpnext.projects.doctype.timesheet.timesheet import get_activity_cost
+
+	diganti, tanpa_tarif = [], []
+	for row in doc.time_logs:
+		if not row.project or flt(row.costing_rate) or not frappe.db.get_value("Project", row.project, "kontrak_project"):
+			continue
+		activity = ACTIVITY_PER_JABATAN.get(jabatan_penugasan(row.project, doc.employee, row.from_time))
+		if activity and activity != row.activity_type and flt((get_activity_cost(doc.employee, activity) or {}).get("costing_rate")):
+			diganti.append(_("baris {0}: {1} → {2}").format(row.idx, row.activity_type or "—", activity))
+			row.activity_type = activity
+			row.update_cost(doc.employee)
+		else:
+			tanpa_tarif.append(_("baris {0} ({1})").format(row.idx, row.activity_type or "—"))
+	if diganti:
+		doc.calculate_total_amounts()
+		frappe.msgprint(
+			_("Activity Type tanpa tarif biaya diganti sesuai jabatan personel di proyek: {0}.").format(", ".join(diganti)),
+			title=_("Tarif biaya personel"),
+			indicator="blue",
+		)
+	if tanpa_tarif:
+		frappe.msgprint(
+			_("Biaya personel Rp 0 pada {0}: Activity Type belum punya tarif biaya. Pilih Activity Type proyek (mis. Manajemen Proyek, Pengawasan Lapangan) atau isi Costing Rate.").format(
+				", ".join(tanpa_tarif)
+			),
+			title=_("Tarif biaya personel"),
+			indicator="orange",
+		)
+
+
 def cek_penugasan_biaya(doc, method=None):
 	"""Timesheet / Expense Claim validate: peringatan bila personel mencatat biaya ke proyek konstruksi tempat ia
-	tidak ditugaskan pada tanggal itu (biaya tetap tersimpan; hanya diperingatkan)."""
+	tidak ditugaskan pada tanggal itu (biaya tetap tersimpan; hanya diperingatkan). Timesheet: tarif biaya diisi
+	dari jabatan bila Activity Type-nya tanpa tarif."""
 	if not doc.employee:
 		return
+	if doc.doctype == "Timesheet":
+		isi_tarif_timesheet(doc)
 	if doc.doctype == "Timesheet":
 		pasangan = [(row.project, row.from_time) for row in doc.time_logs if row.project]
 	else:

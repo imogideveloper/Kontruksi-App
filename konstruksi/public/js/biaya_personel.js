@@ -7,6 +7,8 @@
 		const query = () => ({ query: QUERY, filters: { employee: frm.doc.employee, customer: frm.doc.customer } });
 		if (frm.doctype === "Timesheet") {
 			frm.set_query("project", "time_logs", query);
+			// Hanya Activity Type yang punya tarif biaya (bawaan ERPNext seperti Communication bertarif 0 → biaya Rp 0).
+			frm.set_query("activity_type", "time_logs", () => ({ filters: { costing_rate: [">", 0], disabled: 0 } }));
 		} else {
 			frm.set_query("project", query);
 			frm.set_query("project", "expenses", query);
