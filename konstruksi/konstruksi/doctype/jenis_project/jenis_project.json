@@ -15,7 +15,9 @@
   "section_section",
   "sections",
   "template_section",
-  "dokumen"
+  "dokumen",
+  "template_rab_section",
+  "rab"
  ],
  "fields": [
   {
@@ -71,11 +73,23 @@
    "fieldtype": "Table",
    "label": "Dokumen",
    "options": "Jenis Project Dokumen"
+  },
+  {
+   "fieldname": "template_rab_section",
+   "fieldtype": "Section Break",
+   "label": "Template RAB",
+   "description": "Struktur pekerjaan standar (tanpa harga) yang dimuat ke RAB Penawaran lewat tombol Muat Template RAB. Kode 1, 2 = kelompok; 1.1, 1.2 = item."
+  },
+  {
+   "fieldname": "rab",
+   "fieldtype": "Table",
+   "label": "Item Template RAB",
+   "options": "Jenis Project RAB"
   }
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-04 16:00:00.000000",
+ "modified": "2026-10-06 11:43:34.018653",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Jenis Project",

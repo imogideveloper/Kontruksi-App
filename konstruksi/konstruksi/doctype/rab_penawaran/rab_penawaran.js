@@ -28,6 +28,11 @@ frappe.ui.form.on("RAB Penawaran", {
 			frm.add_custom_button(__("Upload Excel"), () => upload_excel(frm), __("Excel"));
 		}
 
+		// Struktur pekerjaan standar dari master Jenis Project tender ini (tanpa harga).
+		if (hak.ubah_harga && frm.doc.tender) {
+			frm.add_custom_button(__("Muat Template RAB"), () => muat_template_rab(frm));
+		}
+
 		// Penawaran sudah diajukan: item & harga dikunci di tabel item, Harga Satuan Pokok (biaya) tetap bisa diisi.
 		if (terkunci) {
 			frm.dashboard.set_headline(
@@ -504,5 +509,59 @@ function pasang_event_rab(frm, $w, state, items) {
 			frm.dirty();
 			hitung_total(frm);
 		});
+	});
+}
+
+// Muat Template RAB: isi item dari tabel Template RAB di master Jenis Project tender. Bila RAB sudah berisi, pilih
+// ganti semua atau tambahkan di bawah (kode kelompok template digeser setelah kelompok terakhir).
+function muat_template_rab(frm) {
+	frappe.call({ method: `${RAB_METHOD}.get_template_rab`, args: { tender: frm.doc.tender } }).then((r) => {
+		const { jenis_project, rows } = r.message || {};
+		if (!rows?.length) {
+			frappe.msgprint(__("Template RAB untuk Jenis Project {0} masih kosong. Isi di master Jenis Project → Template RAB.", [
+				`<a href="/app/jenis-project/${encodeURIComponent(jenis_project)}">${frappe.utils.escape_html(jenis_project)}</a>`,
+			]));
+			return;
+		}
+		const kelompok = rows.filter((x) => !String(x.kode_wbs).includes(".")).length;
+		const isi = (frm.doc.items || []).filter((x) => (x.uraian_pekerjaan || "").trim()).length;
+		const terapkan = (mode) => {
+			let geser = 0;
+			if (mode === "tambah") {
+				geser = Math.max(0, ...(frm.doc.items || []).map((x) => cint(String(x.kode_wbs || "").split(".")[0])));
+			} else {
+				frm.clear_table("items");
+			}
+			rows.forEach((x) => {
+				const bagian = String(x.kode_wbs).split(".");
+				bagian[0] = String(cint(bagian[0]) + geser);
+				frm.add_child("items", { kode_wbs: bagian.join("."), uraian_pekerjaan: x.uraian_pekerjaan, satuan: x.satuan || "" });
+			});
+			hitung_total(frm);
+			render_rab_tree(frm);
+			frm.dirty();
+			frappe.show_alert({
+				message: __("Template {0} dimuat: {1} kelompok, {2} item. Isi volume & harga satuan, lalu Save.", [jenis_project, kelompok, rows.length - kelompok]),
+				indicator: "green",
+			}, 7);
+		};
+		if (!isi) return terapkan("ganti");
+		const d = new frappe.ui.Dialog({
+			title: __("Muat Template RAB — {0}", [jenis_project]),
+			fields: [{
+				fieldtype: "Select", fieldname: "mode", label: __("RAB ini sudah berisi {0} item", [isi]), reqd: 1,
+				options: [
+					{ value: "tambah", label: __("Tambahkan di bawah item yang ada") },
+					{ value: "ganti", label: __("Ganti semua item dengan template") },
+				],
+				default: "tambah",
+			}],
+			primary_action_label: __("Muat"),
+			primary_action: (v) => {
+				d.hide();
+				terapkan(v.mode);
+			},
+		});
+		d.show();
 	});
 }

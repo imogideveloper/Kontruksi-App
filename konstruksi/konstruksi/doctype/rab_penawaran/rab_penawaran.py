@@ -248,3 +248,15 @@ def parse_angka(value):
 		return 0
 	fmt = NumberFormat.from_string(frappe.db.get_default("number_format") or "#,###.##")
 	return flt(teks.replace(fmt.thousands_separator, "").replace(fmt.decimal_separator, "."))
+
+
+@frappe.whitelist()
+def get_template_rab(tender):
+	"""Template RAB dari master Jenis Project tender ini: {jenis_project, rows: [{kode_wbs, uraian_pekerjaan, satuan}]}."""
+	frappe.has_permission("Tender", "read", tender, throw=True)
+	jenis = frappe.db.get_value("Tender", tender, "jenis_project")
+	if not jenis:
+		frappe.throw(_("Jenis Project tender {0} belum diisi.").format(tender))
+	rows = frappe.get_all("Jenis Project RAB", filters={"parent": jenis, "parenttype": "Jenis Project"},
+		fields=["kode_wbs", "uraian_pekerjaan", "satuan"], order_by="idx asc")
+	return {"jenis_project": jenis, "rows": rows}

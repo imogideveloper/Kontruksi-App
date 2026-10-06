@@ -1,0 +1,51 @@
+{
+ "actions": [],
+ "creation": "2026-10-06 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "istable": 1,
+ "field_order": [
+  "kode_wbs",
+  "uraian_pekerjaan",
+  "satuan"
+ ],
+ "fields": [
+  {
+   "fieldname": "kode_wbs",
+   "fieldtype": "Data",
+   "label": "Kode",
+   "in_list_view": 1,
+   "columns": 1,
+   "reqd": 1,
+   "description": "1, 2 = kelompok pekerjaan; 1.1, 1.2 = item di dalamnya."
+  },
+  {
+   "fieldname": "uraian_pekerjaan",
+   "fieldtype": "Data",
+   "label": "Uraian Pekerjaan",
+   "in_list_view": 1,
+   "columns": 6,
+   "reqd": 1
+  },
+  {
+   "fieldname": "satuan",
+   "fieldtype": "Data",
+   "label": "Satuan",
+   "in_list_view": 1,
+   "columns": 2,
+   "description": "Kosongkan untuk baris kelompok."
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-06 11:43:34.018653",
+ "modified_by": "Administrator",
+ "module": "Konstruksi",
+ "name": "Jenis Project RAB",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

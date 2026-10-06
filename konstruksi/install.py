@@ -485,6 +485,8 @@ def buat_penagihan_default():
 
 
 def after_install():
+	from konstruksi.konstruksi.template_rab import isi_template_rab_default
+
 	buat_custom_field_project()
 	buat_tim_proyek_default()
 	buat_biaya_personel_default()
@@ -492,6 +494,7 @@ def after_install():
 	buat_penagihan_default()
 	buat_jenis_project_default()
 	buat_template_dokumen_default()
+	isi_template_rab_default()
 	buat_tarif_pph_final_default()
 	buat_penerbit_jaminan_default()
 
