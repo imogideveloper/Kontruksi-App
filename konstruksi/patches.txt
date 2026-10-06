@@ -43,3 +43,4 @@ konstruksi.patches.v1_0.buat_penagihan #list-sales-invoice
 konstruksi.patches.v1_0.buat_penagihan #uraian-tagihan
 konstruksi.patches.v1_0.isi_template_rab
 konstruksi.patches.v1_0.isi_penawaran_rab
+konstruksi.patches.v1_0.hitung_ringkasan_rab

@@ -66,12 +66,20 @@ class RABPenawaran(Document):
 				flt((item.jumlah_harga - item.jumlah_biaya) / item.jumlah_harga * 100, 2) if item.jumlah_harga and item.jumlah_biaya else 0
 			)
 
-		self.total_sebelum_ppn = sum(item.jumlah_harga for item in self.items)
-		self.total_ppn = sum(item.ppn for item in self.items)
-		self.total_rab = self.total_sebelum_ppn + self.total_ppn
-
+		total_item = sum(item.jumlah_harga for item in self.items)
 		for item in self.items:
-			item.bobot = flt(item.jumlah_harga / self.total_sebelum_ppn * 100, 2) if self.total_sebelum_ppn else 0
+			item.bobot = flt(item.jumlah_harga / total_item * 100, 2) if total_item else 0
+
+		# Nilai ringkasan mengacu ke Nilai Penawaran Kita dari Tender (sudah termasuk PPN); total item hanya dipakai
+		# selama penawaran di Tender belum diisi.
+		if flt(self.nilai_penawaran):
+			self.total_rab = flt(self.nilai_penawaran)
+			self.total_sebelum_ppn = flt(self.total_rab / (1 + tarif / 100), 2)
+			self.total_ppn = flt(self.total_rab - self.total_sebelum_ppn, 2)
+		else:
+			self.total_sebelum_ppn = total_item
+			self.total_ppn = sum(item.ppn for item in self.items)
+			self.total_rab = self.total_sebelum_ppn + self.total_ppn
 
 		# Persen HPS memakai Nilai Penawaran Kita dari Tender (angka yang diajukan), bukan total item RAB.
 		self.persen_hps = flt(flt(self.nilai_penawaran) / flt(self.hps) * 100, 2) if flt(self.hps) else 0

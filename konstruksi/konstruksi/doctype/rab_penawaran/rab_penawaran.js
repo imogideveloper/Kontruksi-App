@@ -84,15 +84,25 @@ function hitung_total(frm) {
 		item.bobot = total ? flt((item.jumlah_harga / total) * 100, 2) : 0;
 	});
 
-	frm.doc.total_sebelum_ppn = total;
-	frm.doc.total_ppn = total_ppn;
-	frm.doc.total_rab = total + total_ppn;
-	frm.doc.persen_hps = flt(frm.doc.hps) ? flt((flt(frm.doc.nilai_penawaran) / flt(frm.doc.hps)) * 100, 2) : 0;
+	// Ringkasan mengacu ke Nilai Penawaran Kita dari Tender (termasuk PPN); total item dipakai bila penawaran belum diisi.
+	const penawaran = flt(frm.doc.nilai_penawaran);
+	if (penawaran) {
+		const tarif = frm.doc.status_ppn === "PPN" ? flt(frm.doc.tarif_ppn) : 0;
+		frm.doc.total_rab = penawaran;
+		frm.doc.total_sebelum_ppn = flt(penawaran / (1 + tarif / 100), 2);
+		frm.doc.total_ppn = flt(penawaran - frm.doc.total_sebelum_ppn, 2);
+	} else {
+		frm.doc.total_sebelum_ppn = total;
+		frm.doc.total_ppn = total_ppn;
+		frm.doc.total_rab = total + total_ppn;
+	}
+	frm.doc.persen_hps = flt(frm.doc.hps) ? flt((penawaran / flt(frm.doc.hps)) * 100, 2) : 0;
 
 	const total_biaya = items.reduce((sum, item) => sum + flt(item.jumlah_biaya), 0);
+	const dasar = flt(frm.doc.total_sebelum_ppn);
 	frm.doc.total_biaya = total_biaya;
-	frm.doc.estimasi_margin = total_biaya ? total - total_biaya : 0;
-	frm.doc.persen_margin = total_biaya && total ? flt(((total - total_biaya) / total) * 100, 2) : 0;
+	frm.doc.estimasi_margin = total_biaya ? dasar - total_biaya : 0;
+	frm.doc.persen_margin = total_biaya && dasar ? flt(((dasar - total_biaya) / dasar) * 100, 2) : 0;
 
 	frm.refresh_fields([
 		"items",
@@ -255,7 +265,8 @@ function render_rab_tree(frm) {
 	if (!field) return;
 	const state = (frm.__rab_tree = frm.__rab_tree || { tutup: new Set(), cari: "", belum_harga: false });
 	const items = frm.doc.items || [];
-	const total = flt(frm.doc.total_sebelum_ppn);
+	// Total tabel = jumlah harga item (bisa berbeda dari Nilai Penawaran di ringkasan).
+	const total = items.reduce((s, i) => s + flt(i.jumlah_harga), 0);
 	const esc = frappe.utils.escape_html;
 	const cari = state.cari.toLowerCase();
 	const hak = hak_rab(frm);

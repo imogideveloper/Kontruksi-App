@@ -94,11 +94,11 @@
    "fetch_from": "tender.hps",
    "fieldname": "hps",
    "fieldtype": "Currency",
+   "hidden": 1,
    "label": "HPS (Rp)",
    "read_only": 1
   },
   {
-   "description": "Dari menu Tender.",
    "fetch_from": "tender.nilai_penawaran",
    "fieldname": "nilai_penawaran",
    "fieldtype": "Currency",
@@ -211,7 +211,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-06 14:00:00.000000",
+ "modified": "2026-10-06 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "RAB Penawaran",

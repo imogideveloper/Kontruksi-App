@@ -1950,11 +1950,11 @@ body.konstruksi-tanpa-sidebar[data-route^="Form"] .layout-main-section-wrapper {
 /* RAB Penawaran, section atas tiga kolom (Data Tender | Ringkasan | Estimasi Biaya & Margin): kolom label lebih
    sempit & seragam supaya ketiga kolom muat; label satu baris. !important: aturan form global ber-specificity tinggi. */
 @media (min-width: 768px) {
-	body[data-route^="Form/RAB Penawaran"] .frappe-control:is([data-fieldname="kode"], [data-fieldname="tanggal"], [data-fieldname="tender"], [data-fieldname="nama_project"], [data-fieldname="pemberi_kerja"], [data-fieldname="hps"], [data-fieldname="status_ppn"], [data-fieldname="tarif_ppn"], [data-fieldname="total_sebelum_ppn"], [data-fieldname="total_ppn"], [data-fieldname="total_rab"], [data-fieldname="persen_hps"], [data-fieldname="total_biaya"], [data-fieldname="estimasi_margin"], [data-fieldname="persen_margin"]) > .form-group {
+	body[data-route^="Form/RAB Penawaran"] .frappe-control:is([data-fieldname="kode"], [data-fieldname="tanggal"], [data-fieldname="tender"], [data-fieldname="nama_project"], [data-fieldname="pemberi_kerja"], [data-fieldname="hps"], [data-fieldname="nilai_penawaran"], [data-fieldname="status_ppn"], [data-fieldname="tarif_ppn"], [data-fieldname="total_sebelum_ppn"], [data-fieldname="total_ppn"], [data-fieldname="total_rab"], [data-fieldname="persen_hps"], [data-fieldname="total_biaya"], [data-fieldname="estimasi_margin"], [data-fieldname="persen_margin"]) > .form-group {
 		grid-template-columns: 170px minmax(0, 1fr) !important;
 	}
 
-	body[data-route^="Form/RAB Penawaran"] .frappe-control:is([data-fieldname="kode"], [data-fieldname="tanggal"], [data-fieldname="tender"], [data-fieldname="nama_project"], [data-fieldname="pemberi_kerja"], [data-fieldname="hps"], [data-fieldname="status_ppn"], [data-fieldname="tarif_ppn"], [data-fieldname="total_sebelum_ppn"], [data-fieldname="total_ppn"], [data-fieldname="total_rab"], [data-fieldname="persen_hps"], [data-fieldname="total_biaya"], [data-fieldname="estimasi_margin"], [data-fieldname="persen_margin"]) > .form-group > .clearfix > .control-label {
+	body[data-route^="Form/RAB Penawaran"] .frappe-control:is([data-fieldname="kode"], [data-fieldname="tanggal"], [data-fieldname="tender"], [data-fieldname="nama_project"], [data-fieldname="pemberi_kerja"], [data-fieldname="hps"], [data-fieldname="nilai_penawaran"], [data-fieldname="status_ppn"], [data-fieldname="tarif_ppn"], [data-fieldname="total_sebelum_ppn"], [data-fieldname="total_ppn"], [data-fieldname="total_rab"], [data-fieldname="persen_hps"], [data-fieldname="total_biaya"], [data-fieldname="estimasi_margin"], [data-fieldname="persen_margin"]) > .form-group > .clearfix > .control-label {
 		white-space: nowrap !important;
 	}
 }
