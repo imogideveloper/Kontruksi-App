@@ -157,13 +157,17 @@ def tugaskan(project, employee, jabatan, tanggal_mulai, alokasi=100, tanggal_sel
 @frappe.validate_and_sanitize_search_inputs
 def cari_personel(doctype, txt, searchfield, start, page_len, filters):
 	"""Pilihan Personel di penugasan: ID, nama, jabatan, department (personel aktif). Bisa dicari lewat nama atau jabatan.
+	filters.designation (jabatan di proyek yang dipilih) membatasi ke personel berjabatan itu.
 
 	frappe.get_all (bukan get_list) karena User Permission Employee dari HRMS tidak berlaku saat menugaskan.
 	"""
 	frappe.has_permission("Penugasan Personel", "create", throw=True)
+	saring = {"status": "Active"}
+	if (filters or {}).get("designation"):
+		saring["designation"] = filters["designation"]
 	return frappe.get_all(
 		"Employee",
-		filters={"status": "Active"},
+		filters=saring,
 		or_filters={
 			"name": ("like", f"%{txt}%"),
 			"employee_name": ("like", f"%{txt}%"),

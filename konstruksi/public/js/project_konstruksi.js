@@ -266,7 +266,8 @@
 			title: __("Tugaskan Personel"),
 			fields: [
 				{ fieldname: "employee", fieldtype: "Link", options: "Employee", label: __("Personel"), reqd: 1, ignore_user_permissions: 1,
-					get_query: () => ({ query: `${TIM_METHOD}.cari_personel` }),
+					// Hanya personel dengan jabatan yang sama dengan "Jabatan di Proyek" (kosong = semua personel).
+					get_query: () => ({ query: `${TIM_METHOD}.cari_personel`, filters: { designation: d.get_value("jabatan") || "" } }),
 					// Jabatan diisi dari designation personel, kecuali sudah ditentukan (mis. dari tombol Tugaskan kebutuhan).
 					onchange() {
 						const employee = d.get_value("employee");
