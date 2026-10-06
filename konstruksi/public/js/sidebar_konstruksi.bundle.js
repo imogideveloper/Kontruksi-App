@@ -50,3 +50,18 @@ function matikan_tooltip_group() {
 }
 $(document).on("sidebar-expand sidebar_setup", () => setTimeout(matikan_tooltip_group, 0));
 $(document).on("app_ready", () => setTimeout(matikan_tooltip_group, 50));
+
+// Menu "Item Biaya Proyek" (Pengadaan): buka list Item yang tersaring ke grup Biaya Proyek beserta sub-grupnya.
+// Filter sidebar bawaan hanya mendukung "sama dengan", sedangkan item ada di sub-grup (Material Proyek, dst).
+// Fase capture: berjalan sebelum handler klik Frappe pada link sidebar.
+document.addEventListener(
+	"click",
+	(e) => {
+		const link = e.target.closest?.(".body-sidebar .standard-sidebar-item a.item-anchor");
+		if (!link || link.querySelector(".sidebar-item-label")?.textContent.trim() !== __("Item Biaya Proyek")) return;
+		e.preventDefault();
+		e.stopPropagation();
+		frappe.set_route("List", "Item", { item_group: ["descendants of (inclusive)", "Biaya Proyek"] });
+	},
+	true
+);

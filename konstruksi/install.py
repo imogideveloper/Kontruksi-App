@@ -508,6 +508,104 @@ CUSTOM_FIELD_PENGADAAN = {
 }
 
 
+# Satuan konstruksi (nama, harus bilangan bulat) — sama dengan satuan yang dipakai di RAB / WBS.
+UOM_KONSTRUKSI = (
+	("m3", 0), ("m2", 0), ("m'", 0), ("Kg", 0), ("Ton", 0), ("Liter", 0), ("Sak", 1), ("Lembar", 1), ("Batang", 1),
+	("Buah", 1), ("Titik", 1), ("Rit", 1), ("Ls", 0), ("OH", 0), ("Hari", 0), ("Jam", 0), ("Bulan", 0), ("Unit", 1),
+)
+# Item biaya proyek standar: (kode, nama, Item Group, satuan, keterangan). Non-stok — material dikirim langsung ke site.
+ITEM_BIAYA_PROYEK = (
+	# Material
+	("MAT-SEMEN", "Semen Portland 50 kg", "Material Proyek", "Sak", "Semen PCC/OPC kemasan 50 kg."),
+	("MAT-PASIR-BETON", "Pasir Beton", "Material Proyek", "m3", "Pasir untuk campuran beton & plesteran."),
+	("MAT-PASIR-URUG", "Pasir Urug", "Material Proyek", "m3", "Pasir untuk urugan & lantai kerja."),
+	("MAT-SPLIT", "Batu Split 1/2", "Material Proyek", "m3", "Agregat kasar beton."),
+	("MAT-BATU-KALI", "Batu Kali", "Material Proyek", "m3", "Pasangan pondasi & dinding penahan."),
+	("MAT-AGREGAT-A", "Agregat Kelas A", "Material Proyek", "m3", "Lapis pondasi atas perkerasan jalan."),
+	("MAT-AGREGAT-B", "Agregat Kelas B", "Material Proyek", "m3", "Lapis pondasi bawah perkerasan jalan."),
+	("MAT-TANAH-URUG", "Tanah Urug", "Material Proyek", "m3", "Timbunan / urugan tanah."),
+	("MAT-READYMIX", "Beton Ready Mix", "Material Proyek", "m3", "Beton siap pakai; mutu (fc') dicatat di deskripsi baris."),
+	("MAT-BESI-POLOS", "Besi Beton Polos", "Material Proyek", "Kg", "Tulangan polos (BjTP)."),
+	("MAT-BESI-ULIR", "Besi Beton Ulir", "Material Proyek", "Kg", "Tulangan ulir (BjTS)."),
+	("MAT-WIREMESH", "Wiremesh", "Material Proyek", "Lembar", "Tulangan jaring untuk pelat / lantai."),
+	("MAT-KAWAT-BENDRAT", "Kawat Bendrat", "Material Proyek", "Kg", "Pengikat tulangan."),
+	("MAT-BATA-MERAH", "Bata Merah", "Material Proyek", "Buah", "Pasangan dinding bata."),
+	("MAT-BATA-RINGAN", "Bata Ringan (AAC)", "Material Proyek", "m3", "Pasangan dinding bata ringan."),
+	("MAT-MORTAR", "Mortar Instan", "Material Proyek", "Sak", "Perekat bata ringan / plester instan."),
+	("MAT-KAYU-BEKISTING", "Kayu Bekisting", "Material Proyek", "m3", "Kayu kelas III untuk bekisting & perancah."),
+	("MAT-MULTIPLEK", "Multiplek 12 mm", "Material Proyek", "Lembar", "Papan bekisting."),
+	("MAT-PAKU", "Paku", "Material Proyek", "Kg", "Paku kayu berbagai ukuran."),
+	("MAT-BAJA-RINGAN", "Rangka Baja Ringan", "Material Proyek", "Batang", "Kanal C / reng rangka atap."),
+	("MAT-PENUTUP-ATAP", "Penutup Atap", "Material Proyek", "m2", "Genteng metal / spandek / genteng beton."),
+	("MAT-KERAMIK", "Keramik / Granit Lantai", "Material Proyek", "m2", "Penutup lantai & dinding."),
+	("MAT-GYPSUM", "Papan Gypsum 9 mm", "Material Proyek", "Lembar", "Plafon & partisi."),
+	("MAT-HOLLOW", "Hollow Galvanis", "Material Proyek", "Batang", "Rangka plafon / partisi."),
+	("MAT-CAT", "Cat Tembok", "Material Proyek", "Liter", "Cat dasar & cat finishing."),
+	("MAT-PIPA-PVC", "Pipa PVC", "Material Proyek", "Batang", "Instalasi air bersih / kotor."),
+	("MAT-KABEL", "Kabel Listrik NYM", "Material Proyek", "m'", "Instalasi listrik."),
+	("MAT-ASPAL", "Aspal Hotmix (AC-WC/AC-BC)", "Material Proyek", "Ton", "Lapis perkerasan aspal."),
+	# Subkontraktor
+	("SUB-TANAH", "Subkon Pekerjaan Tanah", "Subkontraktor", "Ls", "Galian, timbunan, pemadatan."),
+	("SUB-PONDASI", "Subkon Pondasi / Tiang Pancang", "Subkontraktor", "Ls", "Bore pile, tiang pancang, mini pile."),
+	("SUB-STRUKTUR", "Subkon Pekerjaan Struktur", "Subkontraktor", "Ls", "Beton bertulang / struktur utama."),
+	("SUB-BAJA", "Subkon Struktur Baja", "Subkontraktor", "Ls", "Fabrikasi & erection baja."),
+	("SUB-ARSITEKTUR", "Subkon Pekerjaan Arsitektur", "Subkontraktor", "Ls", "Finishing, kusen, plafon, lantai."),
+	("SUB-MEP", "Subkon Mekanikal, Elektrikal & Plumbing", "Subkontraktor", "Ls", "Instalasi listrik, air, tata udara."),
+	("SUB-JALAN", "Subkon Perkerasan Jalan", "Subkontraktor", "Ls", "Penghamparan agregat & aspal."),
+	# Sewa alat
+	("ALAT-EXCAVATOR", "Sewa Excavator", "Sewa Alat", "Jam", "Termasuk operator; BBM sesuai kontrak sewa."),
+	("ALAT-DUMP-TRUCK", "Sewa Dump Truck", "Sewa Alat", "Rit", "Angkutan material / buangan per ritase."),
+	("ALAT-VIBRO-ROLLER", "Sewa Vibro Roller", "Sewa Alat", "Jam", "Pemadatan tanah & agregat."),
+	("ALAT-CRANE", "Sewa Mobile Crane", "Sewa Alat", "Jam", "Pengangkatan material berat."),
+	("ALAT-CONCRETE-PUMP", "Sewa Concrete Pump", "Sewa Alat", "Jam", "Pengecoran beton."),
+	("ALAT-MOLEN", "Sewa Molen (Concrete Mixer)", "Sewa Alat", "Hari", "Pengaduk beton."),
+	("ALAT-VIBRATOR", "Sewa Concrete Vibrator", "Sewa Alat", "Hari", "Pemadat beton."),
+	("ALAT-STAMPER", "Sewa Stamper", "Sewa Alat", "Hari", "Pemadat tanah kecil."),
+	("ALAT-SCAFFOLDING", "Sewa Scaffolding", "Sewa Alat", "Bulan", "Perancah per set."),
+	("ALAT-GENSET", "Sewa Genset", "Sewa Alat", "Hari", "Listrik kerja."),
+	("ALAT-POMPA", "Sewa Pompa Air", "Sewa Alat", "Hari", "Dewatering / pengeringan."),
+	("ALAT-TOTAL-STATION", "Sewa Total Station / Theodolite", "Sewa Alat", "Hari", "Pengukuran & stake out."),
+	# Upah
+	("UPAH-PEKERJA", "Upah Pekerja", "Upah Tukang", "OH", "Pekerja / kenek per orang-hari."),
+	("UPAH-TUKANG-BATU", "Upah Tukang Batu", "Upah Tukang", "OH", "Per orang-hari."),
+	("UPAH-TUKANG-KAYU", "Upah Tukang Kayu", "Upah Tukang", "OH", "Per orang-hari."),
+	("UPAH-TUKANG-BESI", "Upah Tukang Besi", "Upah Tukang", "OH", "Per orang-hari."),
+	("UPAH-TUKANG-CAT", "Upah Tukang Cat", "Upah Tukang", "OH", "Per orang-hari."),
+	("UPAH-TUKANG-LISTRIK", "Upah Tukang Listrik", "Upah Tukang", "OH", "Per orang-hari."),
+	("UPAH-KEPALA-TUKANG", "Upah Kepala Tukang", "Upah Tukang", "OH", "Per orang-hari."),
+	("UPAH-MANDOR", "Upah Mandor", "Upah Tukang", "OH", "Per orang-hari."),
+	("UPAH-BORONGAN", "Upah Borongan Pekerjaan", "Upah Tukang", "Ls", "Upah borongan per paket pekerjaan."),
+	# Biaya proyek lain
+	("LAIN-MOBILISASI", "Mobilisasi & Demobilisasi", "Biaya Proyek Lain", "Ls", "Pengiriman alat & personel ke/dari site."),
+	("LAIN-ANGKUTAN", "Angkutan Material", "Biaya Proyek Lain", "Rit", "Ongkos kirim material yang ditagih terpisah."),
+	("LAIN-DIREKSI-KEET", "Direksi Keet & Gudang Sementara", "Biaya Proyek Lain", "Ls", "Bangunan sementara di site."),
+	("LAIN-LISTRIK-AIR", "Listrik & Air Kerja", "Biaya Proyek Lain", "Bulan", "Tagihan listrik & air selama pelaksanaan."),
+	("LAIN-K3", "Perlengkapan K3 / APD", "Biaya Proyek Lain", "Ls", "Helm, rompi, sepatu, rambu, P3K."),
+	("LAIN-KEAMANAN", "Keamanan Proyek", "Biaya Proyek Lain", "Bulan", "Jasa keamanan site."),
+	("LAIN-PENGUJIAN", "Pengujian Material / Laboratorium", "Biaya Proyek Lain", "Ls", "Uji beton, tanah, aspal."),
+	("LAIN-PERIZINAN", "Perizinan & Retribusi", "Biaya Proyek Lain", "Ls", "Izin kerja, retribusi daerah."),
+	("LAIN-DOKUMENTASI", "Dokumentasi & Pelaporan", "Biaya Proyek Lain", "Ls", "Foto, as built drawing, laporan."),
+	("LAIN-PEMBERSIHAN", "Pembersihan Akhir", "Biaya Proyek Lain", "Ls", "Pembersihan & pembuangan sisa material."),
+)
+
+
+def buat_item_biaya_proyek():
+	"""Satuan konstruksi & item biaya proyek standar (yang belum ada saja; item yang sudah diubah user tidak ditimpa)."""
+	for nama, bulat in UOM_KONSTRUKSI:
+		if not frappe.db.exists("UOM", nama):
+			frappe.get_doc({"doctype": "UOM", "uom_name": nama, "must_be_whole_number": bulat}).insert(ignore_permissions=True)
+	for kode, nama, grup, satuan, ket in ITEM_BIAYA_PROYEK:
+		if frappe.db.exists("Item", kode):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Item", "item_code": kode, "item_name": nama, "item_group": grup, "stock_uom": satuan,
+				"is_stock_item": 0, "is_purchase_item": 1, "is_sales_item": 0, "include_item_in_manufacturing": 0,
+				"is_fixed_asset": 0, "description": ket,
+			}
+		).insert(ignore_permissions=True)
+
+
 def akun_biaya_proyek(company, nama=None):
 	"""Akun Beban Pokok Proyek (group, nama=None) atau akun anaknya; dibuat bila belum ada."""
 	abbr = frappe.get_cached_value("Company", company, "abbr")
@@ -547,6 +645,7 @@ def buat_pengadaan_default():
 				doc.append("item_group_defaults", {"company": c, "expense_account": akun_biaya_proyek(c, akun)})
 		doc.flags.ignore_permissions = True
 		doc.save()
+	buat_item_biaya_proyek()
 	for doctype in ("Purchase Order", "Purchase Invoice"):
 		for prop, nilai in (("in_standard_filter", 1), ("in_list_view", 1)):
 			make_property_setter(doctype, "project", prop, nilai, "Check", validate_fields_for_doctype=False)
