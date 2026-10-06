@@ -6411,3 +6411,122 @@ body[data-route^="List/Dokumen Tender"] .frappe-list .level-left > .list-row-col
 .kpt .kpt-kosong-nama {
 	white-space: nowrap;
 }
+
+/* ===== Purchase Order (kppo, pengadaan_konstruksi.js): gaya disamakan dengan Sales Invoice tagihan proyek (kpsi). ===== */
+/* Tombol Download / Upload (bulk edit) di bawah tabel Items disembunyikan. */
+.kppo .frappe-control[data-fieldname="items"] .grid-download,
+.kppo .frappe-control[data-fieldname="items"] .grid-upload {
+	display: none !important;
+}
+
+/* Nama item & item WBS boleh turun baris (tidak terpotong). */
+.kppo .frappe-control[data-fieldname="items"] .grid-static-col:is([data-fieldname="item_code"], [data-fieldname="wbs_item"]) .static-area {
+	white-space: normal;
+	overflow: visible;
+	text-overflow: clip;
+	line-height: 1.4;
+}
+
+/* Kolom tombol edit (pensil) di ujung kanan semua tabel sempit; sisa lebar untuk kolom data. */
+@media (min-width: 768px) {
+	.kppo .form-grid .grid-row > .row > .col:last-child:not([class*="col-xs-"]) {
+		flex: 0 0 36px !important;
+		max-width: 36px !important;
+		min-width: 36px !important;
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+	}
+
+	.kppo .form-grid .grid-row > .row > .grid-static-col[class*="col-xs-"] {
+		flex-grow: 1;
+	}
+}
+
+/* Nilai field read-only (bawaan abu-abu) hitam seperti field biasa. */
+.kppo .form-layout .like-disabled-input,
+.kppo .form-layout .like-disabled-input a,
+.kppo .form-layout .form-control:disabled,
+.kppo .form-layout .form-control[readonly] {
+	color: var(--text-color) !important;
+	-webkit-text-fill-color: var(--text-color);
+	opacity: 1;
+}
+
+/* Ringkasan angka (Total di bawah Items; Total Taxes, Grand Total, Rounded Total di bawah tabel pajak): satu tumpukan
+   di kanan, rata kanan, sejajar kolom terakhir tabel (dikurangi kolom pensil 36px), kotak berwarna header tabel. */
+@media (min-width: 768px) {
+	.kppo .form-section:is([data-fieldname="sb_last_purchase"], [data-fieldname="totals"], [data-fieldname="totals_section"]) .section-body {
+		flex-direction: column;
+		align-items: flex-end;
+		padding-right: 36px;
+	}
+
+	.kppo .form-section:is([data-fieldname="sb_last_purchase"], [data-fieldname="totals"], [data-fieldname="totals_section"]) .section-body > .form-column {
+		flex: 0 0 auto;
+		width: 50%;
+		max-width: 50%;
+	}
+
+	/* Kolom yang semua field-nya disembunyikan tidak memakan tempat. */
+	.kppo .form-section:is([data-fieldname="sb_last_purchase"], [data-fieldname="totals"], [data-fieldname="totals_section"]) .section-body > .form-column:not(:has(.frappe-control:not(.hide-control))) {
+		display: none !important;
+	}
+
+	/* Baris Total Taxes and Charges: checkbox Disable Rounded Total paling kiri, total tetap di kanan. */
+	.kppo .form-section[data-fieldname="totals"] .section-body {
+		flex-direction: row;
+		flex-wrap: nowrap;
+		justify-content: space-between;
+		align-items: flex-start;
+	}
+
+	.kppo .form-section[data-fieldname="totals"] .section-body > .form-column:has([data-fieldname="total_taxes_and_charges"]) {
+		margin-left: auto;
+	}
+}
+
+.kppo .form-section:is([data-fieldname="sb_last_purchase"], [data-fieldname="totals"], [data-fieldname="totals_section"]) .frappe-control[data-fieldtype="Currency"] :is(.control-value, input) {
+	text-align: right;
+}
+
+.kppo .form-section:is([data-fieldname="sb_last_purchase"], [data-fieldname="totals"], [data-fieldname="totals_section"]) .frappe-control[data-fieldtype="Currency"] :is(.like-disabled-input, .form-control) {
+	background-color: var(--konstruksi-active-bg) !important;
+}
+
+/* Judul section "Totals" disembunyikan; jarak antar kotak angka seragam (tanpa jarak & garis antar-section). */
+.kppo .form-section[data-fieldname="totals_section"] > .section-head {
+	display: none !important;
+}
+
+.kppo .form-section:is([data-fieldname="totals"], [data-fieldname="totals_section"]) {
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+	border-bottom: none !important;
+}
+
+.kppo .form-section:is([data-fieldname="totals"], [data-fieldname="totals_section"]) > .section-body {
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+	margin-top: 0 !important;
+	margin-bottom: 0 !important;
+}
+
+.kppo .form-section[data-fieldname="totals"] > .section-body {
+	padding-top: 12px !important;
+}
+
+.kppo .form-section[data-fieldname="totals_section"] {
+	padding-bottom: 12px !important;
+	border-bottom: 1px solid var(--border-color) !important;
+}
+
+.kppo .form-section:is([data-fieldname="sb_last_purchase"], [data-fieldname="totals"], [data-fieldname="totals_section"]) .form-column > form > .frappe-control > .form-group {
+	margin-bottom: var(--konstruksi-field-gap) !important;
+}
+
+/* Purchase Order: kolom yang semua field-nya disembunyikan (mis. Dispatch Address) tidak menyisakan ruang kosong. */
+@media (min-width: 768px) {
+	.kppo .form-section > .section-body > .form-column:not(:has(.frappe-control:not(.hide-control))) {
+		display: none !important;
+	}
+}

@@ -347,7 +347,8 @@ def atur_expense_claim():
 # Task: tautan ke item WBS (progres item WBS = rata-rata progres Task-nya; konstruksi/wbs.py).
 CUSTOM_FIELD_WBS = {
 	"Task": [
-		{"fieldname": "wbs_item", "fieldtype": "Link", "label": "Item WBS", "options": "WBS Item", "insert_after": "project",
+		# Tepat setelah nama item: kolom tabel Items tampil Item · Item WBS · Qty · ...
+		{"fieldname": "wbs_item", "fieldtype": "Link", "label": "Item WBS", "options": "WBS Item", "insert_after": "item_name",
 			"depends_on": "eval:doc.project", "search_index": 1,
 			"description": "Pekerjaan di Work Breakdown Structure proyek; progres Task ini menjadi progres item tersebut."},
 		{"fieldname": "pj", "fieldtype": "Link", "label": "Penanggung Jawab", "options": "Employee", "insert_after": "wbs_item",
@@ -498,7 +499,8 @@ JENIS_BIAYA_PROYEK = (
 )
 CUSTOM_FIELD_PENGADAAN = {
 	doctype: [
-		{"fieldname": "wbs_item", "fieldtype": "Link", "label": "Item WBS", "options": "WBS Item", "insert_after": "project",
+		# Tepat setelah nama item: kolom tabel Items tampil Item · Item WBS · Qty · ...
+		{"fieldname": "wbs_item", "fieldtype": "Link", "label": "Item WBS", "options": "WBS Item", "insert_after": "item_name",
 			"depends_on": "eval:doc.project", "search_index": 1,
 			"description": "Pekerjaan WBS yang dibiayai; untuk realisasi biaya per item WBS."},
 		{"fieldname": "jenis_biaya", "fieldtype": "Data", "label": "Jenis Biaya", "fetch_from": "item_code.item_group",
@@ -648,6 +650,9 @@ def buat_pengadaan_default():
 	buat_item_biaya_proyek()
 	import json
 
+	# Harga mengikuti tagihan supplier persis: pembulatan otomatis mati bawaan untuk PO baru.
+	make_property_setter("Purchase Order", "disable_rounded_total", "default", "1", "Text", validate_fields_for_doctype=False)
+
 	for doctype in ("Purchase Order", "Purchase Invoice"):
 		for prop, nilai in (("in_standard_filter", 1), ("in_list_view", 1)):
 			make_property_setter(doctype, "project", prop, nilai, "Check", validate_fields_for_doctype=False)
@@ -658,7 +663,7 @@ def buat_pengadaan_default():
 			urutan.insert(urutan.index("supplier_name") + 1, "project")
 			make_property_setter(doctype, None, "field_order", json.dumps(urutan), "Data", for_doctype=True)
 		make_property_setter(doctype, "project", "description",
-			"Wajib untuk pembelian item biaya proyek; terisi ke semua baris item.", "Small Text", validate_fields_for_doctype=False)
+			"Wajib untuk item biaya proyek.", "Small Text", validate_fields_for_doctype=False)
 
 
 def after_install():

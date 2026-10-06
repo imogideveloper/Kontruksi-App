@@ -48,3 +48,5 @@ konstruksi.patches.v1_0.wbs_ikut_nilai_kontrak
 konstruksi.patches.v1_0.buat_pengadaan
 konstruksi.patches.v1_0.buat_pengadaan #item-biaya-proyek
 konstruksi.patches.v1_0.buat_pengadaan #project-di-atas
+konstruksi.patches.v1_0.buat_pengadaan #keterangan-project
+konstruksi.patches.v1_0.buat_pengadaan #urutan-wbs-pembulatan
