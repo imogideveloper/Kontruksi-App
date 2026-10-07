@@ -22,7 +22,7 @@
    "child": 0,
    "collapsible": 1,
    "indent": 0,
-   "keep_closed": 0,
+   "keep_closed": 1,
    "label": "Tender & Kontrak",
    "show_arrow": 0,
    "type": "Section Break"
@@ -103,7 +103,7 @@
    "child": 0,
    "collapsible": 1,
    "indent": 0,
-   "keep_closed": 0,
+   "keep_closed": 1,
    "label": "Perencanaan & Pelaksanaan",
    "show_arrow": 0,
    "type": "Section Break"
@@ -196,7 +196,7 @@
    "child": 0,
    "collapsible": 1,
    "indent": 0,
-   "keep_closed": 0,
+   "keep_closed": 1,
    "label": "Keuangan",
    "show_arrow": 0,
    "type": "Section Break"
@@ -253,7 +253,7 @@
    "child": 0,
    "collapsible": 1,
    "indent": 0,
-   "keep_closed": 0,
+   "keep_closed": 1,
    "label": "Pengadaan",
    "show_arrow": 0,
    "type": "Section Break"
@@ -310,7 +310,7 @@
    "child": 0,
    "collapsible": 1,
    "indent": 0,
-   "keep_closed": 0,
+   "keep_closed": 1,
    "label": "SDM Proyek",
    "show_arrow": 0,
    "type": "Section Break"
@@ -379,7 +379,7 @@
    "child": 0,
    "collapsible": 1,
    "indent": 0,
-   "keep_closed": 0,
+   "keep_closed": 1,
    "label": "Data Proyek",
    "show_arrow": 0,
    "type": "Section Break"
@@ -472,7 +472,7 @@
    "child": 0,
    "collapsible": 1,
    "indent": 0,
-   "keep_closed": 0,
+   "keep_closed": 1,
    "label": "Konfigurasi",
    "show_arrow": 0,
    "type": "Section Break"
@@ -562,7 +562,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-14 10:00:00.000000",
+ "modified": "2026-10-14 10:05:00.000000",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Konstruksi",
