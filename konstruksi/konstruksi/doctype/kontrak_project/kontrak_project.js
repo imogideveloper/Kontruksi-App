@@ -22,6 +22,17 @@ const FIELD_KELENGKAPAN = [
 	"jaminan_uang_muka_diserahkan",
 	"jaminan_uang_muka_penerbit",
 	"jaminan_uang_muka_berlaku",
+	"retensi_persen",
+	"skema_retensi",
+	"jaminan_pemeliharaan_diserahkan",
+	"jaminan_pemeliharaan_penerbit",
+	"jaminan_pemeliharaan_berlaku",
+	"car_wajib",
+	"car_ada_polis",
+	"car_nomor_polis",
+	"car_penanggung",
+	"car_selesai",
+	"car_nilai_pertanggungan",
 	"nilai_kontrak",
 	"status_ppn",
 	"tarif_ppn",
@@ -63,6 +74,8 @@ const kontrak_events = {
 	setup(frm) {
 		// Hanya tender yang menang dan belum punya kontrak.
 		frm.set_query("tender", () => ({ query: `${KONTRAK_METHOD}.cari_tender_menang` }));
+		// Polis CAR diterbitkan perusahaan asuransi, bukan bank.
+		frm.set_query("car_penanggung", () => ({ filters: { jenis: "Asuransi", disabled: 0 } }));
 	},
 
 	onload(frm) {
@@ -272,12 +285,13 @@ function html_kepala_kontrak(frm) {
 function daftar_tindakan(frm) {
 	const doc = frm.doc;
 	const hari_ini = frappe.datetime.get_today();
-	const { selesai } = jadwal_kontrak(doc);
+	const { selesai, akhir } = jadwal_kontrak(doc);
 	const tindakan = [];
 
-	// Jaminan hanya perlu berlaku selama pelaksanaan (sampai PHO); setelah itu habisnya tidak diperingatkan.
-	const cek_jaminan = (nama, berlaku, aktif, field) => {
-		if (!aktif || !berlaku || (selesai && hari_ini > selesai)) return;
+	// Jaminan / polis hanya diperingatkan selama masih diperlukan: sampai PHO (selesai), atau sampai FHO (akhir)
+	// untuk jaminan pemeliharaan; setelah itu habisnya tidak diperingatkan.
+	const cek_jaminan = (nama, berlaku, aktif, field, batas = selesai) => {
+		if (!aktif || !berlaku || (batas && hari_ini > batas)) return;
 		const sisa = frappe.datetime.get_day_diff(berlaku, hari_ini);
 		if (sisa < 0) {
 			tindakan.push({ tingkat: "merah", judul: __("{0} sudah habis", [nama]), ket: __("Berakhir {0} · minta perpanjangan", [tanggal_kontrak(berlaku)]), field });
@@ -289,6 +303,10 @@ function daftar_tindakan(frm) {
 		doc.jaminan_pelaksanaan_wajib && doc.jaminan_pelaksanaan_diserahkan, "jaminan_pelaksanaan_berlaku");
 	cek_jaminan(__("Jaminan uang muka"), doc.jaminan_uang_muka_berlaku,
 		flt(doc.uang_muka_persen) && doc.jaminan_uang_muka_diserahkan, "jaminan_uang_muka_berlaku");
+	cek_jaminan(__("Jaminan pemeliharaan"), doc.jaminan_pemeliharaan_berlaku,
+		flt(doc.retensi_persen) && doc.skema_retensi === "Diganti Jaminan Pemeliharaan" && doc.jaminan_pemeliharaan_diserahkan,
+		"jaminan_pemeliharaan_berlaku", akhir);
+	cek_jaminan(__("Polis CAR"), doc.car_selesai, doc.car_wajib && doc.car_ada_polis, "car_selesai");
 
 	if (selesai && doc.tanggal_spmk <= hari_ini && hari_ini <= selesai) {
 		const sisa = frappe.datetime.get_day_diff(selesai, hari_ini);

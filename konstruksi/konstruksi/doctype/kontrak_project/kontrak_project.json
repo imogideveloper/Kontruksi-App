@@ -62,22 +62,49 @@
   "syarat_bayar_dikonfirmasi",
   "jaminan_tab",
   "jaminan_section",
-  "jaminan_pelaksanaan_column",
   "jaminan_pelaksanaan_wajib",
   "jaminan_pelaksanaan_nilai",
   "jaminan_pelaksanaan_diserahkan",
+  "jaminan_pelaksanaan_column",
   "jaminan_pelaksanaan_nomor",
   "jaminan_pelaksanaan_penerbit",
   "jaminan_pelaksanaan_berlaku",
   "file_jaminan_pelaksanaan",
-  "jaminan_uang_muka_column",
+  "jaminan_uang_muka_section",
   "jaminan_uang_muka_kosong",
   "jaminan_uang_muka_nilai",
   "jaminan_uang_muka_diserahkan",
+  "jaminan_uang_muka_column",
   "jaminan_uang_muka_nomor",
   "jaminan_uang_muka_penerbit",
   "jaminan_uang_muka_berlaku",
   "file_jaminan_uang_muka",
+  "jaminan_pemeliharaan_section",
+  "jaminan_pemeliharaan_kosong",
+  "jaminan_pemeliharaan_nilai",
+  "jaminan_pemeliharaan_diserahkan",
+  "jaminan_pemeliharaan_column",
+  "jaminan_pemeliharaan_nomor",
+  "jaminan_pemeliharaan_penerbit",
+  "jaminan_pemeliharaan_berlaku",
+  "file_jaminan_pemeliharaan",
+  "car_section",
+  "car_wajib",
+  "car_ada_polis",
+  "car_nomor_polis",
+  "car_penanggung",
+  "car_tertanggung",
+  "car_column",
+  "car_mulai",
+  "car_selesai",
+  "car_pemeliharaan_sampai",
+  "car_nilai_section",
+  "car_nilai_pertanggungan",
+  "car_batas_pihak_ketiga",
+  "car_risiko_sendiri",
+  "car_nilai_column",
+  "car_premi",
+  "file_polis_car",
   "dokumen_tab",
   "dokumen_section",
   "file_kontrak",
@@ -456,15 +483,11 @@
   {
    "fieldname": "jaminan_tab",
    "fieldtype": "Tab Break",
-   "label": "Jaminan"
+   "label": "Jaminan & Asuransi"
   },
   {
    "fieldname": "jaminan_section",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "jaminan_pelaksanaan_column",
-   "fieldtype": "Column Break",
+   "fieldtype": "Section Break",
    "label": "Jaminan Pelaksanaan",
    "description": "Menjamin pekerjaan diselesaikan · 5% nilai kontrak · berlaku sampai serah terima pertama (PHO)."
   },
@@ -489,6 +512,10 @@
    "label": "Sudah Diserahkan",
    "depends_on": "eval:doc.jaminan_pelaksanaan_wajib",
    "description": "Centang setelah bank garansi / surety bond diserahkan ke pemberi kerja."
+  },
+  {
+   "fieldname": "jaminan_pelaksanaan_column",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "jaminan_pelaksanaan_nomor",
@@ -521,10 +548,10 @@
    "depends_on": "eval:doc.jaminan_pelaksanaan_wajib && doc.jaminan_pelaksanaan_diserahkan"
   },
   {
-   "fieldname": "jaminan_uang_muka_column",
-   "fieldtype": "Column Break",
+   "fieldname": "jaminan_uang_muka_section",
+   "fieldtype": "Section Break",
    "label": "Jaminan Uang Muka",
-   "description": "Menjamin uang muka dikembalikan lewat potongan termin · senilai uang muka."
+   "description": "Menjamin uang muka dikembalikan lewat potongan termin · senilai uang muka. Otomatis diperlukan bila Uang Muka (%) di tab Pembayaran diisi."
   },
   {
    "fieldname": "jaminan_uang_muka_kosong",
@@ -546,6 +573,10 @@
    "label": "Sudah Diserahkan",
    "depends_on": "eval:doc.uang_muka_persen",
    "description": "Centang setelah jaminan uang muka diserahkan; nomor, penerbit, dan masa berlaku wajib diisi."
+  },
+  {
+   "fieldname": "jaminan_uang_muka_column",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "jaminan_uang_muka_nomor",
@@ -575,6 +606,177 @@
    "fieldtype": "Attach",
    "label": "Scan Dokumen",
    "depends_on": "eval:doc.uang_muka_persen && doc.jaminan_uang_muka_diserahkan"
+  },
+  {
+   "fieldname": "jaminan_pemeliharaan_section",
+   "fieldtype": "Section Break",
+   "label": "Jaminan Pemeliharaan",
+   "description": "Pengganti retensi agar retensi cair saat PHO · senilai retensi · berlaku sampai akhir masa pemeliharaan (FHO)."
+  },
+  {
+   "fieldname": "jaminan_pemeliharaan_kosong",
+   "fieldtype": "HTML",
+   "depends_on": "eval:!(flt(doc.retensi_persen) > 0 && doc.skema_retensi == 'Diganti Jaminan Pemeliharaan')",
+   "options": "<div class=\"text-muted\">Retensi tidak diganti jaminan pemeliharaan (Skema Retensi di tab Pembayaran), jadi jaminan pemeliharaan tidak diperlukan.</div>"
+  },
+  {
+   "fieldname": "jaminan_pemeliharaan_nilai",
+   "fieldtype": "Currency",
+   "label": "Nilai",
+   "options": "IDR",
+   "read_only": 1,
+   "depends_on": "eval:flt(doc.retensi_persen) > 0 && doc.skema_retensi == 'Diganti Jaminan Pemeliharaan'"
+  },
+  {
+   "fieldname": "jaminan_pemeliharaan_diserahkan",
+   "fieldtype": "Check",
+   "label": "Sudah Diserahkan",
+   "depends_on": "eval:flt(doc.retensi_persen) > 0 && doc.skema_retensi == 'Diganti Jaminan Pemeliharaan'",
+   "description": "Centang setelah jaminan pemeliharaan diserahkan; nomor, penerbit, dan masa berlaku wajib diisi."
+  },
+  {
+   "fieldname": "jaminan_pemeliharaan_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "jaminan_pemeliharaan_nomor",
+   "fieldtype": "Data",
+   "label": "Nomor",
+   "depends_on": "eval:flt(doc.retensi_persen) > 0 && doc.skema_retensi == 'Diganti Jaminan Pemeliharaan'",
+   "mandatory_depends_on": "eval:flt(doc.retensi_persen) > 0 && doc.skema_retensi == 'Diganti Jaminan Pemeliharaan' && doc.jaminan_pemeliharaan_diserahkan"
+  },
+  {
+   "fieldname": "jaminan_pemeliharaan_penerbit",
+   "fieldtype": "Link",
+   "label": "Penerbit (Bank / Asuransi)",
+   "options": "Penerbit Jaminan",
+   "depends_on": "eval:flt(doc.retensi_persen) > 0 && doc.skema_retensi == 'Diganti Jaminan Pemeliharaan'",
+   "mandatory_depends_on": "eval:flt(doc.retensi_persen) > 0 && doc.skema_retensi == 'Diganti Jaminan Pemeliharaan' && doc.jaminan_pemeliharaan_diserahkan"
+  },
+  {
+   "fieldname": "jaminan_pemeliharaan_berlaku",
+   "fieldtype": "Date",
+   "label": "Berlaku Sampai",
+   "depends_on": "eval:flt(doc.retensi_persen) > 0 && doc.skema_retensi == 'Diganti Jaminan Pemeliharaan'",
+   "mandatory_depends_on": "eval:flt(doc.retensi_persen) > 0 && doc.skema_retensi == 'Diganti Jaminan Pemeliharaan' && doc.jaminan_pemeliharaan_diserahkan",
+   "description": "Minimal sampai Akhir Pemeliharaan (FHO)."
+  },
+  {
+   "fieldname": "file_jaminan_pemeliharaan",
+   "fieldtype": "Attach",
+   "label": "Scan Dokumen",
+   "depends_on": "eval:flt(doc.retensi_persen) > 0 && doc.skema_retensi == 'Diganti Jaminan Pemeliharaan' && doc.jaminan_pemeliharaan_diserahkan"
+  },
+  {
+   "fieldname": "car_section",
+   "fieldtype": "Section Break",
+   "label": "Asuransi CAR (Contractor's All Risk)",
+   "description": "Asuransi proyek: Section 1 kerusakan fisik pekerjaan, Section 2 tanggung jawab ke pihak ketiga · berlaku selama pelaksanaan + masa pemeliharaan."
+  },
+  {
+   "fieldname": "car_wajib",
+   "fieldtype": "Check",
+   "label": "Wajib (disyaratkan kontrak)",
+   "description": "Centang bila kontrak mensyaratkan kontraktor menutup asuransi CAR."
+  },
+  {
+   "fieldname": "car_ada_polis",
+   "fieldtype": "Check",
+   "label": "Sudah Ada Polis",
+   "depends_on": "eval:doc.car_wajib",
+   "description": "Centang setelah polis terbit; nomor, penanggung, periode, dan nilai pertanggungan wajib diisi."
+  },
+  {
+   "fieldname": "car_nomor_polis",
+   "fieldtype": "Data",
+   "label": "Nomor Polis",
+   "depends_on": "eval:doc.car_wajib",
+   "mandatory_depends_on": "eval:doc.car_wajib && doc.car_ada_polis"
+  },
+  {
+   "fieldname": "car_penanggung",
+   "fieldtype": "Link",
+   "label": "Perusahaan Asuransi",
+   "options": "Penerbit Jaminan",
+   "depends_on": "eval:doc.car_wajib",
+   "mandatory_depends_on": "eval:doc.car_wajib && doc.car_ada_polis"
+  },
+  {
+   "fieldname": "car_tertanggung",
+   "fieldtype": "Data",
+   "label": "Tertanggung",
+   "depends_on": "eval:doc.car_wajib",
+   "description": "Umumnya kontraktor dan pemberi kerja (joint insured)."
+  },
+  {
+   "fieldname": "car_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "car_mulai",
+   "fieldtype": "Date",
+   "label": "Periode Mulai",
+   "depends_on": "eval:doc.car_wajib",
+   "mandatory_depends_on": "eval:doc.car_wajib && doc.car_ada_polis",
+   "description": "Umumnya tanggal SPMK."
+  },
+  {
+   "fieldname": "car_selesai",
+   "fieldtype": "Date",
+   "label": "Periode Konstruksi Sampai",
+   "depends_on": "eval:doc.car_wajib",
+   "mandatory_depends_on": "eval:doc.car_wajib && doc.car_ada_polis",
+   "description": "Minimal sampai Tanggal Selesai (PHO)."
+  },
+  {
+   "fieldname": "car_pemeliharaan_sampai",
+   "fieldtype": "Date",
+   "label": "Periode Pemeliharaan Sampai",
+   "depends_on": "eval:doc.car_wajib",
+   "description": "Perluasan masa pemeliharaan; idealnya sampai Akhir Pemeliharaan (FHO)."
+  },
+  {
+   "fieldname": "car_nilai_section",
+   "fieldtype": "Section Break",
+   "depends_on": "eval:doc.car_wajib"
+  },
+  {
+   "fieldname": "car_nilai_pertanggungan",
+   "fieldtype": "Currency",
+   "label": "Nilai Pertanggungan (Section 1)",
+   "options": "IDR",
+   "mandatory_depends_on": "eval:doc.car_wajib && doc.car_ada_polis",
+   "description": "Kerusakan fisik pekerjaan · minimal nilai kontrak terkini; terisi otomatis bila kosong."
+  },
+  {
+   "fieldname": "car_batas_pihak_ketiga",
+   "fieldtype": "Currency",
+   "label": "Batas Tanggung Jawab Pihak Ketiga (Section 2)",
+   "options": "IDR",
+   "description": "Batas ganti rugi per kejadian untuk cedera / kerusakan milik pihak ketiga."
+  },
+  {
+   "fieldname": "car_risiko_sendiri",
+   "fieldtype": "Currency",
+   "label": "Risiko Sendiri (Deductible)",
+   "options": "IDR",
+   "description": "Bagian kerugian per kejadian yang ditanggung kontraktor sendiri."
+  },
+  {
+   "fieldname": "car_nilai_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "car_premi",
+   "fieldtype": "Currency",
+   "label": "Premi",
+   "options": "IDR"
+  },
+  {
+   "fieldname": "file_polis_car",
+   "fieldtype": "Attach",
+   "label": "Scan Polis",
+   "depends_on": "eval:doc.car_wajib && doc.car_ada_polis"
   },
   {
    "fieldname": "dokumen_tab",
@@ -637,7 +839,7 @@
    "link_fieldname": "kontrak_project"
   }
  ],
- "modified": "2026-10-05 19:39:20.413202",
+ "modified": "2026-10-07 09:41:06.506619",
  "modified_by": "Administrator",
  "module": "Konstruksi",
  "name": "Kontrak Project",

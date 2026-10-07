@@ -13,6 +13,7 @@ from konstruksi.konstruksi.doctype.addendum.addendum import addendum_disetujui
 from konstruksi.konstruksi.project_konstruksi import sinkron_project
 
 from konstruksi.konstruksi.doctype.tarif_pph_final.tarif_pph_final import cek_kualifikasi, get_tarif
+from konstruksi.konstruksi.penagihan import SKEMA_RETENSI_JAMINAN
 from konstruksi.konstruksi.doctype.tender.tender import BATAS_HARGA_WAJAR
 
 # Field Kontrak Project yang selalu mengikuti Tender (read-only di kontrak, diubah dari Tender): field kontrak -> Tender.
@@ -43,15 +44,7 @@ class KontrakProject(Document):
 		self.ambil_tarif_pph()
 
 		self.cek_data_jaminan()
-
-		if self.jaminan_pelaksanaan_kurang_lama():
-			frappe.msgprint(
-				_("Jaminan pelaksanaan berlaku sampai {0}, sebelum Tanggal Selesai pekerjaan {1}. Minta perpanjangan ke penerbit.").format(
-					frappe.format(self.jaminan_pelaksanaan_berlaku, "Date"), frappe.format(self.tanggal_selesai, "Date")
-				),
-				title=_("Masa berlaku jaminan kurang"),
-				indicator="orange",
-			)
+		self.peringatan_jaminan()
 
 		if self.tanggal_kontrak and self.tanggal_spmk and getdate(self.tanggal_spmk) < getdate(self.tanggal_kontrak):
 			frappe.throw(_("Tanggal SPMK tidak boleh sebelum Tanggal Kontrak."))
@@ -86,6 +79,7 @@ class KontrakProject(Document):
 		jaminan = (
 			(_("Jaminan pelaksanaan"), "jaminan_pelaksanaan", self.jaminan_pelaksanaan_wajib),
 			(_("Jaminan uang muka"), "jaminan_uang_muka", flt(self.uang_muka_persen)),
+			(_("Jaminan pemeliharaan"), "jaminan_pemeliharaan", self.perlu_jaminan_pemeliharaan()),
 		)
 		for nama, prefix, berlaku in jaminan:
 			if not (berlaku and self.get(f"{prefix}_diserahkan")):
@@ -100,6 +94,73 @@ class KontrakProject(Document):
 					_("{0} ditandai sudah diserahkan; lengkapi: {1}.").format(nama, ", ".join(kosong)),
 					title=_("Data jaminan belum lengkap"),
 				)
+
+		if self.car_wajib and self.car_ada_polis:
+			kosong = [
+				_(self.meta.get_label(field))
+				for field in ("car_nomor_polis", "car_penanggung", "car_mulai", "car_selesai", "car_nilai_pertanggungan")
+				if not self.get(field)
+			]
+			if kosong:
+				frappe.throw(
+					_("Asuransi CAR ditandai sudah ada polis; lengkapi: {0}.").format(", ".join(kosong)),
+					title=_("Data asuransi CAR belum lengkap"),
+				)
+			if self.car_selesai and getdate(self.car_selesai) < getdate(self.car_mulai):
+				frappe.throw(_("Periode Konstruksi Sampai pada polis CAR tidak boleh sebelum Periode Mulai."))
+
+	def peringatan_jaminan(self):
+		"""Peringatan (bukan blokir) bila masa berlaku atau nilai jaminan / polis kurang dari yang disyaratkan."""
+		pesan = []
+		if self.jaminan_pelaksanaan_kurang_lama():
+			pesan.append(
+				_("Jaminan pelaksanaan berlaku sampai {0}, sebelum Tanggal Selesai pekerjaan {1}. Minta perpanjangan ke penerbit.").format(
+					frappe.format(self.jaminan_pelaksanaan_berlaku, "Date"), frappe.format(self.tanggal_selesai, "Date")
+				)
+			)
+		if self.jaminan_pemeliharaan_kurang_lama():
+			pesan.append(
+				_("Jaminan pemeliharaan berlaku sampai {0}, sebelum Akhir Pemeliharaan {1}. Minta perpanjangan ke penerbit.").format(
+					frappe.format(self.jaminan_pemeliharaan_berlaku, "Date"), frappe.format(self.akhir_pemeliharaan, "Date")
+				)
+			)
+		pesan += [ket for ket, _field in self.kekurangan_car()]
+		if pesan:
+			frappe.msgprint("<br><br>".join(pesan), title=_("Jaminan / asuransi perlu diperbaiki"), indicator="orange")
+
+	def perlu_jaminan_pemeliharaan(self):
+		return bool(flt(self.retensi_persen) and self.skema_retensi == SKEMA_RETENSI_JAMINAN)
+
+	def jaminan_pemeliharaan_kurang_lama(self):
+		"""Jaminan pemeliharaan harus berlaku minimal sampai akhir masa pemeliharaan (FHO)."""
+		return bool(
+			self.perlu_jaminan_pemeliharaan()
+			and self.jaminan_pemeliharaan_berlaku
+			and self.akhir_pemeliharaan
+			and getdate(self.jaminan_pemeliharaan_berlaku) < getdate(self.akhir_pemeliharaan)
+		)
+
+	def kekurangan_car(self):
+		"""[(keterangan, field)] polis CAR yang periode / nilai pertanggungannya kurang dari kontrak terkini."""
+		if not (self.car_wajib and self.car_ada_polis):
+			return []
+		kurang = []
+		if self.car_selesai and self.tanggal_selesai and getdate(self.car_selesai) < getdate(self.tanggal_selesai):
+			kurang.append((
+				_("Polis CAR berakhir {0}, sebelum Tanggal Selesai pekerjaan {1} · minta perpanjangan").format(
+					frappe.format(self.car_selesai, "Date"), frappe.format(self.tanggal_selesai, "Date")
+				),
+				"car_selesai",
+			))
+		nilai = flt(self.nilai_kontrak_terkini or self.nilai_kontrak)
+		if self.car_nilai_pertanggungan and flt(self.car_nilai_pertanggungan) < nilai:
+			kurang.append((
+				_("Nilai pertanggungan CAR {0} di bawah nilai kontrak terkini {1} · minta endorsemen polis").format(
+					fmt_money(self.car_nilai_pertanggungan, 0, "IDR"), fmt_money(nilai, 0, "IDR")
+				),
+				"car_nilai_pertanggungan",
+			))
+		return kurang
 
 	def jaminan_pelaksanaan_kurang_lama(self):
 		"""Jaminan pelaksanaan harus berlaku minimal sampai tanggal selesai pekerjaan."""
@@ -170,6 +231,17 @@ class KontrakProject(Document):
 		self.jaminan_uang_muka_nilai = self.nilai_uang_muka
 		if not flt(self.uang_muka_persen):
 			self.jaminan_uang_muka_diserahkan = 0
+		# Jaminan pemeliharaan senilai retensi, hanya bila retensi diganti jaminan.
+		self.jaminan_pemeliharaan_nilai = (
+			flt(nilai * flt(self.retensi_persen) / 100, 2) if self.perlu_jaminan_pemeliharaan() else 0
+		)
+		if not self.perlu_jaminan_pemeliharaan():
+			self.jaminan_pemeliharaan_diserahkan = 0
+		# Nilai pertanggungan CAR minimal nilai kontrak; diisi otomatis bila belum diisi.
+		if self.car_wajib and not flt(self.car_nilai_pertanggungan):
+			self.car_nilai_pertanggungan = nilai
+		if not self.car_wajib:
+			self.car_ada_polis = 0
 
 	def get_kelengkapan(self):
 		"""Checklist kelengkapan kontrak: label, ok, keterangan, dan field yang perlu diisi."""
@@ -239,6 +311,38 @@ class KontrakProject(Document):
 					"field": "jaminan_uang_muka_diserahkan",
 				}
 			)
+		if self.perlu_jaminan_pemeliharaan():
+			nilai = fmt_money(self.jaminan_pemeliharaan_nilai, 0, "IDR")
+			if not self.jaminan_pemeliharaan_diserahkan:
+				ok, field = False, "jaminan_pemeliharaan_diserahkan"
+				ket = _("Wajib sebelum retensi dicairkan saat PHO · nilai {0}").format(nilai)
+			elif self.jaminan_pemeliharaan_kurang_lama():
+				ok, field = False, "jaminan_pemeliharaan_berlaku"
+				ket = _("Berlaku sampai {0}, sebelum akhir pemeliharaan {1} · minta perpanjangan").format(
+					frappe.format(self.jaminan_pemeliharaan_berlaku, "Date"), frappe.format(self.akhir_pemeliharaan, "Date")
+				)
+			else:
+				ok, field = True, "jaminan_pemeliharaan_diserahkan"
+				ket = _("{0} · {1} · berlaku sampai {2}").format(
+					self.jaminan_pemeliharaan_penerbit or _("Diserahkan"),
+					nilai,
+					frappe.format(self.jaminan_pemeliharaan_berlaku, "Date"),
+				)
+			items.append({"label": _("Jaminan pemeliharaan"), "ok": ok, "ket": ket, "field": field})
+		if self.car_wajib:
+			kurang = self.kekurangan_car()
+			if not self.car_ada_polis:
+				ok, field, ket = False, "car_ada_polis", _("Polis belum ada · tutup sebelum pekerjaan dimulai")
+			elif kurang:
+				ok, (ket, field) = False, kurang[0]
+			else:
+				ok, field = True, "car_ada_polis"
+				ket = _("{0} · {1} · sampai {2}").format(
+					self.car_penanggung or self.car_nomor_polis,
+					fmt_money(self.car_nilai_pertanggungan, 0, "IDR"),
+					frappe.format(self.car_selesai, "Date"),
+				)
+			items.append({"label": _("Asuransi CAR"), "ok": ok, "ket": ket, "field": field})
 		items.append(self.cek_rab())
 		return items
 
@@ -336,6 +440,8 @@ FIELD_HITUNGAN = (
 	"akhir_pemeliharaan",
 	"jaminan_pelaksanaan_nilai",
 	"jaminan_uang_muka_nilai",
+	"jaminan_pemeliharaan_nilai",
+	"car_nilai_pertanggungan",
 )
 
 
