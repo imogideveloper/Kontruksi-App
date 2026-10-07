@@ -5762,6 +5762,11 @@ body[data-route^="List/Hasil Tender"] .frappe-list .level-left > .list-row-col:l
 	display: none !important;
 }
 
+/* Sidebar (semua modul): teks & ikon menu yang tidak aktif hitam (bawaan abu-abu); aktif & hover tetap biru. */
+:root:not([data-theme="dark"]) .body-sidebar .standard-sidebar-item:not(.active-sidebar) :is(.sidebar-item-label, .sidebar-item-icon, .sidebar-item-icon .icon, .item-anchor) {
+	color: #000 !important;
+}
+
 /* Sidebar (semua modul): menu yang disorot kursor (belum diklik) diberi blok warna — nada lebih muda dari menu aktif,
    tanpa garis aksen kiri, supaya tetap beda dengan menu yang sedang dibuka. */
 .body-sidebar .standard-sidebar-item:not(.active-sidebar):has(a.item-anchor:not(.section-break)) {
